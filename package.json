@@ -1,9 +1,10 @@
 {
   "name": "form_structure",
   "version": "1.0.0",
-  "description": "",
   "main": "sketch.js",
   "scripts": {
+    "dev": "canvas-sketch sketch.js --open",
+    "build": "canvas-sketch sketch.js --name index --build --inline",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,6 +20,8 @@
   "homepage": "https://github.com/kylestew/form_structure#readme",
   "dependencies": {
     "canvas-sketch": "^0.7.4",
-    "canvas-sketch-util": "^1.10.0"
-  }
+    "canvas-sketch-util": "^1.10.0",
+    "nice-color-palettes": "^3.0.0"
+  },
+  "description": ""
 }
