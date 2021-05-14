@@ -4,8 +4,13 @@ global.THREE = require("three");
 const canvasSketch = require("canvas-sketch");
 const random = require("canvas-sketch-util/random");
 const palettes = require("nice-color-palettes");
+const eases = require("eases");
 
 const settings = {
+  dimensions: [512, 521],
+  fps: 24,
+  duration: 4,
+
   // Make the loop animated
   animate: true,
   // Get a WebGL canvas rather than 2D
@@ -87,8 +92,9 @@ const sketch = ({ context }) => {
       camera.updateProjectionMatrix();
     },
     // Update & render your scene here
-    render({ time }) {
-      // mesh.rotation.y = time * ((10 * Math.PI) / 180);
+    render({ playhead }) {
+      const t = Math.sin(playhead * Math.PI);
+      scene.rotation.y = eases.expoInOut(t);
       renderer.render(scene, camera);
     },
     // Dispose of events & renderer for cleaner hot-reloading
