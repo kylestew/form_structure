@@ -4,7 +4,7 @@
   "main": "sketch.js",
   "scripts": {
     "dev": "canvas-sketch 2021_05_02-sketch.js --open",
-    "build": "canvas-sketch 2021_05_02-sketch.js --name index --build --inline",
+    "build": "canvas-sketch 2021_05_14.js --name index --build --inline",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,6 +22,8 @@
     "canvas-sketch": "^0.7.4",
     "canvas-sketch-util": "^1.10.0",
     "eases": "^1.0.8",
+    "glsl-hsl2rgb": "^1.1.0",
+    "glsl-noise": "^0.0.0",
     "nice-color-palettes": "^3.0.0",
     "three": "^0.128.0"
   },
