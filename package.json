@@ -1,12 +1,11 @@
 {
   "name": "form_structure",
   "version": "1.0.0",
-  "main": "sketch.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "new-sketch": "canvas-sketch sketch.js --new --open",
-    "start": "canvas-sketch sketch.js --open",
-    "build": "canvas-sketch sketch.js --name index --build --inline",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx eleventy",
+    "serve": "npx eleventy --serve"
   },
   "repository": {
     "type": "git",
@@ -19,16 +18,8 @@
     "url": "https://github.com/kylestew/form_structure/issues"
   },
   "homepage": "https://github.com/kylestew/form_structure#readme",
-  "dependencies": {
-    "canvas-sketch": "^0.7.4",
-    "canvas-sketch-util": "^1.10.0",
-    "color-luminance": "^2.1.0",
-    "eases": "^1.0.8",
-    "glsl-hsl2rgb": "^1.1.0",
-    "glsl-noise": "^0.0.0",
-    "hex-rgb": "^5.0.0",
-    "nice-color-palettes": "^3.0.0",
-    "three": "^0.128.0"
-  },
-  "description": ""
+  "devDependencies": {
+    "@11ty/eleventy": "^0.12.1",
+    "moment": "^2.29.1"
+  }
 }
