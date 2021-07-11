@@ -1,0 +1,4 @@
+baseURL = "https://www.formandstructure.co/"
+languageCode = "en-us"
+title = "Form & Structure"
+theme = "ananke"
