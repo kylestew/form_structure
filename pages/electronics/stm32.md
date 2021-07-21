@@ -4,5 +4,8 @@ time: '21:52:55'
 draft: true
 ---
 
-This is a brand new page.
++ Breakout board with choices made
++ Chips I've used in designs
++ Template project using LibopenCM3
+
 
