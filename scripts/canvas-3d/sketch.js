@@ -39,6 +39,14 @@ function setup() {
 }
 
 const drawCells = (ctx, positions, cells) => {
+  const circle = (ctx, pos, r, stroke = false, fill = true) => {
+    ctx.beginPath();
+    let [x, y] = pos;
+    ctx.arc(x, y, r, 0, 2 * Math.PI, false);
+    if (stroke === true) ctx.stroke();
+    if (fill === true) ctx.fill();
+  };
+
   const stroke = (ctx, points) => {
     ctx.beginPath();
     points.forEach((p) => ctx.lineTo(p[0], p[1]));
@@ -66,6 +74,11 @@ const drawCells = (ctx, positions, cells) => {
     .forEach(({ points }) => {
       points.push(points[0]);
       stroke(ctx, points);
+
+      ctx.fillStyle = secondary;
+      points.forEach((pt) => {
+        circle(ctx, pt, 4.0);
+      });
     });
 };
 

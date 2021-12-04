@@ -9,8 +9,9 @@ exclude:
   - package-lock.json
   - install-modules.mjs
 
-keep_files:
-  - web_modules
+include:
+  - _commonjsHelpers-798ad6a7.js
+  - _node-resolve:empty-5550de3c.js
 
 collections:
   pages:

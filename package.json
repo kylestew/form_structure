@@ -36,9 +36,6 @@
     "three": "^0.135.0"
   },
   "esinstall": {
-    "installOptions": {
-      "dest": "_site/web_modules"
-    },
     "install": [
       "@thi.ng/api",
       "@thi.ng/arrays",
