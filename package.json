@@ -1,34 +1,71 @@
 {
-  "name": "form_structure",
-  "version": "1.0.0",
-  "main": "sketch.js",
+  "name": "kylestew.github.io",
   "scripts": {
-    "new-sketch": "canvas-sketch sketch.js --new --open",
-    "start": "canvas-sketch sketch.js --open",
-    "build": "canvas-sketch sketch.js --name index --build --inline",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "postinstall": "node install-modules.mjs",
+    "clean": "rm -rf _site node_modules web_modules"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kylestew/form_structure.git"
+  "devDependencies": {
+    "esinstall": "^1.1.7"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/kylestew/form_structure/issues"
-  },
-  "homepage": "https://github.com/kylestew/form_structure#readme",
   "dependencies": {
-    "canvas-sketch": "^0.7.4",
+    "@thi.ng/api": "^8.3.2",
+    "@thi.ng/arrays": "^2.1.2",
+    "@thi.ng/checks": "^3.1.2",
+    "@thi.ng/defmulti": "^2.1.2",
+    "@thi.ng/equiv": "^2.1.2",
+    "@thi.ng/errors": "^2.1.2",
+    "@thi.ng/geom": "^3.1.5",
+    "@thi.ng/geom-api": "^3.1.5",
+    "@thi.ng/geom-hull": "^2.1.5",
+    "@thi.ng/geom-resample": "^2.1.5",
+    "@thi.ng/geom-subdiv-curve": "^2.1.5",
+    "@thi.ng/geom-tessellate": "^2.1.5",
+    "@thi.ng/math": "^5.1.2",
+    "@thi.ng/matrices": "^2.1.5",
+    "@thi.ng/random": "^3.2.2",
+    "@thi.ng/strings": "^3.3.0",
+    "@thi.ng/transducers": "^8.1.2",
+    "@thi.ng/vectors": "^7.4.1",
+    "bezier-easing": "^2.1.0",
+    "camera-project": "^1.0.2",
     "canvas-sketch-util": "^1.10.0",
-    "color-luminance": "^2.1.0",
-    "eases": "^1.0.8",
-    "glsl-hsl2rgb": "^1.1.0",
-    "glsl-noise": "^0.0.0",
-    "hex-rgb": "^5.0.0",
-    "nice-color-palettes": "^3.0.0",
-    "three": "^0.128.0"
+    "convex-hull": "^1.0.3",
+    "flat-palettes": "^0.1.0",
+    "gl-matrix": "^3.4.3",
+    "perspective-camera": "^2.0.1",
+    "three": "^0.135.0"
   },
-  "description": ""
+  "esinstall": {
+    "installOptions": {
+      "dest": "_site/web_modules"
+    },
+    "install": [
+      "@thi.ng/api",
+      "@thi.ng/arrays",
+      "@thi.ng/checks",
+      "@thi.ng/defmulti",
+      "@thi.ng/equiv",
+      "@thi.ng/errors",
+      "@thi.ng/geom",
+      "@thi.ng/geom-api",
+      "@thi.ng/geom-hull",
+      "@thi.ng/geom-resample",
+      "@thi.ng/geom-subdiv-curve",
+      "@thi.ng/geom-tessellate",
+      "@thi.ng/math",
+      "@thi.ng/matrices",
+      "@thi.ng/random",
+      "@thi.ng/strings",
+      "@thi.ng/transducers",
+      "@thi.ng/vectors",
+      "bezier-easing",
+      "camera-project",
+      "canvas-sketch-util",
+      "convex-hull",
+      "flat-palettes",
+      "gl-matrix",
+      "perspective-camera",
+      "three"
+    ]
+  }
 }
