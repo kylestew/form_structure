@@ -5,13 +5,6 @@ import cameraProject from "/web_modules/camera-project.js";
 import { mat4 } from "/web_modules/gl-matrix.js";
 import BezierEasing from "/web_modules/bezier-easing.js";
 
-/*
- * TODO:
- * - 2nd shape?
- * - ball ends?
- * - move things?
- */
-
 const settings = {
   loopTime: 8,
   pointCountMin: 6,
