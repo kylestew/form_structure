@@ -4,14 +4,16 @@ import createCamera from "/web_modules/perspective-camera.js";
 import cameraProject from "/web_modules/camera-project.js";
 import { mat4 } from "/web_modules/gl-matrix.js";
 import BezierEasing from "/web_modules/bezier-easing.js";
+import { polar, cartesian } from "/web_modules/@thi.ng/vectors.js";
 
 const settings = {
   loopTime: 8,
   pointCountMin: 6,
-  pointCountMax: 16,
+  pointCountMax: 12,
   easeA: new BezierEasing(0.14, 0.28, 0.48, 0.45),
   easeB: new BezierEasing(0.14, 0.28, 0.67, 0.46),
-  lineWidth: 3,
+  lineWidth: 3.0,
+  ballSize: 6.0,
 };
 
 let camera = createCamera({
@@ -70,9 +72,18 @@ const drawCells = (ctx, positions, cells) => {
 
       ctx.fillStyle = secondary;
       points.forEach((pt) => {
-        circle(ctx, pt, 4.0);
+        circle(ctx, pt, settings.ballSize);
       });
     });
+};
+
+const updateMesh = (mesh) => {
+  // randomly disturb a vertices
+  const idx = Math.floor(Math.random() * mesh.positions.length);
+  let p = polar([], mesh.positions[idx]);
+  p[0] += 0.01 * (Math.random() - 0.45);
+  mesh.positions[idx] = cartesian([], p);
+  return mesh;
 };
 
 function render({ ctx, width, height, playhead }) {
@@ -102,6 +113,7 @@ function render({ ctx, width, height, playhead }) {
   mat4.multiply(combined, projection, combined);
 
   // "project" the 3D positions into 2D [x, y] points in pixel space
+  mesh = updateMesh(mesh);
   let { cells, positions } = mesh;
   const points = positions.map((position) => {
     return cameraProject([], position, viewport, combined);
