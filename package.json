@@ -1,6 +1,7 @@
 {
   "name": "kylestew.github.io",
   "scripts": {
+    "start": "bundle exec jekyll serve -l",
     "postinstall": "node install-modules.mjs",
     "clean": "rm -rf _site node_modules web_modules"
   },
