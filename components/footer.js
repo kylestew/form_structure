@@ -13,17 +13,29 @@ export default function Footer({}) {
     <footer className={styles.footer}>
       <ul>
         <li>
-          <a href="https://www.instagram.com/form.structure/">
+          <a
+            href="https://www.instagram.com/form.structure/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <FontAwesomeIcon icon={faInstagram} />
           </a>
         </li>
         <li>
-          <a href="https://github.com/kylestew">
+          <a
+            href="https://github.com/kylestew"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <FontAwesomeIcon icon={faGithub} />
           </a>
         </li>
         <li>
-          <a href="https://www.linkedin.com/in/kyle-stewart-91851166/">
+          <a
+            href="https://www.linkedin.com/in/kyle-stewart-91851166/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <FontAwesomeIcon icon={faLinkedin} />
           </a>
         </li>
