@@ -1,16 +1,58 @@
-html,
+:root {
+  --maxWidth: 1280px;
+
+  --backgroundColor: #f2f2f2;
+  /* --headerBackgroundColor: #d9d9d9; */
+  --textColor: #404040;
+  --linkColor: #3f7373;
+  --linkHoverColor: #254559;
+  --linkActiveColor: #254559;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
 body {
+  font-family: "IBM Plex Sans", sans-serif;
+  background-color: var(--backgroundColor);
+  color: var(--textColor);
   padding: 0;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
 a {
-  color: inherit;
   text-decoration: none;
+  color: var(--linkColor);
 }
 
-* {
-  box-sizing: border-box;
+a.active {
+  color: var(--linkActiveColor);
+}
+
+a:hover {
+  color: var(--linkHoverColor);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+section {
+  max-width: var(--maxWidth);
+  margin: 0 auto 0 auto;
+  padding: 0;
+}
+
+section ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
 }
