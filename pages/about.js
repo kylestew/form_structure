@@ -13,10 +13,9 @@ function About() {
         <div className={styles.intro}>
           <h1>About</h1>
           <h2>Subtitle might go here</h2>
-          <h3>Or possibly a short intro description</h3>
         </div>
 
-        <Image src="/wide-sample.jpg" width="1024" height="768" />
+        <img src="/wide-sample.jpg" alt="" />
 
         <p>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
@@ -36,7 +35,7 @@ function About() {
           viverra aliquet eget. A diam maecenas sed enim ut sem.
         </p>
 
-        <Image src="/tall-sample.jpg" width="768" height="1024" />
+        <img src="/tall-sample.jpg" alt="" />
 
         <p>
           Risus at ultrices mi tempus imperdiet nulla malesuada. Pharetra massa
@@ -69,6 +68,8 @@ function About() {
           ut. Nunc pulvinar sapien et ligula ullamcorper malesuada proin libero
           nunc. Lacus laoreet non curabitur gravida arcu ac.
         </p>
+
+        <h3>Section Heading</h3>
 
         <p>
           Sed turpis tincidunt id aliquet. Quis viverra nibh cras pulvinar
