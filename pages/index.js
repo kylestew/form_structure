@@ -16,6 +16,11 @@ export default function Home() {
             subtitle="Sound and motion experience"
           />
           <ProjectCard
+            name="plotter"
+            title="Pen Plotter"
+            subtitle="Mechanically plotted artwork"
+          />
+          <ProjectCard
             name="gen-art-challenge"
             title="100 Days of Generative Art"
             subtitle="My coding addiction"
