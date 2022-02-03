@@ -36,6 +36,11 @@
   margin: 2rem auto;
 }
 
+.article iframe {
+  width: 100%;
+  margin: 1rem auto;
+}
+
 @media (min-width: 650px) {
   .article {
     padding: 1rem 2.5rem 1rem 2.5rem;

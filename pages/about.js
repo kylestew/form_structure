@@ -20,11 +20,12 @@ function About() {
 
           <div className={aboutStyles.description}>
             <p>
-              I am focused on the intersection of art and tech. I work with
-              real-time 3D graphics on mobile and web. I keep busy with side
-              projects like 3D printing and electronics when I'm not
-              programming. My work and hobbies share a common theme, finding
-              creative uses for technology.
+              I’m a software engineer who loves to use technology for creative
+              expression. As a mobile developer, I have experience delivering
+              award-winning, graphics-intensive apps to millions of people—but
+              my interests range far beyond mobile apps. I enjoy exploring
+              creative uses for technology such as art, music, and physical
+              computing.
             </p>
 
             <ul>

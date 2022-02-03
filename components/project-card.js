@@ -1,19 +1,19 @@
 import Link from "next/link";
 
-export default function ProjectCard({
-  coverImage,
-  overlayImage,
-  title,
-  subtitle,
-  path,
-}) {
+export default function ProjectCard({ name, title, subtitle }) {
   return (
     <li>
-      <Link href={path}>
+      <Link href={`/projects/${name}`}>
         <a>
           <figure>
-            <img src={coverImage} alt="" />
-            <img src={overlayImage} class="focused" alt="" />
+            <img src={`/images/${name}/cover.jpg`} alt="" />
+
+            <img
+              src={`/images/${name}/cover-overlay.jpg`}
+              className="focused"
+              alt=""
+            />
+
             <div className="overlay"></div>
             <figcaption>
               <h2>{title}</h2>

@@ -11,18 +11,9 @@ export default function Home() {
       <section id="projects">
         <ul>
           <ProjectCard
-            path="projects/project1"
-            title="Thin Film"
-            subtitle="Realtime and Offline explorations"
-            coverImage="/images/project01/cover.jpg"
-            overlayImage="/images/project01/cover-overlay.jpg"
-          />
-          <ProjectCard
-            path="project2"
-            title="Triangles"
-            subtitle="The most stable geometry"
-            coverImage="/images/project02/cover.jpg"
-            overlayImage="/images/project02/cover-overlay.jpg"
+            name="tetralume"
+            title="Tetralume"
+            subtitle="Sound and motion experience"
           />
         </ul>
       </section>
