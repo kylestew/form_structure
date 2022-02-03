@@ -11,10 +11,10 @@ export default function NavHeader({}) {
               <a>Form+Structure</a>
             </Link>
           </li>
-          <li className="spacer"></li>
+          <li className={styles.spacer}></li>
           <li>
             <Link href="/">
-              <a className="active">Projects</a>
+              <a className={styles.active}>Projects</a>
             </Link>
           </li>
           <li>

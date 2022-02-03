@@ -38,6 +38,7 @@ a.active {
 
 a:hover {
   color: var(--linkHoverColor);
+  text-decoration: underline;
 }
 
 img {
