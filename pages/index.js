@@ -24,7 +24,19 @@ export default function Home() {
             name="gen-art-challenge"
             title="100 Days of Generative Art"
             subtitle="My coding addiction"
+            overlayExt="gif"
           />
+          <ProjectCard
+            name="non-realtime"
+            title="3D Renders"
+            subtitle="Exploring Houdini"
+          />
+
+          {/* <ProjectCard
+            name="canvas-sketches"
+            title="Canvas Sketches"
+            subtitle="Look what the browser can do!"
+          /> */}
         </ul>
       </section>
     </Layout>
