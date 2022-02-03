@@ -18,9 +18,9 @@ function About() {
           src="https://player.vimeo.com/video/273113997?h=a8d107e79f"
           width="640"
           height="360"
-          frameborder="0"
+          frameBorder="0"
           allow="autoplay; fullscreen; picture-in-picture"
-          allowfullscreen
+          allowFullScreen
         ></iframe>
 
         <p>
