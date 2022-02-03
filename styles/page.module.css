@@ -5,8 +5,9 @@
 
 .article p,
 .article ul {
-  font-size: 1.2rem;
-  line-height: 1.6rem;
+  font-size: 1.3rem;
+  line-height: 2rem;
+  font-weight: 200;
 }
 
 .article h1 {

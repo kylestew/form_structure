@@ -1,0 +1,12 @@
+@media (min-width: 650px) {
+  .two_column {
+    display: grid;
+    grid-template-columns: 3fr 5fr;
+    gap: 8%;
+  }
+
+  .two_column img {
+    margin: 1.5rem 0 0 0;
+    padding: 0;
+  }
+}

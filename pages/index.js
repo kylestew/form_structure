@@ -11,7 +11,7 @@ export default function Home() {
       <section id="projects">
         <ul>
           <ProjectCard
-            path="project1"
+            path="projects/project1"
             title="Thin Film"
             subtitle="Realtime and Offline explorations"
             coverImage="/images/project01/cover.jpg"
