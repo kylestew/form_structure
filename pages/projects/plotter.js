@@ -23,7 +23,7 @@ function About() {
           Mechanical plotting, which existed before laser printers came onto the
           scene, really fascinated me with its mix of precision and limitations.
           The AxiDraw specifically is incredibly precise, which usually meant my
-          plots looked like prints. I still haven't wrapped my head around
+          plots looked like prints. I still haven&apos;t wrapped my head around
           making the plots look more hand drawn. Instead I abused the hell out
           of the precision to see where it would take me.
         </p>
@@ -41,8 +41,8 @@ function About() {
           Processing, Python, and Houdini were used to create plots.
           Surprisingly I ended up using Houdini for most of the plots, and loved
           the process. Houdini is an amazing generalist tool that allows for
-          quick iteration and complete control over geometry. I haven't even
-          scratched the surface of its capabilities.
+          quick iteration and complete control over geometry. I haven&apos;t
+          even scratched the surface of its capabilities.
         </p>
 
         <img src="/images/plotter/2017-11-08+08.56.19.jpg" />
