@@ -27,10 +27,10 @@ export default function Project() {
           In April of 2017 I challenged myself to create 30 instruments in 30
           days. At the time I was interested in the world of analog synthesis
           and wanted to do a deep dive into how they work. All instruments were
-          digital synthesized versions of analog instruments. Yes, I know that's
-          weird and confusing. It gave me the chance to express the same idea on
-          multiple platforms including MaxMSP, Pure Data, Arduino, and Raspberry
-          Pi.
+          digital synthesized versions of analog instruments. Yes, I know
+          that&apos;s weird and confusing. It gave me the chance to express the
+          same idea on multiple platforms including MaxMSP, Pure Data, Arduino,
+          and Raspberry Pi.
         </p>
 
         <p>
