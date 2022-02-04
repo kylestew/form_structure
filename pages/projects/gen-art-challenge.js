@@ -2,7 +2,7 @@ import Head from "next/head";
 import Layout from "../../components/layout";
 import styles from "../../styles/page.module.css";
 
-function About() {
+function Project() {
   return (
     <Layout>
       <Head>
@@ -19,9 +19,6 @@ function About() {
             <img src="/images/gen-art-challenge/tumblr_o56i1mkf1i1rpxw1qo1_r1_400.gif" />
           </li>
           <li>
-            <img src="/images/gen-art-challenge/tumblr_nyth5p1Rqk1rpxw1qo1_400.gif" />
-          </li>
-          <li>
             <img src="/images/gen-art-challenge/tumblr_o3lmzrDG421rpxw1qo1_400.gif" />
           </li>
           <li>
@@ -31,15 +28,13 @@ function About() {
             <img src="/images/gen-art-challenge/tumblr_o5dyc6ftxf1rpxw1qo1_400.gif" />
           </li>
           <li>
-            <img src="/images/gen-art-challenge/tumblr_o56i1mkf1i1rpxw1qo1_r1_400.gif" />
+            <img src="/images/gen-art-challenge/tumblr_nyhndxJXic1rpxw1qo1_400.gif" />
           </li>
           <li>
             <img src="/images/gen-art-challenge/tumblr_o583li1d7X1rpxw1qo1_r1_400.gif" />
           </li>
         </ul>
 
-        <br />
-        <br />
         <br />
         <br />
         <br />
@@ -73,4 +68,4 @@ function About() {
   );
 }
 
-export default About;
+export default Project;
