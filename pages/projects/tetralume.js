@@ -1,7 +1,6 @@
 import Head from "next/head";
 import Layout from "../../components/layout";
 import styles from "../../styles/page.module.css";
-import InstagramEmbed from "react-instagram-embed";
 
 function About() {
   return (
