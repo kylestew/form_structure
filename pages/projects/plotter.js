@@ -6,7 +6,7 @@ function About() {
   return (
     <Layout>
       <Head>
-        <title>Form+Structure - Pen Plotter</title>
+        <title>Form+Structure - Penmanship</title>
       </Head>
       <article className={styles.article}>
         <div className={styles.intro}>
