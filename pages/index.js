@@ -15,14 +15,12 @@ export default function Home() {
             title="Tetralume"
             subtitle="Sound and motion experience"
           />
-
-          {/* <ProjectCard
+          <ProjectCard
             name="subdivs"
             extLink="https://subdivisions.netlify.app/"
-            title="Subdivision"
-            subtitle="..."
-          /> */}
-
+            title="Subdivisions"
+            subtitle="Beauty in Complexity"
+          />
           <ProjectCard
             name="three"
             extLink="https://three-js-uber-example.netlify.app/"
