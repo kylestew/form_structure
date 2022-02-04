@@ -31,6 +31,11 @@ export default function Home() {
             title="3D Renders"
             subtitle="Exploring Houdini"
           />
+          <ProjectCard
+            name="synths"
+            title="Synth Exploration"
+            subtitle="30 days - 30 instruments"
+          />
 
           {/* <ProjectCard
             name="canvas-sketches"
