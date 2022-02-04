@@ -23,12 +23,28 @@ function About() {
           allowFullScreen
         ></iframe>
 
+        {/* Add Standalones
+
+          Explain Tetralume challenges
+          https://www.instagram.com/p/BgfTrjPjlYF/
+          https://www.instagram.com/p/BfoSw_GBWw1/
+          https://www.instagram.com/p/BeUgwTQBVXS/
+          https://www.instagram.com/p/BhxQXx8gETK/
+
+          Add Creature 
+          
+          
+          */}
+
         <p>
           Tetralume is a twelve minute light and sound performance that occurs
           on an eleven foot tetrahedron structure mapped with LED lighting
           choreographed to an original score that takes you on a journey through
           an eclectic electronic musical soundscape.
         </p>
+
+        <h3>Technical Details</h3>
+        <p>IDK, dave's not here man</p>
 
         <p>
           <em>
