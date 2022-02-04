@@ -33,25 +33,30 @@ function About() {
 
         <p>
           The biggest challenge we encountered while developing Tetralume was
-          animating onto 3D structure. Traditional animation systems are
-          targeted towards a flat screen. We iterated my ideas on how to map an
+          animating onto a 3D structure. Traditional animation systems are
+          targeted towards a flat-screen. We iterated my ideas on mapping an
           animation created on a 2D screen to a 3D object. Touch Designer was a
-          very helpful tool for creating animations and visualizing them in 3D.
-          It also allowed us to pull in our custom audio track and sync the
+          beneficial tool for creating animations and visualizing them in 3D. It
+          also allowed us to pull in our custom audio track and sync the
           animations tightly to the music.
         </p>
 
         <p>
-          This many LEDs are also very power hungry. I had to stretch because
-          I&apos;m used to lower power systems. Each LED takes approximately 35
-          mAh which seems tiny until you multiply it by 1200 LEDs. We budgeted
-          for a peak power of 90 watts.
+          This was also quite a bit more LEDs than I&apos;d ever worked with
+          before. Powering 1200 LEDs allowed me to learn about more power
+          supplies and proper wiring. Each LED takes approximately 35 mAh, which
+          seems tiny until you multiply it by 1200 LEDs. We budgeted for a peak
+          power of 90 watts and distributed the load between two Meanwell PSUs.
         </p>
 
         <p>
-          Getting a good refresh rate on the pixels was also challenging.
-          WS2812s are tricky with control and need precise timing.
+          Other challenges included getting a high refresh rate out of the
+          finicky WS2812 LEDs and providing good signal quality over long
+          distances. People were impressed by the performance, but the
+          experience and learning I took from it are what I appreciate most.
         </p>
+
+        <h3>Hardware</h3>
 
         <ul>
           <li>1200 RGB LEDs</li>
