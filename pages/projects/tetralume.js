@@ -44,7 +44,6 @@ function About() {
         </p>
 
         <h3>Technical Details</h3>
-        <p>IDK, dave's not here man</p>
 
         <p>
           <em>
