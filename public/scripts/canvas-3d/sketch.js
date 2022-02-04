@@ -2,7 +2,7 @@ import colors from "/web_modules/flat-palettes.js";
 import { createCrystalMesh, centroid } from "./crystal-mesh.js";
 import createCamera from "/web_modules/perspective-camera.js";
 import cameraProject from "/web_modules/camera-project.js";
-import { mat4 } from "/web_modules/gl-matrix.js";
+import { mat4 } from "gl-matrix";
 import BezierEasing from "/web_modules/bezier-easing.js";
 import { polar, cartesian } from "/web_modules/@thi.ng/vectors.js";
 

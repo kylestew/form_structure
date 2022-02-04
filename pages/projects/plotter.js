@@ -10,7 +10,7 @@ function About() {
       </Head>
       <article className={styles.article}>
         <div className={styles.intro}>
-          <h1>Pen Plotter</h1>
+          <h1>Penmanship</h1>
           <h2>Mechanically Plotted Artwork</h2>
         </div>
 
