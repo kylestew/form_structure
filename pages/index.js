@@ -36,7 +36,7 @@ export default function Home() {
           <ProjectCard
             name="creature"
             title="Creature"
-            subtitle="Moodly little orb"
+            subtitle="Moody little orb"
           />
           <ProjectCard
             name="non-realtime"

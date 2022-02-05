@@ -11,7 +11,7 @@ export default function Project() {
       <article className={styles.article}>
         <div className={styles.intro}>
           <h1>Creature</h1>
-          <h2>Moodly little orb</h2>
+          <h2>Moody little orb</h2>
         </div>
 
         <iframe
