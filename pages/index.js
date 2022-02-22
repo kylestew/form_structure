@@ -1,6 +1,7 @@
 import Head from "next/head";
 import Layout from "../components/layout";
 import ProjectCard from "../components/project-card";
+import ProjectCardExt from "../components/project-card-ext";
 
 export default function Home() {
   return (
@@ -10,22 +11,38 @@ export default function Home() {
       </Head>
       <section id="projects">
         <ul>
-          <ProjectCard
-            name="tetralume"
-            title="Tetralume"
-            subtitle="Sound and motion experience"
+          <ProjectCardExt
+            extLink="https://houdini-to-web.netlify.app/"
+            name="houdini-to-web"
+            title="Houdini -> Web"
+            subtitle="Houdini 3D to Three.js pipeline"
           />
-          <ProjectCard
-            name="subdivs"
+
+          <ProjectCardExt
             extLink="https://subdivisions.netlify.app/"
+            name="subdivs"
             title="Subdivisions"
             subtitle="Beauty in Complexity"
           />
-          <ProjectCard
+
+          {/* <ProjectCardExt
+            extLink="https://silk-shader.netlify.app/"
+            name="silk-shader"
+            title="Silk Shader"
+            subtitle="Customized Three.js Shader"
+          /> */}
+
+          <ProjectCardExt
             name="three"
             extLink="https://three-js-uber-example.netlify.app/"
             title="Flying Dragon"
             subtitle="Exploring Three JS"
+          />
+
+          <ProjectCard
+            name="tetralume"
+            title="Tetralume"
+            subtitle="Sound and motion experience"
           />
           <ProjectCard
             name="gen-art-challenge"
