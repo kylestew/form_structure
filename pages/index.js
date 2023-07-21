@@ -12,25 +12,11 @@ export default function Home() {
       <section id="projects">
         <ul>
           <ProjectCardExt
-            extLink="https://houdini-to-web.netlify.app/"
-            name="houdini-to-web"
-            title="Houdini -> Web"
-            subtitle="Houdini 3D to Three.js pipeline"
-          />
-
-          <ProjectCardExt
             extLink="https://subdivisions.netlify.app/"
             name="subdivs"
             title="Subdivisions"
             subtitle="Beauty in Complexity"
           />
-
-          {/* <ProjectCardExt
-            extLink="https://silk-shader.netlify.app/"
-            name="silk-shader"
-            title="Silk Shader"
-            subtitle="Customized Three.js Shader"
-          /> */}
 
           <ProjectCardExt
             name="three"
