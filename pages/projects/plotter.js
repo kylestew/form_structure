@@ -53,6 +53,7 @@ function About() {
         <img src="/images/plotter/2017-12-31+17.31.26.jpg" />
         <img src="/images/plotter/2017-10-23+08.13.18.jpg" />
         <img src="/images/plotter/2017-11-01+10.39.48.jpg" />
+        <img src="/images/plotter/IMG_1338.jpeg" />
       </article>
     </Layout>
   );
