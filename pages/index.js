@@ -11,18 +11,20 @@ export default function Home() {
       </Head>
       <section id="projects">
         <ul>
-          <ProjectCardExt
-            extLink="https://subdivisions.netlify.app/"
-            name="subdivs"
-            title="Subdivisions"
-            subtitle="Beauty in Complexity"
-          />
+          {/* Motion Design Examples */}
 
-          <ProjectCardExt
-            name="three"
-            extLink="https://three-js-uber-example.netlify.app/"
-            title="Flying Dragon"
-            subtitle="Exploring Three JS"
+          {/* Other Fields */}
+
+          {/* Spool */}
+
+          {/* Audio DSP work (hardware + software) - replaces synth exploration post */}
+
+          {/* Redo your creative coding post with more examples */}
+          <ProjectCard
+            name="gen-art-challenge"
+            title="100 Days of Generative Art"
+            subtitle="My coding addiction"
+            overlayExt="gif"
           />
 
           <ProjectCard
@@ -30,21 +32,16 @@ export default function Home() {
             title="Tetralume"
             subtitle="Sound and motion experience"
           />
-          <ProjectCard
-            name="gen-art-challenge"
-            title="100 Days of Generative Art"
-            subtitle="My coding addiction"
-            overlayExt="gif"
+          <ProjectCardExt
+            extLink="https://subdivisions.netlify.app/"
+            name="subdivs"
+            title="Subdivisions"
+            subtitle="Beauty in Complexity"
           />
           <ProjectCard
             name="creature"
             title="Creature"
             subtitle="Moody little orb"
-          />
-          <ProjectCard
-            name="non-realtime"
-            title="3D Renders"
-            subtitle="Exploring Houdini"
           />
           <ProjectCard
             name="plotter"
