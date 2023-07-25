@@ -32,7 +32,7 @@ function About() {
         <h3>Technical Details</h3>
 
         <p>
-        I started creative coding almost ten years ago with Processing. Though it&apos;s still the best way to get started, Processing presented some challenges to my workflow. Recently I made the switch to using Python as an artist tool. The immediate feedback I can get in Python helps me stay in flow much more than waiting for a Processing sketch to compile. I'm always looking for ways to make creative coding feel more like music than programming, and this is the closest I&apos;ve gotten while working in a code-based medium.
+        I started creative coding almost ten years ago with Processing. Though it&apos;s still the best way to get started, Processing presented some challenges to my workflow. Recently I made the switch to using Python as an artist tool. The immediate feedback I can get in Python helps me stay in flow much more than waiting for a Processing sketch to compile. I&apos;m always looking for ways to make creative coding feel more like music than programming, and this is the closest I&apos;ve gotten while working in a code-based medium.
         </p>
 
         <p>
