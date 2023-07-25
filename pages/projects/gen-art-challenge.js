@@ -35,11 +35,6 @@ function Project() {
           </li>
         </ul>
 
-        <br />
-        <br />
-        <br />
-        <br />
-
         <p>
           <a href="">Processing</a> was my original gateway to creative coding
           and really hooked me on the whole idea. In 2016 I challenged myself

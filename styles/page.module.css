@@ -51,15 +51,12 @@
   .article {
     padding: 1rem 2.5rem 1rem 2.5rem;
     max-width: var(--articleWidth);
-    margin: 0 auto;
-  }
-  .intro {
   }
   .article p,
   .article ul,
   .article h3 {
-    margin: 0 auto;
     padding: 1rem 0 1rem 0;
+    margin: 0 auto;
   }
   .article h1 {
     font-size: 4rem;
@@ -67,12 +64,12 @@
   .article h2 {
     font-size: 1.6rem;
   }
-  .imagegrid {
+  .article .imagegrid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto;
     gap: 2%;
-    margin-bottom: 4rem;
+    margin: 1rem 0 2rem 0;
   }
   .imagegrid img {
     margin: 0;
