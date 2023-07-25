@@ -13,11 +13,25 @@ export default function Home() {
         <ul>
           {/* Motion Design Examples */}
 
-          {/* Other Fields */}
+          <ProjectCard
+            name="other-fields"
+            title="Other Fields"
+            subtitle="Generative Art Series"
+          />
 
-          {/* Spool */}
+          {/* <ProjectCard
+            name="spool"
+            title="Spool"
+            subtitle="Create visuals for your music"
+          /> */}
 
           {/* Audio DSP work (hardware + software) - replaces synth exploration post */}
+
+          <ProjectCard
+            name="tetralume"
+            title="Tetralume"
+            subtitle="Sound and motion experience"
+          />
 
           {/* Redo your creative coding post with more examples */}
           <ProjectCard
@@ -27,11 +41,6 @@ export default function Home() {
             overlayExt="gif"
           />
 
-          <ProjectCard
-            name="tetralume"
-            title="Tetralume"
-            subtitle="Sound and motion experience"
-          />
           <ProjectCardExt
             extLink="https://subdivisions.netlify.app/"
             name="subdivs"

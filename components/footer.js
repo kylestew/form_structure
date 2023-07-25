@@ -40,7 +40,7 @@ export default function Footer({}) {
           </a>
         </li>
         <li>
-          <FontAwesomeIcon icon={faCopyright} /> Kyle Stewart - 2022
+          <FontAwesomeIcon icon={faCopyright} /> Kyle Stewart - 2023
         </li>
       </ul>
     </footer>

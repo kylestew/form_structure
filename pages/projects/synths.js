@@ -33,13 +33,6 @@ export default function Project() {
           and Raspberry Pi.
         </p>
 
-        <p>
-          <em>
-            You can read more on{" "}
-            <a href="https://www.instagram.com/luminul_creative">Medium</a>
-          </em>
-        </p>
-
         <img src="/images/synths/instrument30-proto-fix.jpeg" alt="" />
 
         <iframe
