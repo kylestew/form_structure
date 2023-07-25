@@ -50,19 +50,19 @@
 @media (min-width: 650px) {
   .article {
     padding: 1rem 2.5rem 1rem 2.5rem;
-    max-width: var(--maxWidth);
+    max-width: var(--articleWidth);
     margin: 0 auto;
+  }
+  .intro {
   }
   .article p,
   .article ul,
   .article h3 {
-    max-width: 840px;
     margin: 0 auto;
     padding: 1rem 0 1rem 0;
   }
   .article h1 {
     font-size: 4rem;
-    max-width: var(--maxWidth);
   }
   .article h2 {
     font-size: 1.6rem;
