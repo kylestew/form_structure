@@ -19,11 +19,12 @@ export default function Home() {
             subtitle="Generative Art Series"
           />
 
-          {/* <ProjectCard
+          <ProjectCard
             name="spool"
             title="Spool"
-            subtitle="Create visuals for your music"
-          /> */}
+            subtitle="Create visuals for music"
+            overlayExt="mp4"
+          />
 
           {/* Audio DSP work (hardware + software) - replaces synth exploration post */}
 

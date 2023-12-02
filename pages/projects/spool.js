@@ -14,7 +14,7 @@ function About() {
           <h2>Create visuals for your music</h2>
         </div>
 
-(video)
+<video controls=""><source src="https://storage.googleapis.com/pixite-production/2022/05/eab9d8ee-spoolapppreview1_landscape_30.mp4"></video>
 
         <p>
           Tetralume is a twelve minute light and sound performance that occurs
