@@ -23,17 +23,20 @@ export default function Home() {
         <div className="relative h-full max-w-6xl mx-auto">
           <NavBar />
 
-          <span className="absolute bottom-0 right-0 p-4 text-white">
-            Portfolio of <Link href="/about">Kyle Stewart</Link>
+          {/* <span className="absolute bottom-0 right-0 px-8 py-4 text-white text-xl">
+            Portfolio of <Link href="/about" className="link">Kyle Stewart</Link>
+          </span> */}
+          <span className="absolute bottom-0 right-0 px-8 py-4 text-white md:text-xl text-sm">
+            Portfolio of <Link href="/about" className="link">Kyle Stewart</Link>
           </span>
         </div>
       </header>
 
       <main>
-        <section className="projects max-w-6xl mx-auto">
-          <ul className="grid md:grid-cols-2 grid-cols-1 gap-4">
+        <section className="projects max-w-6xl mx-auto p-8 md:py-12">
+          <ul className="grid md:grid-cols-2 grid-cols-1 gap-12">
             { projects.map((project) => (
-              <li key={project.name} className="flex justify-center">
+              <li key={project.name}>
                 <ProjectCard
                   name={project.name}
                   title={project.title}
