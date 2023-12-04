@@ -21,13 +21,8 @@ export default function Home() {
         <RenderedHero />
 
         <div className="relative h-full max-w-6xl mx-auto">
-          <NavBar />
-
-          {/* <span className="absolute bottom-0 right-0 px-8 py-4 text-white text-xl">
-            Portfolio of <Link href="/about" className="link">Kyle Stewart</Link>
-          </span> */}
           <span className="absolute bottom-0 right-0 px-8 py-4 text-white md:text-xl text-sm">
-            Portfolio of <Link href="/about" className="link">Kyle Stewart</Link>
+              Portfolio of <Link href="/about" className="link">Kyle Stewart</Link>
           </span>
         </div>
       </header>

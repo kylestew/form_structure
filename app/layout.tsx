@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Space_Mono } from 'next/font/google'
+import NavBar from '@/components/NavBar'
 import './globals.css'
 
 const spaceMono = Space_Mono({ weight: ['400', '700'], subsets: ['latin'] })
@@ -16,7 +17,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={spaceMono.className}>{children}</body>
+      <body className={spaceMono.className}>
+        <NavBar />
+
+        {children}
+      </body>
     </html>
   )
 }
