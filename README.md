@@ -1,11 +1,5 @@
-## Run Local Server
+## My Website
+> Let's keep this simple
 
-```bash
-npm run dev
-# or
-yarn dev
-```
-
-## Deploy on Netlify
-
-This site is currently hosted on Netlify. Push to `master` to deploy site.
++ Uses simple HTML + Tailwind
++ Pulls in any Javascript samples as static builds from other repos
