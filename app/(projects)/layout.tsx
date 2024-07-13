@@ -1,19 +1,12 @@
-import React from 'react';
-import NavBar from '@/components/NavBar'
+import NavBar from '@/app/ui/navbar'
 
-function ProjectsLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
     return (
         <>
-          <div className="w-full bg-black">
-            <NavBar />
-          </div>
-          {children}
+            <div className="w-full bg-black">
+                <NavBar />
+            </div>
+            <main>{children}</main>
         </>
-    );
-};
-
-export default ProjectsLayout;
+    )
+}

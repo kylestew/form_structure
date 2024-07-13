@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import NavBar from '@/components/NavBar'
+import NavBar from '@/app/ui/navbar'
 // import RenderedHero from '@/components/RenderedHero'
-import ProjectCard from '@/components/ProjectCard'
-import Footer from '@/components/Footer'
+// import ProjectCard from '@/components/ProjectCard'
+// import Footer from '@/components/Footer'
 
 const projects = [
     {
@@ -32,10 +32,10 @@ const projects = [
     // },
 ]
 
-export default function Home() {
+export default function Page() {
     return (
         <>
-            <header className="relative w-full h-[40vh]">
+            <header className="relative w-full h-[40vh] bg-pink-500">
                 {/* Takes up entire area of header element as a background */}
                 {/* <RenderedHero /> */}
 
@@ -56,18 +56,19 @@ export default function Home() {
                     <ul className="grid md:grid-cols-2 grid-cols-1 gap-12">
                         {projects.map((project) => (
                             <li key={project.name}>
-                                <ProjectCard
+                                Test
+                                {/* <ProjectCard
                                     name={project.name}
                                     title={project.title}
                                     categories={project.categories}
-                                />
+                                /> */}
                             </li>
                         ))}
                     </ul>
                 </section>
             </main>
 
-            <Footer />
+            {/* <Footer /> */}
         </>
     )
 }

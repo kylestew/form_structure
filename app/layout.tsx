@@ -1,24 +1,19 @@
-import type { Metadata } from "next";
-import { Space_Mono } from "next/font/google";
-import "./globals.css";
+import '@/app/ui/global.css'
 
-const spaceMono = Space_Mono({ weight: ["400", "700"], subsets: ["latin"] });
+import { spaceMono } from '@/app/ui/fonts'
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: "Form+Structure",
-  description: "Portfolio of Kyle Stewart",
-};
+    title: 'Form+Structure',
+    description: 'Portfolio of Kyle Stewart',
+}
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="en">
-      <body className={spaceMono.className}>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <html lang="en">
+            <body className={`${spaceMono.className} antialised`}>{children}</body>
+        </html>
+    )
 }
 
 /*

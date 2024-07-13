@@ -1,34 +1,26 @@
-'use client' // This directive ensures that this file is run on the client side
+'use client'
 
-// import styles from "../../styles/page.module.css";
 import { useEffect, useRef } from 'react'
 
-import { Circle } from 'root/geo'
+import { createCanvas } from 'root/canvas'
+import { Line, Rectangle, Circle } from 'root/geo'
+import { rotate } from 'root/geo'
+import { full, zip, randomRemove } from 'root/array'
+import { gaussian, pareto } from 'root/random'
 
-const circ = new Circle([0, 0], 0.5, { fill: 'red' })
-console.log(circ)
-
-function Project() {
+function Project2() {
     const canvasRef = useRef(null)
 
     useEffect(() => {
-        const canvas = canvasRef.current
-        const context = canvas.getContext('2d')
+        const { ctx, setRange, clear, draw } = createCanvas(500, 500, canvasRef.current)
+        const rangeInfo = setRange(-1.0, 1.0)
 
-        // Set canvas size
-        canvas.width = 500
-        canvas.height = 500
-
-        // Clear the canvas with white color
-        context.fillStyle = 'white'
-        context.fillRect(0, 0, canvas.width, canvas.height)
-
-        // Draw a circle
-        context.beginPath()
-        context.arc(250, 250, 100, 0, 2 * Math.PI)
-        context.fillStyle = 'blue'
-        context.fill()
-        context.stroke()
+        clear('#ffffff')
+        const gaussian2D = (count, center, stdDev) => {
+            return full(count, () => [gaussian(center[0], stdDev[0]), gaussian(center[1], stdDev[1])])
+        }
+        const pts = gaussian2D(600, [0, 0], [0.5, 0.5])
+        draw(pts)
     }, [])
 
     return (
@@ -38,4 +30,4 @@ function Project() {
     )
 }
 
-export default Project
+export default Project2
