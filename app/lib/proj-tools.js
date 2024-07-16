@@ -1,5 +1,3 @@
-import { render } from '../sketches/urban-sprawl'
-
 export function prepareProjectContainer(meta, canvasElement, prepareFn, renderFn) {
     const titleElement = document.getElementById('title')
     titleElement.innerText = meta.title
@@ -15,11 +13,13 @@ export function prepareProjectContainer(meta, canvasElement, prepareFn, renderFn
     })
 
     const randomizeButtonElement = document.getElementById('randomize')
+    randomizeButtonElement.classList.remove('hidden')
     randomizeButtonElement.addEventListener('click', () => {
         renderFn(0.0)
     })
 
     const captureButtonElement = document.getElementById('capture')
+    captureButtonElement.classList.remove('hidden')
     captureButtonElement.addEventListener('click', () => {
         saveCanvas(canvasElement)
     })
@@ -41,7 +41,7 @@ export function prepareProjectContainer(meta, canvasElement, prepareFn, renderFn
     buttonElement.innerText = 'run'
 }
 
-export function saveCanvas(canvas) {
+function saveCanvas(canvas) {
     // Create an image from the canvas
     var image = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
 

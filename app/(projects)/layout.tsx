@@ -19,8 +19,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     <button id="run" className="hidden">
                         Run
                     </button>
-                    <button id="randomize">Randomize</button>
-                    <button id="capture">Capture</button>
+                    <button id="randomize" className="hidden">
+                        Randomize
+                    </button>
+                    <button id="capture" className="hidden">
+                        Capture
+                    </button>
                 </div>
 
                 <NavBarSide />

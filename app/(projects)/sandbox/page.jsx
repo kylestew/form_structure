@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react'
 import { prepareProjectContainer } from '@/app/lib/proj-tools'
 
-import { meta, prepare, render } from '@/app/sketches/urban-sprawl'
+import { meta, prepare, render } from '@/sketches/urban-sprawl'
 
 export default function Page() {
     const canvasRef = useRef(null)
