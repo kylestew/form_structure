@@ -5,3 +5,7 @@
 .link {
     @apply text-white font-semibold hover:underline;
 }
+
+button {
+    @apply w-full hover:bg-action text-white font-bold px-4 py-2 border;
+}

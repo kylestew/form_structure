@@ -35,7 +35,7 @@ const projects = [
 export default function Page() {
     return (
         <>
-            <header className="relative w-full h-[40vh] bg-pink">
+            <header className="relative w-full h-[40vh] bg-blue-500">
                 {/* Takes up entire area of header element as a background */}
                 {/* <RenderedHero /> */}
 

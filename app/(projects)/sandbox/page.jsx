@@ -12,7 +12,7 @@ export default function Page() {
     const canvasRef = useRef(null)
 
     useEffect(() => {
-        const { ctx, setRange, clear, draw } = createCanvas(400, 1200, canvasRef.current)
+        const { ctx, setRange, clear, draw } = createCanvas(1400, 1400, canvasRef.current)
         const rangeInfo = setRange(-1.0, 1.0)
         clear('#ffffff')
         const gaussian2D = (count, center, stdDev) => {
@@ -22,5 +22,5 @@ export default function Page() {
         draw(pts)
     }, [])
 
-    return <canvas ref={canvasRef} className="max-h-full max-w-full p-8 drop-shadow-lg"></canvas>
+    return <canvas ref={canvasRef} className="max-h-full max-w-full shadow"></canvas>
 }
