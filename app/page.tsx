@@ -35,14 +35,14 @@ const projects = [
 export default function Page() {
     return (
         <>
-            <header className="relative w-full h-[40vh] bg-pink-500">
+            <header className="relative w-full h-[40vh] bg-pink">
                 {/* Takes up entire area of header element as a background */}
                 {/* <RenderedHero /> */}
 
-                <div className="relative h-full max-w-7xl mx-auto">
+                <div className="relative h-full max-w-6xl mx-auto">
                     <NavBar />
 
-                    <span className="absolute bottom-0 right-0 px-8 py-4 text-white md:text-xl text-sm">
+                    <span className="absolute bottom-0 right-0 px-6 py-4 text-white md:text-xl text-sm">
                         Portfolio of{' '}
                         <Link href="/about" className="link">
                             Kyle Stewart
@@ -52,7 +52,7 @@ export default function Page() {
             </header>
 
             <main className="bg-white">
-                <section className="projects max-w-7xl mx-auto p-8">
+                <section className="projects max-w-6xl mx-auto p-8">
                     <ul className="grid md:grid-cols-2 grid-cols-1 gap-12">
                         {projects.map((project) => (
                             <li key={project.name}>

@@ -1,8 +1,8 @@
 import Link from 'next/link'
 
-function NavBar({}) {
+function NavBarWide({}) {
     return (
-        <nav className="max-w-6xl mx-auto flex justify-between p-6">
+        <nav className="flex justify-between p-6 border-b-2 border-gray">
             <div>
                 {/* Mobile */}
                 <span className="text-white text-lg font-bold md:hidden">
@@ -30,4 +30,4 @@ function NavBar({}) {
     )
 }
 
-export default NavBar
+export default NavBarWide

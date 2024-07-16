@@ -2,11 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  /* make sections top / bottom when you scroll past black */
-  background-color: #000;
-}
-
 .link {
-  @apply text-white font-semibold hover:underline;
+    @apply text-white font-semibold hover:underline;
 }
