@@ -3,9 +3,7 @@ import { useEffect, useRef } from 'react'
 import { createCanvas } from 'root/canvas'
 import { randomPalette } from '@/sketches/labs/palettes'
 
-import { showPalette } from '@/sketches/labs/show_palette'
-
-const examples = [showPalette]
+import { examples } from '@/sketches/labs'
 
 export default function Page() {
     const canvasRefs = useRef([])
