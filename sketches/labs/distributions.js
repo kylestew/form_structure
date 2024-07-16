@@ -62,7 +62,7 @@ function noise2D(count, noiseScale, zOffset, noiseFloor) {
 }
 
 function distributions(cmd, palette) {
-    cmd.clear('#fff')
+    cmd.clear(palette.background)
     const grid = new Grid([-1, -1], [2, 2], 3, 2)
 
     const rects = grid.rects().map((r) => offset(r, -0.02))
