@@ -1,6 +1,15 @@
 import { pickRandom } from 'root/random'
 
-const palettes = [
+export interface Palette {
+    background: string
+    primary: string
+    secondary: string
+    accent: string
+    dark: string
+    neutral: string
+}
+
+const palettes: Palette[] = [
     // Blue Boy
     {
         background: '#e4dcc3',

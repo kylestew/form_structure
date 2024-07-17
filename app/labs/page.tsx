@@ -12,9 +12,7 @@ export default function Page() {
         const palette = randomPalette()
 
         canvasRefs.current.forEach((canvas, index) => {
-            const cmd = createCanvas(640, 640, canvas)
-            cmd.setRange(-1.0, 1.0)
-
+            const cmd = createCanvas(640, 640, canvas, [-1, 1])
             const fn = examples[index]
             fn(cmd, palette)
         })

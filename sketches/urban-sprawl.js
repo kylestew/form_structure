@@ -14,10 +14,7 @@ export const meta = {
 let cmd
 export function prepare(canvasRef) {
     // create and format canvas
-    cmd = createCanvas(1400, 1400, canvasRef)
-    const rangeInfo = cmd.setRange(-1.0, 1.0)
-
-    console.log(cmd)
+    cmd = createCanvas(1400, 1400, canvasRef, [-1.0, 1.0])
 }
 
 export function render(timestamp) {
