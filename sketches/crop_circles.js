@@ -6,13 +6,10 @@ export const meta = {
 }
 
 import { createGLCanvas, createOffscreenCanvas } from 'root/canvas'
-import { Line, Circle, asPoints } from 'root/geo'
+import { Line, Circle, asPoints, asPath } from 'root/geo'
 import { weightedRandom, pickRandom, gaussian, random } from 'root/random'
 import { randomRemove, shuffle } from 'root/array'
-
-// import { handDrawnCircle } from '../tools/assets/hand_drawn'
-// import { lines } from '../tools/assets/pattern_fills'
-// import { color } from '../tools/color'
+import { handDrawnCircle, linesFill } from 'root/mark'
 
 import { randomPalette } from './labs/palettes'
 
@@ -60,42 +57,6 @@ function* createColorDistributor(colors) {
     }
 }
 
-function drawCircleGeneration(canvas, circles, colors, removePercentage) {
-    const colorGenerator = createColorDistributor(colors)
-    randomRemove(shuffle(circles), removePercentage).forEach((circle) => {
-        const circleDapple = random(0.02, 0.04)
-        const drawnCircle = handDrawnCircle(circle.pos, circle.r, circleDapple, 1.4, 8, zOffset)
-
-        if (Math.random() > 0.2) {
-            // usually we just fill
-            draw(canvas, drawnCircle, { fill: colorGenerator.next().value })
-        } else {
-            if (Math.random() > 0.333) {
-                // STROKE IT
-                // need to shrink circle to keep same radius with stroke applied
-                const strokeWidth = 0.125
-                const weight = circle.r * strokeWidth
-                const circ = new Circle(circle.pos, circle.r * (1.0 - strokeWidth / 2.0))
-                draw(canvas, handDrawnCircle(circ.pos, circ.r, circleDapple, 1.4, 8, zOffset), {
-                    fill: pickRandom(colors),
-                    stroke: pickRandom([neutral, dark]),
-                    weight: weight,
-                })
-            } else {
-                // LINE FILL
-                canvas.save()
-
-                const colorA = colorGenerator.next().value
-                const colorB = colorGenerator.next().value
-                canvas.clip(asPath(drawnCircle))
-                draw(canvas, lines(circle, 16, pickRandom([splitAngle, 0, Math.PI / 2.0]), [colorA, colorB]))
-
-                canvas.restore()
-            }
-        }
-    })
-}
-
 export function render(timestamp) {
     // (0) Setup initial CONDITIONS
     // define color palette
@@ -109,6 +70,43 @@ export function render(timestamp) {
     const inverted = Math.random() < 0.1
     // random (but shared) zOffset in noise 3D function
     const zOffset = Math.random()
+
+    function drawCircleGeneration(cmd, circles, colors, removePercentage) {
+        const colorGenerator = createColorDistributor(colors)
+        randomRemove(shuffle(circles), removePercentage).forEach((circle) => {
+            const circleDapple = random(0.02, 0.04)
+            const drawnCircle = handDrawnCircle(circle.pos, circle.r, circleDapple, 1.4, 8, zOffset)
+
+            if (Math.random() > 0.2) {
+                // usually we just fill
+                cmd.draw(drawnCircle, { fill: colorGenerator.next().value })
+            } else {
+                if (Math.random() > 0.333) {
+                    // STROKE IT
+                    // need to shrink circle to keep same radius with stroke applied
+                    const strokeWidth = 0.125
+                    const weight = circle.r * strokeWidth
+                    const circ = new Circle(circle.pos, circle.r * (1.0 - strokeWidth / 2.0))
+                    cmd.draw(handDrawnCircle(circ.pos, circ.r, circleDapple, 1.4, 8, zOffset), {
+                        fill: pickRandom(colors),
+                        stroke: pickRandom([neutral, dark]),
+                        weight: weight,
+                    })
+                } else {
+                    // LINE FILL
+                    cmd.ctx.save()
+
+                    const colorA = colorGenerator.next().value
+                    const colorB = colorGenerator.next().value
+
+                    cmd.ctx.clip(asPath(drawnCircle))
+                    cmd.draw(linesFill(circle, 16, pickRandom([splitAngle, 0, Math.PI / 2.0]), [colorA, colorB]))
+
+                    cmd.ctx.restore()
+                }
+            }
+        })
+    }
 
     // (1) Create a diagonal line
     // random forward or reverse angle, randomized length
@@ -138,8 +136,8 @@ export function render(timestamp) {
     })
 
     // (4) Draw generation 0: shuffling and removing some
-    // drawCircleGeneration(canvasA, circles[0], primaryColors, 0.33)
-    // drawCircleGeneration(canvasB, circles[0], primaryColors, 0.33)
+    drawCircleGeneration(canvasA, circles[0], primaryColors, 0.33)
+    drawCircleGeneration(canvasB, circles[0], primaryColors, 0.33)
 
     // (5) Draw generation 1: setting a blend mode, shuffling, and removing some
     const blendMode = weightedRandom(
@@ -149,14 +147,14 @@ export function render(timestamp) {
     // console.log('blend mode', blendMode)
     canvasA.globalCompositeOperation = blendMode
     canvasB.globalCompositeOperation = blendMode
-    // drawCircleGeneration(canvasA, circles[1], primaryColors, 0.36, 0.2)
-    // drawCircleGeneration(canvasB, circles[1], primaryColors, 0.36, 0.2)
+    drawCircleGeneration(canvasA, circles[1], primaryColors, 0.36, 0.2)
+    drawCircleGeneration(canvasB, circles[1], primaryColors, 0.36, 0.2)
 
     // (6) Draw generation 2: clearing blend mode, shuffling, and removing many
     canvasA.globalCompositeOperation = 'source-over'
     canvasB.globalCompositeOperation = 'source-over'
-    // drawCircleGeneration(canvasA, circles[2], secondaryColors, 0, 0.0)
-    // drawCircleGeneration(canvasB, circles[2], secondaryColors, 0, 0.0)
+    drawCircleGeneration(canvasA, circles[2], secondaryColors, 0, 0.0)
+    drawCircleGeneration(canvasB, circles[2], secondaryColors, 0, 0.0)
 
     // ================== DISPLAY ====================================
     gl.clear([0, 0, 0, 1])
