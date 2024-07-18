@@ -36,5 +36,5 @@ function patternFills(cmd, palette) {
         cmd.draw(shape)
     })
 }
-patternFills.description = 'Pattern Fills'
+patternFills.title = 'Pattern Fills'
 export { patternFills }
