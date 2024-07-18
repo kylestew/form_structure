@@ -1,9 +1,3 @@
-import { createCanvas } from 'root/canvas'
-import { Line, Rectangle } from 'root/geo'
-import { rotate } from 'root/geo'
-import { full, zip, randomRemove } from 'root/array'
-import { gaussian, pareto } from 'root/random'
-
 export const meta = {
     title: 'Urban Spral',
     description:
@@ -11,7 +5,14 @@ export const meta = {
     animated: false,
 }
 
+import { createCanvas } from 'root/canvas'
+import { Line, Rectangle } from 'root/geo'
+import { rotate } from 'root/geo'
+import { full, zip, randomRemove } from 'root/array'
+import { gaussian, pareto } from 'root/random'
+
 let cmd
+
 export function prepare(canvasRef) {
     // create and format canvas
     cmd = createCanvas(1400, 1400, canvasRef, [-1.0, 1.0])
