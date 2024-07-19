@@ -14,3 +14,7 @@ canvas {
     @apply max-h-full max-w-full;
     filter: drop-shadow(0 0 0.6rem #25252533);
 }
+
+.art {
+    filter: drop-shadow(0 0 0.5rem #12121222);
+}
