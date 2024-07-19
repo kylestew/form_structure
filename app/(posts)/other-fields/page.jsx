@@ -1,4 +1,3 @@
-// import styles from "../../styles/page.module.css";
 import Image from 'next/image'
 
 function Project() {

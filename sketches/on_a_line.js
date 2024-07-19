@@ -1,10 +1,3 @@
-export const meta = {
-    title: 'On a Line',
-    description:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi pulvinar eros sem, nec feugiatuu purus rutrum at. Aenean sed diam non massa fermentum consectetur.',
-    animated: false,
-}
-
 import { createGLCanvas, createOffscreenCanvas } from 'root/canvas'
 import { Line, Circle, asPoints, asPath } from 'root/geo'
 import { weightedRandom, pickRandom, gaussian, random } from 'root/random'

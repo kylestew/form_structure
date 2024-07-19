@@ -10,7 +10,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <main className="bg-light">
                 <section className="projects max-w-6xl mx-auto p-6">{children}</section>
             </main>
-
             <Footer />
         </>
     )
