@@ -1,6 +1,11 @@
+'use client'
+
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 function NavBar({}) {
+    const pathName = usePathname()
+
     return (
         <nav className="max-w-6xl mx-auto flex justify-between p-6">
             <div>
@@ -15,9 +20,11 @@ function NavBar({}) {
                 </span>
             </div>
             <div>
-                <Link href="/" className="link uppercase text-lg pr-6">
-                    Projects
-                </Link>
+                {pathName !== '/' && (
+                    <Link href="/" className="link uppercase text-lg pr-6">
+                        Projects
+                    </Link>
+                )}
                 <Link href="/labs" className="link uppercase text-lg pr-6">
                     Labs
                 </Link>
@@ -26,7 +33,6 @@ function NavBar({}) {
                 </Link>
             </div>
         </nav>
-        // </div>
     )
 }
 

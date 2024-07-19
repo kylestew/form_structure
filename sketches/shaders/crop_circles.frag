@@ -42,7 +42,7 @@ void main() {
     // Sample both textures
     vec2 flippedCoord = vec2(vTexCoord.x, 1.0 - vTexCoord.y);  // openGL flips the Y coordinate
 
-    float noiseAmount = 0.0025;
+    float noiseAmount = 0.0015;
     vec2 dust = vec2(random(flippedCoord), random(flippedCoord + 1.2345)) * noiseAmount;
     vec2 dustUv = flippedCoord + dust;
 

@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import NavBar from '@/app/ui/navbar'
 // import RenderedHero from '@/components/RenderedHero'
-// import ProjectCard from '@/components/ProjectCard'
-// import Footer from '@/components/Footer'
+import ProjectCard from '@/app/ui/projects/project-card'
+import Footer from '@/app/ui/footer'
 
 const projects = [
     {
@@ -11,8 +11,8 @@ const projects = [
         categories: ['generative art', 'colors', 'life'],
     },
     {
-        name: 'sandbox',
-        title: 'Sandbox',
+        name: 'on-a-line',
+        title: 'On a Line',
         categories: ['generative art'],
     },
     // {
@@ -56,19 +56,18 @@ export default function Page() {
                     <ul className="grid md:grid-cols-2 grid-cols-1 gap-12">
                         {projects.map((project) => (
                             <li key={project.name}>
-                                Test
-                                {/* <ProjectCard
+                                <ProjectCard
                                     name={project.name}
                                     title={project.title}
                                     categories={project.categories}
-                                /> */}
+                                />
                             </li>
                         ))}
                     </ul>
                 </section>
             </main>
 
-            {/* <Footer /> */}
+            <Footer />
         </>
     )
 }
