@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import NavBar from '@/app/ui/navbar'
-// import RenderedHero from '@/components/RenderedHero'
+import RenderedHero from '@/app/ui/projects/rendered-hero'
 import ProjectCard from '@/app/ui/projects/project-card'
 import Footer from '@/app/ui/footer'
 
@@ -8,18 +8,21 @@ const projects = [
     {
         name: 'other-fields',
         title: 'Other Fields',
-        categories: ['generative art', 'colors', 'life'],
+        categories: ['generative', 'print'],
     },
     {
         name: 'on-a-line',
         title: 'On a Line',
-        categories: ['generative art'],
+        categories: ['generative'],
     },
-    // {
-    //   name: "other-fields",
-    //   title: "Other Fields",
-    //   categories: ["generative art", "colors", "life"],
-    // },
+    {
+        name: 'dancing-laser-fairies',
+        title: 'Dancing Laser Fairies',
+        categories: ['generative', 'animated'],
+    },
+
+    // TODO: Tetralume
+
     // {
     //   name: "other-fields",
     //   title: "Other Fields",
@@ -35,9 +38,8 @@ const projects = [
 export default function Page() {
     return (
         <>
-            <header className="relative w-full h-[40vh] bg-blue-500">
-                {/* Takes up entire area of header element as a background */}
-                {/* <RenderedHero /> */}
+            <header className="relative w-full h-[32vh] bg-dark">
+                <RenderedHero />
 
                 <div className="relative h-full max-w-6xl mx-auto">
                     <NavBar />
