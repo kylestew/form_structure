@@ -6,6 +6,11 @@ import Footer from '@/app/ui/footer'
 
 const projects = [
     {
+        name: 'dancing-laser-fairies',
+        title: 'Dancing Laser Fairies',
+        categories: ['generative', 'animated'],
+    },
+    {
         name: 'other-fields',
         title: 'Other Fields',
         categories: ['generative', 'print'],
@@ -16,23 +21,10 @@ const projects = [
         categories: ['generative'],
     },
     {
-        name: 'dancing-laser-fairies',
-        title: 'Dancing Laser Fairies',
-        categories: ['generative', 'animated'],
+        name: 'tetralume',
+        title: 'Tetralume',
+        categories: ['interactive', 'physical', 'performance'],
     },
-
-    // TODO: Tetralume
-
-    // {
-    //   name: "other-fields",
-    //   title: "Other Fields",
-    //   categories: ["generative art", "colors", "life"],
-    // },
-    // {
-    //   name: "other-fields",
-    //   title: "Other Fields",
-    //   categories: ["generative art", "colors", "life"],
-    // },
 ]
 
 export default function Page() {

@@ -6,6 +6,13 @@
     @apply text-white font-semibold hover:underline;
 }
 
+p a {
+    @apply text-action;
+}
+p a:hover {
+    @apply underline;
+}
+
 button {
     @apply w-full hover:bg-action text-white font-bold px-4 py-2 border uppercase;
 }
