@@ -8,7 +8,7 @@ const projects = [
     {
         name: 'dancing-laser-fairies',
         title: 'Dancing Laser Fairies',
-        categories: ['generative', 'animated'],
+        categories: ['exe', 'generative', 'animated'],
     },
     {
         name: 'other-fields',
@@ -18,12 +18,12 @@ const projects = [
     {
         name: 'on-a-line',
         title: 'On a Line',
-        categories: ['generative'],
+        categories: ['exe', 'generative'],
     },
     {
         name: 'tetralume',
         title: 'Tetralume',
-        categories: ['interactive', 'physical', 'performance'],
+        categories: ['physical', 'performance'],
     },
 ]
 
