@@ -31,7 +31,7 @@ export default function Page() {
     return (
         <>
             <header className="relative w-full h-[32vh] bg-dark">
-                <RenderedHero />
+                {/* <RenderedHero /> */}
 
                 <div className="relative h-full max-w-6xl mx-auto">
                     <NavBar />
