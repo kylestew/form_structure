@@ -9,13 +9,16 @@ import { random, gaussian } from 'root/random'
 import { randomPalette } from '@/sketches/labs/palettes'
 
 const RenderedHero = () => {
-    const canvasRef = useRef(null)
+    const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
     useEffect(() => {
         const canvas = canvasRef.current
         if (!canvas) return
 
-        const cmd = createCanvas(canvas.parentElement.clientWidth, canvas.parentElement.clientHeight, canvas, [-1, 1])
+        const parent = canvas.parentElement
+        if (!parent) return
+
+        const cmd = createCanvas(parent.clientWidth, parent.clientHeight, canvas, [-1, 1])
 
         const { background, primary, secondary, accent, dark, neutral } = randomPalette()
         cmd.clear(background)

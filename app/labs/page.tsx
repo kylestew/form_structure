@@ -6,15 +6,17 @@ import { randomPalette } from '@/sketches/labs/palettes'
 import { examples } from '@/sketches/labs'
 
 export default function Page() {
-    const canvasRefs = useRef([])
+    const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([])
 
     useEffect(() => {
         const palette = randomPalette()
 
         canvasRefs.current.forEach((canvas, index) => {
-            const cmd = createCanvas(640, 640, canvas, [-1, 1])
-            const fn = examples[index]
-            fn(cmd, palette)
+            if (canvas) {
+                const cmd = createCanvas(640, 640, canvas, [-1, 1])
+                const fn = examples[index]
+                fn(cmd, palette)
+            }
         })
     }, [])
 
@@ -23,7 +25,9 @@ export default function Page() {
             {examples.map((example, index) => (
                 <div key={example.name}>
                     <canvas
-                        ref={(el) => (canvasRefs.current[index] = el)}
+                        ref={(el) => {
+                            if (el) canvasRefs.current[index] = el
+                        }}
                         id={`canvas-${example.name}`}
                         width="640"
                         height="640"

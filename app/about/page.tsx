@@ -8,7 +8,7 @@ function About() {
                 <div className="text-2xl text-light_gray mt-2">Generative Artist</div>
             </div>
 
-            <div class="grid grid-cols-3 gap-8 mb-10">
+            <div className="grid grid-cols-3 gap-8 mb-10">
                 <div>
                     <Image
                         src="/images/art_Avi.png"

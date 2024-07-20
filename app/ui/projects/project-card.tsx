@@ -1,8 +1,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
 
-function ProjectCard({ name, title, categories, overlayExt = 'jpg' }) {
-    // const url = `/projects/${name}`;
+interface ProjectCardProps {
+    name: string
+    title: string
+    categories: string[]
+    overlayExt?: string
+}
+
+const ProjectCard: React.FC<ProjectCardProps> = ({ name, title, categories, overlayExt = 'jpg' }) => {
     const url = `/${name}`
 
     const imgPath = '/images/' + name
@@ -32,38 +38,3 @@ function ProjectCard({ name, title, categories, overlayExt = 'jpg' }) {
 }
 
 export default ProjectCard
-
-/*
-export default function ProjectCardInner({
-  name,
-  title,
-  subtitle,
-  overlayExt = "jpg",
-}) {
-  const imgPath = "/images/" + name;
-  const mainImagePath = imgPath + "/cover.jpg";
-  const overlayImagePath = imgPath + "/cover-overlay." + overlayExt;
-  const overlayVideoPath = imgPath + "/cover-overlay.mp4";
-
-  return (
-    <figure>
-      <img src={mainImagePath} alt="" />
-
-      {overlayExt == "mp4" ? (
-        <video controls>
-          <source src={overlayVideoPath} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      ) : (
-        <img src={overlayImagePath} className="focused" alt="" />
-      )}
-
-      <div className="overlay"></div>
-      <figcaption>
-        <h2>{title}</h2>
-        <p>{subtitle}</p>
-      </figcaption>
-    </figure>
-  );
-}
-*/
