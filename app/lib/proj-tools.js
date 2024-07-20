@@ -1,44 +1,69 @@
-export function prepareProjectContainer(meta, canvasElement, prepareFn, renderFn) {
+export function prepareProjectContainer(meta, canvasElement, prepareFn, randomizeFn, renderFn) {
+    // Set the title and description
     const titleElement = document.getElementById('title')
     titleElement.innerText = meta.title
     const descriptionElement = document.getElementById('description')
     descriptionElement.innerText = meta.description
 
+    let isRunning = false
     const statusElement = document.getElementById('status')
-    statusElement.innerText = 'ready'
+    const runButtonElement = document.getElementById('run')
+    const randomizeButtonElement = document.getElementById('randomize')
+    const captureButtonElement = document.getElementById('capture')
+    function updateUIState() {
+        if (isRunning) {
+            statusElement.innerText = 'status: running...'
+            runButtonElement.innerText = 'pause'
+        } else {
+            statusElement.innerText = 'status: paused'
+            runButtonElement.innerText = 'run'
+        }
+    }
 
-    const buttonElement = document.getElementById('run')
-    buttonElement.addEventListener('click', () => {
-        // Code to run when the button is clicked
+    // RUN/PAUSE
+    runButtonElement.addEventListener('click', () => {
+        isRunning = !isRunning
+        if (isRunning) {
+            requestAnimationFrame(animationLoop)
+        }
+        updateUIState()
     })
 
-    const randomizeButtonElement = document.getElementById('randomize')
+    // RANDOMIZE
     randomizeButtonElement.classList.remove('hidden')
     randomizeButtonElement.addEventListener('click', () => {
-        renderFn(0.0)
+        randomizeFn()
     })
 
-    const captureButtonElement = document.getElementById('capture')
+    // CAPTURE
     captureButtonElement.classList.remove('hidden')
     captureButtonElement.addEventListener('click', () => {
         saveCanvas(canvasElement)
     })
 
+    // == MAIN EVENT ==
     prepareFn(canvasElement)
+    randomizeFn()
 
-    if (meta.animated) {
-        // remove hidden class from run button
+    function animationLoop(timestamp) {
+        if (isRunning) {
+            renderFn(timestamp)
+            requestAnimationFrame(animationLoop)
+        }
     }
 
-    // begin running by default
-    statusElement.innerText = 'status: running...'
-    buttonElement.innerText = 'pause'
+    isRunning = true
+    if (meta.animated) {
+        // remove hidden class from run button
+        runButtonElement.classList.remove('hidden')
 
-    // this isn't animated
-    renderFn(0.0)
+        requestAnimationFrame(animationLoop)
+    } else {
+        // this isn't animated - run once
+        renderFn()
+    }
 
-    statusElement.innerText = 'status: done'
-    buttonElement.innerText = 'run'
+    updateUIState()
 }
 
 function saveCanvas(canvas) {

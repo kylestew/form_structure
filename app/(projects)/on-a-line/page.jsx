@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react'
 import { prepareProjectContainer } from '@/app/lib/proj-tools'
 
-import { prepare, render } from '@/sketches/on_a_line'
+import { prepare, randomize, render } from '@/sketches/on_a_line'
 
 export default function Page() {
     const canvasRef = useRef(null)
@@ -17,6 +17,7 @@ export default function Page() {
             },
             canvasRef.current,
             prepare,
+            render,
             render
         )
     }, [])
