@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 function About() {
     return (
@@ -17,7 +18,27 @@ function About() {
                         width={432}
                         height={426}
                     />
+
+                    <div className="flex space-x-4 mt-4">
+                        <a href="https://www.instagram.com/form.structure/" target="_blank" rel="noopener noreferrer">
+                            <FontAwesomeIcon icon={['fab', 'instagram']} size="2x" />
+                        </a>
+                        <a href="https://x.com/FormStructure" target="_blank" rel="noopener noreferrer">
+                            <FontAwesomeIcon icon={['fab', 'twitter']} size="2x" />
+                        </a>
+                        <a href="https://github.com/kylestew" target="_blank" rel="noopener noreferrer">
+                            <FontAwesomeIcon icon={['fab', 'github']} size="2x" />
+                        </a>
+                        <a
+                            href="https://www.linkedin.com/in/kyle-stewart-91851166/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <FontAwesomeIcon icon={['fab', 'linkedin']} size="2x" />
+                        </a>
+                    </div>
                 </div>
+
                 <div className="col-span-2">
                     <p className="text text-gray ">
                         I'm a versatile software engineer with a profound passion for utilizing technology as a powerful
