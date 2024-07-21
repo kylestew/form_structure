@@ -11,7 +11,7 @@ export default function Page() {
         prepareProjectContainer(
             {
                 title: 'Dancing Laser Fairies',
-                description: 'Text description goes here',
+                description: '',
                 animated: true,
             },
             canvasRef.current,
