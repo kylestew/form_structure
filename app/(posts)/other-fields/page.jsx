@@ -7,7 +7,7 @@ function Project() {
                 <div className="text-6xl text-dark font-semibold">Other Fields</div>
                 <div className="text-2xl text-light_gray mt-2">Generative Art Print Series</div>
             </div>
-            <div class="grid grid-cols-2 gap-6 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                 <Image
                     src="/images/other-fields/OF_gen_01.jpg"
                     className="art"
@@ -47,7 +47,7 @@ function Project() {
                 <a href="http://thi.ng/">thi.ng</a>. I&apos;ve found that the open-ended nature of Python allows me to
                 develop the library without breaking my flow as I create new art pieces.
             </p>
-            <div class="grid grid-cols-4 gap-4 mt-8 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 mb-8">
                 <div>
                     <Image
                         src="/images/other-fields/OF_gen_03.jpg"
