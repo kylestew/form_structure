@@ -7,6 +7,7 @@ import { goto10 } from '@/sketches/labs/goto10'
 import { unDeuxTrois } from '@/sketches/labs/un_deux_trois'
 import { joyDivision } from '@/sketches/labs/joy_division'
 import { screenprint } from '@/sketches/labs/screenprint'
+import { urbanDensity } from '@/sketches/labs/urban_density'
 
 export const examples = [
     showPalette, //
@@ -18,12 +19,12 @@ export const examples = [
     unDeuxTrois,
     joyDivision,
     screenprint,
+    urbanDensity,
 ]
 
-// domainWarping
 // noiseTextureSampling
 // imageSampleDistro
-// hobbs_community
+// domainWarping
 // easingsDistributions
 // circle-packing / circle_packing_fun
 // phong
