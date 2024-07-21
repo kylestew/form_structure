@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import NavBar from '@/app/ui/navbar'
-import RenderedHero from '@/app/ui/projects/rendered-hero'
+import RenderedHero from '@/app/ui/projects/rendered-hero-2'
 import ProjectCard from '@/app/ui/projects/project-card'
 import Footer from '@/app/ui/footer'
 
@@ -31,7 +31,7 @@ export default function Page() {
     return (
         <>
             <header className="relative w-full h-[32vh] bg-dark">
-                {/* <RenderedHero /> */}
+                <RenderedHero />
 
                 <div className="relative h-full max-w-6xl mx-auto">
                     <NavBar />

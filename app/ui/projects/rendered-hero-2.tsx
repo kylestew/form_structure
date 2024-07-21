@@ -2,7 +2,6 @@
 import { useEffect, useRef } from 'react'
 
 import { blobWebGl } from '@/sketches/blob/main'
-import { blob } from 'stream/consumers'
 
 const RenderedHero = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
