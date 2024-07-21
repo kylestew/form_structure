@@ -1,3 +1,5 @@
+import { saveAs } from 'file-saver'
+
 export function prepareProjectContainer(meta, canvasElement, prepareFn, randomizeFn, renderFn) {
     // Set the title and description
     const titleElement = document.getElementById('title')
@@ -68,10 +70,17 @@ export function prepareProjectContainer(meta, canvasElement, prepareFn, randomiz
 
 function saveCanvas(canvas) {
     // Create an image from the canvas
-    var image = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream')
+    var image = canvas.toDataURL('image/png')
 
-    // Create a temporary link element
-    var link = document.createElement('a')
+    // Convert the data URL to a Blob
+    var byteString = atob(image.split(',')[1])
+    var mimeString = image.split(',')[0].split(':')[1].split(';')[0]
+    var ab = new ArrayBuffer(byteString.length)
+    var ia = new Uint8Array(ab)
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i)
+    }
+    var blob = new Blob([ab], { type: mimeString })
 
     // Get the current date to add to the filename
     var date = new Date()
@@ -83,9 +92,8 @@ function saveCanvas(canvas) {
         date.getFullYear()
 
     // Set the filename including the date
-    link.download = 'sketch-' + dateString + '.png'
-    link.href = image
+    var filename = 'sketch-' + dateString + '.png'
 
-    // Trigger the download
-    link.click()
+    // Trigger the download using FileSaver.js
+    saveAs(blob, filename)
 }
