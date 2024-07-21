@@ -1,13 +1,20 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, MutableRefObject } from 'react'
+import { ReactNode, MouseEvent } from 'react'
 import { createCanvas } from 'root/canvas'
 import { randomPalette } from '@/sketches/labs/palettes'
 import { examples } from '@/sketches/labs'
 
-const Modal = ({ isOpen, onClose, content }) => {
+interface ModalProps {
+    isOpen: boolean
+    onClose: () => void
+    content: ReactNode
+}
+
+const Modal = ({ isOpen, onClose, content }: ModalProps) => {
     if (!isOpen) return null
 
-    const handleBackdropClick = (e) => {
+    const handleBackdropClick = (e: MouseEvent<HTMLDivElement>) => {
         if (e.target === e.currentTarget) {
             onClose()
         }
@@ -29,9 +36,9 @@ const Modal = ({ isOpen, onClose, content }) => {
 }
 
 export default function Page() {
-    const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([])
-    const [isModalOpen, setIsModalOpen] = useState(false)
-    const [modalContent, setModalContent] = useState(null)
+    const canvasRefs: MutableRefObject<(HTMLCanvasElement | null)[]> = useRef([])
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+    const [modalContent, setModalContent] = useState<ReactNode>(null)
 
     useEffect(() => {
         const palette = randomPalette()
@@ -45,7 +52,7 @@ export default function Page() {
         })
     }, [])
 
-    const handleCanvasClick = (index) => {
+    const handleCanvasClick = (index: number) => {
         const canvas = canvasRefs.current[index]
         if (canvas) {
             setModalContent(
