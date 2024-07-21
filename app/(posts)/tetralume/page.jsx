@@ -11,11 +11,11 @@ function Project() {
 
             <iframe
                 src="https://player.vimeo.com/video/273113997?h=a8d107e79f"
-                width="640"
-                height="360"
-                frameBorder="0"
+                width="100%"
+                height="100%"
                 allow="autoplay; fullscreen; picture-in-picture"
                 allowFullScreen
+                className="w-full h-56 md:h-96"
             ></iframe>
 
             <p className="text text-gray mt-8 mb-8">
