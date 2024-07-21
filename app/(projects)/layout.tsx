@@ -2,9 +2,9 @@ import NavBarSide from '@/app/ui/navbar-side'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     return (
-        <div className="h-screen flex">
-            <div className="flex-1 flex items-center justify-center h-full p-8">{children}</div>
-            <div className="flex flex-col w-80 border-l-2 border-gray">
+        <div className="h-screen flex flex-col md:flex-row">
+            <div className="flex-1 flex items-center justify-center h-full p-8 order-1 md:order-none">{children}</div>
+            <div className="flex flex-col w-full md:w-80 border-t-2 md:border-t-0 md:border-l-2 border-gray order-2 md:order-none">
                 <div className="info p-4">
                     <div id="title" className="text-white text-3xl uppercase pb-4">
                         Loading...
