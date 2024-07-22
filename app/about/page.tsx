@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faInstagram, faTwitter, faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons'
 
 function About() {
     return (
@@ -21,20 +22,20 @@ function About() {
 
                     <div className="flex space-x-4 mt-4">
                         <a href="https://www.instagram.com/form.structure/" target="_blank" rel="noopener noreferrer">
-                            <FontAwesomeIcon icon={['fab', 'instagram']} size="2x" />
+                            <FontAwesomeIcon icon={faInstagram} size="2x" />
                         </a>
                         <a href="https://x.com/FormStructure" target="_blank" rel="noopener noreferrer">
-                            <FontAwesomeIcon icon={['fab', 'twitter']} size="2x" />
+                            <FontAwesomeIcon icon={faTwitter} size="2x" />
                         </a>
                         <a href="https://github.com/kylestew" target="_blank" rel="noopener noreferrer">
-                            <FontAwesomeIcon icon={['fab', 'github']} size="2x" />
+                            <FontAwesomeIcon icon={faGithub} size="2x" />
                         </a>
                         <a
                             href="https://www.linkedin.com/in/kyle-stewart-91851166/"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            <FontAwesomeIcon icon={['fab', 'linkedin']} size="2x" />
+                            <FontAwesomeIcon icon={faLinkedin} size="2x" />
                         </a>
                     </div>
                 </div>

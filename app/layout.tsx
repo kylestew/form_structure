@@ -1,9 +1,8 @@
 import '@/app/ui/global.css'
 
 import { config } from '@fortawesome/fontawesome-svg-core'
-import '@fortawesome/fontawesome-svg-core/styles.css' // Import the CSS
-import '@/app/ui/fontawesome' // Import the fontawesome setup
-config.autoAddCss = false // Prevent FontAwesome from adding its own CSS
+import '@fortawesome/fontawesome-svg-core/styles.css'
+config.autoAddCss = false
 
 import { spaceMono } from '@/app/ui/fonts'
 import type { Metadata } from 'next'
