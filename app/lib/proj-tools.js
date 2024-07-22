@@ -22,26 +22,32 @@ export function prepareProjectContainer(meta, canvasElement, prepareFn, randomiz
         }
     }
 
-    // RUN/PAUSE
-    runButtonElement.addEventListener('click', () => {
+    function handleRunButtonClick() {
         isRunning = !isRunning
         if (isRunning) {
             requestAnimationFrame(animationLoop)
         }
         updateUIState()
-    })
+    }
+
+    function handleRandomizeButtonClick() {
+        randomizeFn()
+    }
+
+    function handleCaptureButtonClick() {
+        saveCanvas(canvasElement)
+    }
+
+    // RUN/PAUSE
+    runButtonElement.addEventListener('click', handleRunButtonClick)
 
     // RANDOMIZE
     randomizeButtonElement.classList.remove('hidden')
-    randomizeButtonElement.addEventListener('click', () => {
-        randomizeFn()
-    })
+    randomizeButtonElement.addEventListener('click', handleRandomizeButtonClick)
 
     // CAPTURE
     captureButtonElement.classList.remove('hidden')
-    captureButtonElement.addEventListener('click', () => {
-        saveCanvas(canvasElement)
-    })
+    captureButtonElement.addEventListener('click', handleCaptureButtonClick)
 
     // == MAIN EVENT ==
     prepareFn(canvasElement)
@@ -66,6 +72,14 @@ export function prepareProjectContainer(meta, canvasElement, prepareFn, randomiz
     }
 
     updateUIState()
+
+    function stopAndCleanup() {
+        isRunning = false
+        runButtonElement.removeEventListener('click', handleRunButtonClick)
+        randomizeButtonElement.removeEventListener('click', handleRandomizeButtonClick)
+        captureButtonElement.removeEventListener('click', handleCaptureButtonClick)
+    }
+    return stopAndCleanup
 }
 
 function saveCanvas(canvas) {

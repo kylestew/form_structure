@@ -5,7 +5,7 @@ function About() {
         <article className="max-w-4xl ">
             <div className="mt-4 mb-8">
                 <div className="text-6xl text-dark font-semibold">Kyle Stewart</div>
-                <div className="text-2xl text-light_gray mt-2">Generative Artist</div>
+                <div className="text-2xl text-light_gray mt-2">Creative Coder</div>
             </div>
 
             <div className="grid grid-col-1 md:grid-cols-3 gap-8 mb-10">

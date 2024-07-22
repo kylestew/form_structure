@@ -8,7 +8,7 @@ export default function Page() {
     const canvasRef = useRef(null)
 
     useEffect(() => {
-        prepareProjectContainer(
+        const cleanup = prepareProjectContainer(
             {
                 title: 'On a Line',
                 description:
@@ -20,6 +20,10 @@ export default function Page() {
             render,
             render
         )
+
+        return () => {
+            cleanup()
+        }
     }, [])
 
     return <canvas ref={canvasRef}></canvas>
