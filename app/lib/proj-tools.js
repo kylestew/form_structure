@@ -55,7 +55,6 @@ export function prepareProjectContainer(meta, canvasElement, prepareFn, randomiz
 
     function animationLoop(timestamp) {
         if (isRunning) {
-            console.log(timestamp)
             renderFn(timestamp)
             requestAnimationFrame(animationLoop)
         }

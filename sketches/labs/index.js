@@ -1,12 +1,13 @@
-import { showPalette } from '@/sketches/labs/show_palette'
+import { circlePacking } from '@/sketches/labs/circle_packing'
 import { distributions } from '@/sketches/labs/distributions'
-import { handDrawnShapes } from '@/sketches/labs/hand_drawn_shapes'
-import { sandlines } from '@/sketches/labs/sandlines'
-import { patternFills } from '@/sketches/labs/pattern_fills'
 import { goto10 } from '@/sketches/labs/goto10'
-import { unDeuxTrois } from '@/sketches/labs/un_deux_trois'
+import { handDrawnShapes } from '@/sketches/labs/hand_drawn_shapes'
 import { joyDivision } from '@/sketches/labs/joy_division'
+import { patternFills } from '@/sketches/labs/pattern_fills'
+import { sandlines } from '@/sketches/labs/sandlines'
 import { screenprint } from '@/sketches/labs/screenprint'
+import { showPalette } from '@/sketches/labs/show_palette'
+import { unDeuxTrois } from '@/sketches/labs/un_deux_trois'
 import { urbanDensity } from '@/sketches/labs/urban_density'
 
 export const examples = [
@@ -15,24 +16,10 @@ export const examples = [
     handDrawnShapes,
     patternFills,
     sandlines,
+    circlePacking,
     goto10,
     unDeuxTrois,
     joyDivision,
     screenprint,
     urbanDensity,
 ]
-
-// noiseTextureSampling
-// imageSampleDistro
-// domainWarping
-// easingsDistributions
-// circle-packing / circle_packing_fun
-// phong
-// wood_blocks
-// raytrace
-
-// hypnotic-squares
-// negroni
-// convex-hull
-// flood_fill
-// curve_demos
