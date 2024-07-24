@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-
 import vertShaderSource from '../shaders/blob.vert?raw'
 import fragShaderSource from '../shaders/blob.frag?raw'
 
@@ -21,7 +20,6 @@ export function blobWebGl(canvas) {
 
     const geometry = new THREE.IcosahedronGeometry(1, 64)
 
-    // const material = new THREE.MeshBasicMaterial({ color: '#ff0000' })
     const material = new THREE.ShaderMaterial({
         vertexShader: vertShaderSource,
         fragmentShader: fragShaderSource,
@@ -30,18 +28,20 @@ export function blobWebGl(canvas) {
                 type: 'f',
                 value: 0,
             },
-            side: THREE.DoubleSide, // Render backfaces
         },
+        side: THREE.DoubleSide,
     })
 
     const mesh = new THREE.Mesh(geometry, material)
     scene.add(mesh)
 
+    let animationId
+
     function render(time) {
         time /= 5000.0
         mesh.material.uniforms.time.value = time
         renderer.render(scene, camera)
-        requestAnimationFrame(render)
+        animationId = requestAnimationFrame(render)
     }
     render()
 
@@ -51,4 +51,11 @@ export function blobWebGl(canvas) {
         renderer.setPixelRatio(window.devicePixelRatio)
         renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientWidth)
     }
+
+    // Function to stop the animation
+    function stop() {
+        cancelAnimationFrame(animationId)
+    }
+
+    return { stop }
 }

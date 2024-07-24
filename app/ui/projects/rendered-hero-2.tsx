@@ -5,15 +5,18 @@ import { blobWebGl } from '@/sketches/blob/main'
 
 const RenderedHero = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
+    const stopRef = useRef<() => void | null>(null)
 
     useEffect(() => {
         const canvas = canvasRef.current
         if (!canvas) return
 
-        blobWebGl(canvas)
+        const { stop } = blobWebGl(canvas)
 
-        // const parent = canvas.parentElement
-        // if (!parent) return
+        // Cleanup function to stop the animation when the component unmounts
+        return () => {
+            stop()
+        }
     }, [])
 
     return <canvas ref={canvasRef} className="absolute w-full h-full"></canvas>
