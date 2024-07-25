@@ -1,5 +1,6 @@
 import { circlePacking } from '@/sketches/labs/circle_packing'
 import { convexHullDemo } from '@/sketches/labs/convex_hull'
+import { curveDemos } from '@/sketches/labs/curve_demos'
 import { distributions } from '@/sketches/labs/distributions'
 import { easingsDistros } from '@/sketches/labs/easings_distros'
 import { goto10 } from '@/sketches/labs/goto10'
@@ -12,6 +13,7 @@ import { showPalette } from '@/sketches/labs/show_palette'
 import { treeRings } from '@/sketches/labs/tree_rings'
 import { unDeuxTrois } from '@/sketches/labs/un_deux_trois'
 import { urbanDensity } from '@/sketches/labs/urban_density'
+import { woodBlocks } from '@/sketches/labs/wood_blocks'
 
 export const examples = [
     showPalette, //
@@ -19,6 +21,7 @@ export const examples = [
     easingsDistros,
     handDrawnShapes,
     patternFills,
+    curveDemos,
     sandlines,
     circlePacking,
     convexHullDemo,
@@ -28,4 +31,5 @@ export const examples = [
     treeRings,
     screenprint,
     urbanDensity,
+    woodBlocks,
 ]
