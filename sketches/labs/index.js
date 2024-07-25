@@ -2,10 +2,10 @@ import { circlePacking } from '@/sketches/labs/circle_packing'
 import { convexHullDemo } from '@/sketches/labs/convex_hull'
 // import { curveDemos } from '@/sketches/labs/curve_demos'
 import { distributions } from '@/sketches/labs/distributions'
-import { easingsDistros } from '@/sketches/labs/easings_distros'
+// import { easingsDistros } from '@/sketches/labs/easings_distros'
 import { goto10 } from '@/sketches/labs/goto10'
 import { handDrawnShapes } from '@/sketches/labs/hand_drawn_shapes'
-import { imageSampledDistro } from '@/sketches/labs/image_sampled_distro'
+// import { imageSampledDistro } from '@/sketches/labs/image_sampled_distro'
 import { joyDivision } from '@/sketches/labs/joy_division'
 import { patternFills } from '@/sketches/labs/pattern_fills'
 import { phongLightingExample } from '@/sketches/labs/phong'
@@ -21,7 +21,7 @@ export const examples = [
     showPalette, //
     distributions,
     // easingsDistros,
-    imageSampledDistro,
+    // imageSampledDistro,
     handDrawnShapes,
     patternFills,
     // curveDemos,
