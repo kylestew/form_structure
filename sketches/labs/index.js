@@ -1,7 +1,7 @@
 // import { circlePacking } from '@/sketches/labs/circle_packing'
 // import { convexHullDemo } from '@/sketches/labs/convex_hull'
 // import { curveDemos } from '@/sketches/labs/curve_demos'
-// import { distributions } from '@/sketches/labs/distributions'
+import { distributions } from '@/sketches/labs/distributions'
 // import { easingsDistros } from '@/sketches/labs/easings_distros'
 // import { goto10 } from '@/sketches/labs/goto10'
 // import { handDrawnShapes } from '@/sketches/labs/hand_drawn_shapes'
@@ -19,7 +19,7 @@ import { showPalette } from '@/sketches/labs/show_palette'
 
 export const examples = [
     showPalette, //
-    // distributions,
+    distributions,
     // easingsDistros,
     // imageSampledDistro,
     // handDrawnShapes,

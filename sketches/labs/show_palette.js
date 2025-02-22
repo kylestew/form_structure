@@ -1,5 +1,5 @@
 import { createCanvas } from 'root/canvas'
-import { Grid, Rectangle } from 'root/geo'
+import { Grid } from 'root/geo'
 import { color } from 'root/color'
 
 function showPalette(context, options) {

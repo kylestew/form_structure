@@ -1,3 +1,4 @@
+import { createCanvas } from 'root/canvas'
 import { Grid, offset } from 'root/geo'
 import { full, zip } from 'root/array'
 import { random, gaussian, pareto, randomBool, simplex3 } from 'root/random'
@@ -61,9 +62,12 @@ function noise2D(count, noiseScale, zOffset, noiseFloor) {
     return placed
 }
 
-function distributions(cmd, palette) {
+function distributions(context, options) {
+    const palette = options.palette
+
+    const cmd = createCanvas(options.width, options.height, context.canvas, [-1, 1])
     cmd.clear(palette.background)
-    const grid = new Grid([-1, -1], [2, 2], 3, 2)
+    const grid = new Grid([0, 0], [2, 2], 3, 2)
 
     const rects = grid.rects().map((r) => offset(r, -0.02))
     const sampleCount = 25_000
