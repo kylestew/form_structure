@@ -1,12 +1,15 @@
-import { Grid } from 'root/geo'
+import { createCanvas } from 'root/canvas'
+import { Grid, Rectangle } from 'root/geo'
 import { color } from 'root/color'
 
-function showPalette(cmd, palette) {
-    cmd.clear('#fff')
-
+function showPalette(context, options) {
+    const palette = options.palette
     const colorNames = Object.keys(palette)
 
-    const grid = new Grid([-1, -1], [2, 2], 1, colorNames.length)
+    const cmd = createCanvas(options.width, options.height, context.canvas, [-1, 1])
+    cmd.clear('#fff')
+
+    const grid = new Grid([0, 0], [2, 2], 1, colorNames.length)
     grid.cells().forEach(({ index, rect, center }) => {
         const col = color(palette[colorNames[index]])
         cmd.draw(rect, { fill: col.toHex() })

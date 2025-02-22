@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState, MutableRefObject } from 'react'
 import { ReactNode, MouseEvent } from 'react'
-import { createCanvas } from 'root/canvas'
+import { runSketch } from 'root/sketch'
 import { randomPalette } from '@/sketches/labs/palettes'
 import { examples } from '@/sketches/labs'
 
@@ -45,9 +45,8 @@ export default function Page() {
 
         canvasRefs.current.forEach((canvas, index) => {
             if (canvas) {
-                const cmd = createCanvas(640, 640, canvas, [-1, 1])
                 const fn = examples[index]
-                fn(cmd, palette)
+                runSketch(fn, { palette, canvas, width: 640, height: 640 })
             }
         })
     }, [])
@@ -61,9 +60,8 @@ export default function Page() {
                     height="640"
                     ref={(el) => {
                         if (el) {
-                            const cmd = createCanvas(640, 640, el, [-1, 1])
                             const fn = examples[index]
-                            fn(cmd, randomPalette())
+                            runSketch(fn, { palette: randomPalette(), canvas: el, width: 640, height: 640 })
                         }
                     }}
                 ></canvas>
