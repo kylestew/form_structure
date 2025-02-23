@@ -16,6 +16,7 @@ import { showPalette } from '@/sketches/labs/show_palette'
 // import { unDeuxTrois } from '@/sketches/labs/un_deux_trois'
 // import { urbanDensity } from '@/sketches/labs/urban_density'
 // import { woodBlocks } from '@/sketches/labs/wood_blocks'
+import { sketch as twoDProjection } from '@/sketches/labs/2d-projection'
 
 export const examples = [
     showPalette, //
@@ -36,4 +37,5 @@ export const examples = [
     // screenprint,
     // urbanDensity,
     // woodBlocks,
+    twoDProjection,
 ]
