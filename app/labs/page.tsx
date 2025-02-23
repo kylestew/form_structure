@@ -22,11 +22,11 @@ const Modal = ({ isOpen, onClose, content }: ModalProps) => {
 
     return (
         <div
-            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4"
             onClick={handleBackdropClick}
         >
-            <div className="relative bg-white p-8 rounded-lg">
-                {content}
+            <div className="relative bg-white rounded-lg max-h-[90vh] max-w-[90vw] overflow-auto">
+                <div className="p-8">{content}</div>
                 <button onClick={onClose} className="absolute top-2 right-2 text-4xl text-gray-500 hover:text-gray-700">
                     &times;
                 </button>
@@ -55,16 +55,19 @@ export default function Page() {
         const canvas = canvasRefs.current[index]
         if (canvas) {
             setModalContent(
-                <canvas
-                    width="640"
-                    height="640"
-                    ref={(el) => {
-                        if (el) {
-                            const fn = examples[index]
-                            runSketch(fn, { palette: randomPalette(), canvas: el, width: 640, height: 640 })
-                        }
-                    }}
-                ></canvas>
+                <div className="w-full h-full flex items-center justify-center">
+                    <canvas
+                        width="640"
+                        height="640"
+                        className="w-auto h-auto max-w-[640px] max-h-[640px]"
+                        ref={(el) => {
+                            if (el) {
+                                const fn = examples[index]
+                                runSketch(fn, { palette: randomPalette(), canvas: el, width: 640, height: 640 })
+                            }
+                        }}
+                    ></canvas>
+                </div>
             )
             setIsModalOpen(true)
         }
