@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    swcMinify: true,
     webpack: (config) => {
         // Add loader for shader files
         config.module.rules.push({
