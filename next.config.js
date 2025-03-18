@@ -1,15 +1,16 @@
 /** @type {import('next').NextConfig} */
-
 const nextConfig = {
-    reactStrictMode: false,
+    reactStrictMode: true,
+    swcMinify: true,
     webpack: (config) => {
+        // Add loader for shader files
         config.module.rules.push({
-            test: /\.(glsl|vs|fs|vert|frag|ps)$/,
-            exclude: /node_modules/,
+            test: /\.(glsl|vs|fs|vert|frag)$/,
             use: ['raw-loader'],
         })
+
         return config
     },
 }
 
-export default nextConfig
+module.exports = nextConfig
