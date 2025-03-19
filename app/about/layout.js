@@ -1,7 +1,7 @@
 import NavBar from '@/app/ui/navbar'
 import Footer from '@/app/ui/footer'
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }) {
     return (
         <>
             <div className="w-full bg-dark">

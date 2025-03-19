@@ -1,18 +1,17 @@
-import '@/app/ui/global.css'
+import './global.css'
 
 import { config } from '@fortawesome/fontawesome-svg-core'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 config.autoAddCss = false
 
-import { spaceMono } from '@/app/ui/fonts'
-import type { Metadata } from 'next'
+import { spaceMono } from './ui/fonts'
 
-export const metadata: Metadata = {
+export const metadata = {
     title: 'Form+Structure',
     description: 'Portfolio of Kyle Stewart',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }) {
     return (
         <html lang="en">
             <body className={`${spaceMono.className} antialised bg-dark`}>{children}</body>

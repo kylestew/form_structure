@@ -1,9 +1,5 @@
 @import 'tailwindcss';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @theme {
     --color-dark: #222222;
     --color-gray: #404040;

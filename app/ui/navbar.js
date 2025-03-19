@@ -28,6 +28,9 @@ function NavBar({}) {
                 <Link href="/labs" className="link uppercase text-lg pr-6">
                     Labs
                 </Link>
+                <Link href="/blog" className="link uppercase text-lg pr-6">
+                    Blog
+                </Link>
                 <Link href="/about" className="link uppercase text-lg">
                     About
                 </Link>
