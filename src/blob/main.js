@@ -1,6 +1,6 @@
 import * as THREE from 'three'
-import vertShaderSource from '../shaders/blob.vert?raw'
-import fragShaderSource from '../shaders/blob.frag?raw'
+import vertShaderSource from './blob.vert?raw'
+import fragShaderSource from './blob.frag?raw'
 
 export function blobWebGl(canvas) {
     let canvasContainer = canvas.parentElement

@@ -4,7 +4,7 @@ import { weightedRandom, pickRandom, gaussian, random } from 'root/random'
 import { randomRemove, shuffle } from 'root/array'
 import { handDrawnCircle, linesFill } from 'root/mark'
 
-import { randomPalette } from './labs/palettes'
+import { randomPalette } from '../_save/labs/labs/palettes'
 
 import vertShaderSource from './shaders/basic.vert?raw'
 import fragShaderSource from './shaders/crop_circles.frag?raw'

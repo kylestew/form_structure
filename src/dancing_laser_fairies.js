@@ -2,7 +2,7 @@ import { createCanvas } from 'root/canvas'
 import { Circle, Line, pointAt } from 'root/geo'
 import { random, randomInt, randomOffset, gaussian, pareto, perlin2 } from 'root/random'
 import { sand } from 'root/mark'
-import { randomPalette } from './labs/palettes'
+import { randomPalette } from '../_save/labs/labs/palettes'
 
 let cmd
 export function prepare(canvasInstance) {
