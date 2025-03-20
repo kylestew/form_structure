@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
-    pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+    pageExtensions: ['js', 'jsx'],
     webpack: (config) => {
         // Add loader for shader files
         config.module.rules.push({
@@ -13,4 +13,4 @@ const nextConfig = {
     },
 }
 
-module.exports = nextConfig
+export default nextConfig

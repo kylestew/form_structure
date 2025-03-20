@@ -1,7 +1,7 @@
 import NavBar from '@/app/components/navbar'
 import Footer from '@/app/components/footer'
 
-export default function BlogLayout({ children }) {
+export default function Layout({ children }) {
     return (
         <>
             <div className="w-full bg-dark">

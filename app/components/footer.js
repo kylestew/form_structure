@@ -1,8 +1,8 @@
-// Footer.jsx
-
 const Footer = () => {
     return (
         <footer className="bg-dark text-white p-10 text-center lg:text-left">
+            {/* <p className="mt-8 text-neutral-600 dark:text-neutral-300">© {new Date().getFullYear()} MIT Licensed</p> */}
+
             {/* <div className="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="mb-6 lg:mb-0">
                     <div className="text-3xl font-bold mb-4">WE WOULD LOVE TO HEAR FROM YOU.</div>

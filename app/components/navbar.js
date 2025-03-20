@@ -21,14 +21,14 @@ function NavBar({}) {
             </div>
             <div>
                 {pathName !== '/' && (
-                    <Link href="/" className="link uppercase text-lg pr-6">
+                    <Link key="/" href="/" className="link uppercase text-lg pr-6">
                         Projects
                     </Link>
                 )}
-                <Link href="/blog" className="link uppercase text-lg pr-6">
-                    Blog
+                <Link key="/notes" href="/notes" className="link uppercase text-lg pr-6">
+                    Notes
                 </Link>
-                <Link href="/about" className="link uppercase text-lg">
+                <Link key="/about" href="/about" className="link uppercase text-lg">
                     About
                 </Link>
             </div>
