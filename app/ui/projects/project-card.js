@@ -1,14 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 
-interface ProjectCardProps {
-    name: string
-    title: string
-    categories: string[]
-    overlayExt?: string
-}
-
-const ProjectCard: React.FC<ProjectCardProps> = ({ name, title, categories, overlayExt = 'jpg' }) => {
+const ProjectCard = ({ name, title, categories, overlayExt = 'jpg' }) => {
     const url = `/${name}`
 
     const imgPath = '/images/' + name

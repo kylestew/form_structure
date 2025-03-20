@@ -1,6 +1,6 @@
 import NavBarSide from '@/app/ui/navbar-side'
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }) {
     return (
         <div className="h-screen flex flex-col md:flex-row">
             <div className="flex-1 flex items-center justify-center h-full p-8 order-1 md:order-none">{children}</div>

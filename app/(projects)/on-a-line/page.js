@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useRef } from 'react'
-import { prepareProjectContainer } from '@/app/lib/proj-tools'
+import { prepareProjectContainer } from '@/src/proj-tools'
 
-import { prepare, randomize, render } from '@/sketches/on_a_line'
+import { prepare, randomize, render } from '@/src/projects/on_a_line/on_a_line'
 
 export default function Page() {
     const canvasRef = useRef(null)

@@ -2,7 +2,8 @@ import { createCanvas } from 'root/canvas'
 import { Circle, Line, pointAt } from 'root/geo'
 import { random, randomInt, randomOffset, gaussian, pareto, perlin2 } from 'root/random'
 import { sand } from 'root/mark'
-import { randomPalette } from '../_save/labs/labs/palettes'
+
+import { randomPalette } from '../_lib/palettes'
 
 let cmd
 export function prepare(canvasInstance) {
@@ -81,15 +82,10 @@ export function render(time) {
 
     const grainCount = 2048 * 8
     const lineEndOffset = pareto(0.001, 0.25)
-    const grains1 = sand(line1, grainCount, lineEndOffset, () =>
-        gaussian(0.5 + perlin2(0.5 + 0.0001 * time, 0.00004 * time + 1.23), 0.18)
-    )
-    const grains2 = sand(line2, grainCount, lineEndOffset, () =>
-        gaussian(0.5 + perlin2(0.5 - 0.0001 * time, 0.00004 * time), 0.25)
-    )
-    const grains3 = sand(line3, grainCount, lineEndOffset, () =>
-        gaussian(0.5 + perlin2(0.5 + 0.0001 * time, 0.00004 * time - 8.95), 0.14)
-    )
+
+    const grains1 = sand(line1, 0.005, 3.7, 0.02, 0.002, 0.007, 48)
+    const grains2 = sand(line2, 0.005, 3.7, 0.02, 0.002, 0.007, 48)
+    const grains3 = sand(line3, 0.005, 3.7, 0.02, 0.002, 0.007, 48)
 
     cmd.draw(grains1, { fill: primary + '16', weight: 0.0006 })
     cmd.draw(grains2, { fill: secondary + '16', weight: 0.0006 })

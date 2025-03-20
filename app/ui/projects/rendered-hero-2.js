@@ -1,11 +1,11 @@
 'use client'
 import { useEffect, useRef } from 'react'
 
-import { blobWebGl } from '@/sketches/blob/main'
+import { blobWebGl } from '@/src/main_hero/main'
 
 const RenderedHero = () => {
-    const canvasRef = useRef<HTMLCanvasElement | null>(null)
-    const stopRef = useRef<() => void | null>(null)
+    const canvasRef = useRef(null)
+    const stopRef = useRef(null)
 
     useEffect(() => {
         const canvas = canvasRef.current

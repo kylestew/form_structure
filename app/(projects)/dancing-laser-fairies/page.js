@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useRef } from 'react'
-import { prepareProjectContainer } from '@/app/lib/proj-tools'
+import { prepareProjectContainer } from '@/src/proj-tools'
 
-import { prepare, randomize, render } from '@/sketches/dancing_laser_fairies'
+import { prepare, randomize, render } from '@/src/projects/dancing_laser_fairies/dancing_laser_fairies'
 
 export default function Page() {
     const canvasRef = useRef(null)
