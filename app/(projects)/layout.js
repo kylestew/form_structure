@@ -1,4 +1,4 @@
-import NavBarSide from '@/app/ui/navbar-side'
+import NavBarSide from '@/app/components/navbar-side'
 
 export default function Layout({ children }) {
     return (

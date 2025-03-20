@@ -1,5 +1,5 @@
-import NavBar from '@/app/ui/navbar'
-import Footer from '@/app/ui/footer'
+import NavBar from '@/app/components/navbar'
+import Footer from '@/app/components/footer'
 
 export default function BlogLayout({ children }) {
     return (

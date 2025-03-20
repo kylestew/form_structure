@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import NavBar from '@/app/ui/navbar'
-import RenderedHero from '@/app/ui/projects/rendered-hero-2'
-import ProjectCard from '@/app/ui/projects/project-card'
-import Footer from '@/app/ui/footer'
+import NavBar from '@/app/components/navbar'
+import RenderedHero from '@/app/components/projects/rendered-hero-2'
+import ProjectCard from '@/app/components/projects/project-card'
+import Footer from '@/app/components/footer'
 
 const projects = [
     {

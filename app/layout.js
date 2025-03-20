@@ -4,7 +4,7 @@ import { config } from '@fortawesome/fontawesome-svg-core'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 config.autoAddCss = false
 
-import { spaceMono } from './ui/fonts'
+import { spaceMono } from '@/app/components/fonts'
 
 export const metadata = {
     title: 'Form+Structure',
