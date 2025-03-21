@@ -48,6 +48,10 @@ export function getNotes() {
     return getMDXData(path.join(process.cwd(), 'app', 'notes', 'notes'))
 }
 
+export function formatImage(image) {
+    return `/images/notes/covers/${image}`
+}
+
 export function formatDate(date, includeRelative = false) {
     let currentDate = new Date()
     if (!date.includes('T')) {

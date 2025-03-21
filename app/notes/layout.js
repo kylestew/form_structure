@@ -7,8 +7,8 @@ export default function Layout({ children }) {
             <div className="w-full bg-dark">
                 <NavBar />
             </div>
-            <main className="bg-white">
-                <section className="max-w-4xl mx-auto p-6 py-12">{children}</section>
+            <main className="bg-light">
+                <section className="projects max-w-6xl mx-auto p-6">{children}</section>
             </main>
             <Footer />
         </>
