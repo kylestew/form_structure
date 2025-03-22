@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import Script from 'next/script'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import { highlight } from 'sugar-high'
 import React from 'react'
@@ -84,6 +85,10 @@ function createHeading(level) {
     return Heading
 }
 
+function Canvas() {
+    return <canvas id="myCanvas" width={300} height={150} className="border border-gray-200 rounded-lg" />
+}
+
 const components = {
     h1: createHeading(1),
     h2: createHeading(2),
@@ -95,6 +100,8 @@ const components = {
     a: CustomLink,
     code: Code,
     Table,
+    Script,
+    Canvas,
 }
 
 export function CustomMDX(props) {
