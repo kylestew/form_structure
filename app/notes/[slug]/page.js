@@ -24,7 +24,7 @@ export default async function Page({ params }) {
         <section>
             <h1 className="title font-semibold text-2xl tracking-tighter">{note.metadata.title}</h1>
             <div>{formatDate(note.metadata.publishedAt)}</div>
-            <article className="prose">
+            <article className="notes">
                 <CustomMDX source={note.content} />
             </article>
         </section>

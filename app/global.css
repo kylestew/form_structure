@@ -32,7 +32,7 @@ canvas {
     filter: drop-shadow(0 0 0.5rem #12121222);
 }
 
-.prose .anchor {
+.notes .anchor {
     @apply absolute invisible no-underline;
 
     margin-left: -1em;
@@ -46,75 +46,75 @@ canvas {
     @apply visible;
 }
 
-.prose a {
-    @apply underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em];
+.notes a {
+    @apply underline transition-all decoration-neutral-400 underline-offset-2 decoration-[0.1em];
 }
 
-.prose .anchor:after {
-    @apply text-neutral-300 dark:text-neutral-700;
+.notes .anchor:after {
+    @apply text-neutral-300;
     content: '#';
 }
 
-.prose *:hover > .anchor {
+.notes *:hover > .anchor {
     @apply visible;
 }
 
-.prose pre {
-    @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-200 dark:border-neutral-900 py-2 px-3 text-sm;
+.notes pre {
+    @apply bg-neutral-50 rounded-lg overflow-x-auto border border-neutral-200 py-2 px-3 text-sm;
 }
 
-.prose code {
+.notes code {
     @apply px-1 py-0.5 rounded-lg;
 }
 
-.prose pre code {
+.notes pre code {
     @apply p-0;
     border: initial;
     line-height: 1.5;
 }
 
-.prose code span {
+.notes code span {
     @apply font-medium;
 }
 
-.prose img {
+.notes img {
     /* Don't apply styles to next/image */
     @apply m-0;
 }
 
-.prose p {
-    @apply my-4 text-neutral-800 dark:text-neutral-200;
+.notes p {
+    @apply my-4 text-neutral-800;
 }
 
-.prose h1 {
+.notes h1 {
     @apply text-4xl font-medium tracking-tight mt-6 mb-2;
 }
 
-.prose h2 {
+.notes h2 {
     @apply text-xl font-medium tracking-tight mt-6 mb-2;
 }
 
-.prose h3 {
+.notes h3 {
     @apply text-xl font-medium tracking-tight mt-6 mb-2;
 }
 
-.prose h4 {
+.notes h4 {
     @apply text-lg font-medium tracking-tight mt-6 mb-2;
 }
 
-.prose strong {
+.notes strong {
     @apply font-medium;
 }
 
-.prose ul {
+.notes ul {
     @apply list-disc pl-6;
 }
 
-.prose ol {
+.notes ol {
     @apply list-decimal pl-6;
 }
 
-.prose > :first-child {
+.notes > :first-child {
     /* Override removing top margin, causing layout shift */
     margin-top: 1.25em !important;
     margin-bottom: 1.25em !important;
