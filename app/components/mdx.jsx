@@ -51,7 +51,6 @@ function CustomLink(props) {
 function RoundedImage(props) {
     return <Image alt={props.alt} className="rounded-lg" {...props} />
 }
-
 */
 
 function slugify(str) {
@@ -83,6 +82,18 @@ function createHeading(level) {
     return Heading
 }
 
+function Pre({ children, ...props }) {
+    // Check if this is a special @exec code block
+    // HACK: pretty specific to the syntax of the code blocks in the notes
+    if (children.props.children.startsWith('// @exec')) {
+        // Don't render anything for @exec blocks
+        return <>{children}</>
+    }
+
+    // Regular pre blocks continue as normal
+    return <pre {...props}>{children}</pre>
+}
+
 function Code({ children, ...props }) {
     // check if the first line is // @exec or // @meta exec
     const rawCode = typeof children === 'string' ? children.trim() : ''
@@ -93,12 +104,7 @@ function Code({ children, ...props }) {
     const isExecutable = firstLine === '// @exec' || firstLine === '// @meta exec'
     if (isExecutable) {
         const code = lines.slice(1).join('\n') // strip the @exec line
-        return (
-            <>
-                <code>running code block...</code>
-                <ClientScript code={code} />
-            </>
-        )
+        return <ClientScript code={code} />
     }
 
     // highlight the code block and display it
@@ -107,7 +113,7 @@ function Code({ children, ...props }) {
 }
 
 function Canvas({ id = 'myCanvas' }) {
-    return <canvas id={id} width={640} height={640} className="border border-black-200 rounded-lg" />
+    return <canvas id={id} width={480} height={480} className="border border-black-200 rounded-lg" />
 }
 
 const components = {
@@ -120,10 +126,12 @@ const components = {
 
     // Image: RoundedImage,
     // a: CustomLink,
-
     // Table,
 
+    // conditional code blocks
+    pre: Pre,
     code: Code,
+
     Canvas,
 }
 

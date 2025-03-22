@@ -2,35 +2,119 @@
 title: 'Un Deux Trois'
 publishedAt: '2025-03-22'
 summary: 'A generative art project that uses the canvas API to create a grid of lines.'
+image: 'un-deux-trois.png'
 ---
 
 <Canvas id="example01" />
-<Script>
-{`
+
+```js
+// @exec
+function unDeuxTrois(ctx) {
+    const width = ctx.canvas.width
+    const height = ctx.canvas.height
+
+    // create a grid of positions with inset
+    const cellCountOneSide = 12
+    const inset = 40
+    const availableWidth = width - 2 * inset
+    const availableHeight = height - 2 * inset
+    const cellSize = Math.min(availableWidth, availableHeight) / cellCountOneSide
+
+    for (let j = 0; j < cellCountOneSide; j++) {
+        const pct = j / cellCountOneSide
+        for (let i = 0; i < cellCountOneSide; i++) {
+            ctx.save()
+
+            // translate to cell position
+            const x = inset + i * cellSize + cellSize / 2
+            const y = inset + j * cellSize + cellSize / 2
+            ctx.translate(x, y)
+
+            // rotate to random angle
+            const theta = Math.random() * 2.0 * Math.PI
+            ctx.rotate(theta)
+
+            // draw a line
+            ctx.beginPath()
+
+            if (pct < 0.333) {
+                ctx.moveTo(-cellSize / 2, 0)
+                ctx.lineTo(cellSize / 2, 0)
+            } else if (pct < 0.666) {
+                // draw two lines
+                ctx.moveTo(-cellSize / 2, -cellSize / 8)
+                ctx.lineTo(cellSize / 2, -cellSize / 8)
+                ctx.moveTo(-cellSize / 2, cellSize / 8)
+                ctx.lineTo(cellSize / 2, cellSize / 8)
+            } else {
+                // draw three lines
+                ctx.moveTo(-cellSize / 2, -cellSize / 4)
+                ctx.lineTo(cellSize / 2, -cellSize / 4)
+                ctx.moveTo(-cellSize / 2, 0)
+                ctx.lineTo(cellSize / 2, 0)
+                ctx.moveTo(-cellSize / 2, cellSize / 4)
+                ctx.lineTo(cellSize / 2, cellSize / 4)
+            }
+
+            ctx.strokeStyle = 'white'
+            ctx.lineWidth = 2
+            ctx.stroke()
+            ctx.closePath()
+
+            ctx.restore()
+        }
+    }
+}
+
+// setup and run
 const canvas = document.getElementById('example01')
 if (canvas?.getContext) {
     const ctx = canvas.getContext('2d')
-    ctx.fillStyle = 'orange'
-    ctx.fillRect(10, 10, 150, 75)
+
     ctx.fillStyle = 'black'
-    ctx.font = '16px sans-serif'
-    ctx.fillText('Hello Canvas', 20, 60)
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    unDeuxTrois(ctx)
 }
-`}
-</Script>
+```
 
 ## Description
 
 Un Deux Trois is a generative art piece that creates a mesmerizing grid of lines. The artwork divides the canvas into a 24x24 grid, where each cell contains either one, two, or three parallel lines. The number of lines increases gradually across the grid - cells in the first third contain a single line, the middle third holds two lines, and the final third features three parallel lines. Each line is placed at a random angle within its cell, creating an organic, flowing pattern that balances structure with randomness. The result is a dynamic composition that explores rhythm, density, and spatial relationships through simple geometric elements.
 
+### Code Sample
+
 ```js
-const canvas = document.getElementById('example01')
-if (canvas?.getContext) {
-    const ctx = canvas.getContext('2d')
-    ctx.fillStyle = 'orange'
-    ctx.fillRect(10, 10, 150, 75)
-    ctx.fillStyle = 'black'
-    ctx.font = '16px sans-serif'
-    ctx.fillText('Hello Canvas', 20, 60)
+for (let j = 0; j < cellCountOneSide; j++) {
+    const pct = j / cellCountOneSide
+    for (let i = 0; i < cellCountOneSide; i++) {
+        ctx.save()
+
+        // translate to cell position
+        const x = i * cellSize + cellSize / 2
+        const y = j * cellSize + cellSize / 2
+        ctx.translate(x, y)
+
+        // rotate to random angle
+        const theta = Math.random() * 2.0 * Math.PI
+        ctx.rotate(theta)
+
+        ctx.beginPath()
+
+        if (pct < 0.333) {
+            // draw one line
+        } else if (pct < 0.666) {
+            // draw two lines
+        } else {
+            // draw three lines
+        }
+
+        ctx.strokeStyle = 'white'
+        ctx.lineWidth = 2
+        ctx.stroke()
+        ctx.closePath()
+
+        ctx.restore()
+    }
 }
 ```
