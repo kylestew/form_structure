@@ -1,0 +1,207 @@
+---
+title: 'Distributions'
+publishedAt: '2025-03-23'
+summary: 'Examples of distributions from various sources of randomness.'
+image: 'distributions.png'
+---
+
+<Canvas id="example01" />
+
+```js
+// @meta exec
+// import { Grid, offset } from 'root/geo'
+// import { full, zip } from 'root/array'
+// import { random, gaussian, pareto, randomBool, simplex3 } from 'root/random'
+// import { mapRange } from 'root/math'
+
+function remapToRect(pts, rect, clip = false) {
+    const [x0, y0] = rect.pos
+    const [x1, y1] = rect.max
+    return pts
+        .map(([x, y]) => {
+            const remappedX = root.math.mapRange(x, 0, 1, x0, x1)
+            const remappedY = root.math.mapRange(y, 0, 1, y0, y1)
+            if (clip) {
+                if (remappedX < x0 || remappedX > x1 || remappedY < y0 || remappedY > y1) {
+                    return null // Drop the item
+                } else {
+                    return [remappedX, remappedY]
+                }
+            } else {
+                return [remappedX, remappedY] // Just pass the value
+            }
+        })
+        .filter((item) => item !== null) // Filter out dropped items
+}
+
+/*
+function uniform1D(count) {
+    return full(count, () => random(0, 1))
+}
+function uniform2D(count) {
+    return full(count, () => [random(0, 1), random(0, 1)])
+}
+
+function gaussian1D(count, center, stdDev) {
+    return full(count, () => gaussian(center, stdDev))
+}
+function gaussian2D(count, center, stdDev) {
+    return full(count, () => [gaussian(center[0], stdDev[0]), gaussian(center[1], stdDev[1])])
+}
+
+function pareto1D(count, xm, alpha) {
+    return full(count, () => pareto(xm, alpha))
+}
+function pareto2D(count, xm, alpha) {
+    return full(count, () => [pareto(xm[0], alpha[0]), pareto(xm[1], alpha[1])])
+}
+
+function noise2D(count, noiseScale, zOffset, noiseFloor) {
+    const placed = []
+    while (placed.length < count) {
+        // get a uniform random point in the space
+        const [x, y] = uniform2D(1)[0]
+
+        // put through noise function to determine probability of placement
+        const probability = mapRange(simplex3(x * noiseScale[0], y * noiseScale[1], zOffset), -1, 1, noiseFloor, 1)
+
+        // re-roll with probability to see if we actually place the point
+        if (randomBool(probability)) {
+            placed.push([x, y])
+        }
+    }
+    return placed
+}
+*/
+
+function distributions(ctx) {
+    // cmd.clear(palette.background)
+    const grid = new root.geo.Grid([canvas.width / 2, canvas.height / 2], [canvas.width, canvas.height], 3, 2)
+
+    const rects = grid.rects().map((r) => root.geo.offset(r, -0.02))
+    const sampleCount = 25_000
+
+    const color = 'ffAAAAAA'
+    const attrs = { fill: color, weight: 0.5 }
+
+    // 1) UNIFORM 2D
+    const pts = remapToRect(root.random.uniform2D(sampleCount), rects[0])
+    ctx.beginPath()
+    for (const [x, y] of pts) {
+        ctx.moveTo(x, y)
+        ctx.arc(x, y, attrs.weight, 0, 2 * Math.PI)
+    }
+    ctx.fillStyle = '#' + attrs.fill
+    ctx.fill()
+
+    // // 2) GAUSSIAN 2D
+    // cmd.draw(remapToRect(gaussian2D(sampleCount, [0.5, 0.5], [0.1, 0.1]), rects[1]), attrs)
+
+    // // 3) PARETO 2D (clipped)
+    // cmd.draw(remapToRect(pareto2D(sampleCount, [0.01, 0.01], [1.0, 1.0]), rects[2], true), attrs)
+
+    // // 4) [Gaussian, Uniform]
+    // let pts = zip(gaussian1D(sampleCount, 0.5, 0.1), uniform1D(sampleCount))
+    // cmd.draw(remapToRect(pts, rects[3], false), attrs)
+
+    // // 5) [Gauss, Pareto]
+    // pts = zip(gaussian1D(sampleCount, 0.5, 0.1), pareto1D(sampleCount, 0.01, 0.1))
+    // cmd.draw(remapToRect(pts, rects[4], false), attrs)
+
+    // // 6) NOISE 2D
+    // const zOffset = Date.now()
+    // const noiseScale = [1.4, 1.8]
+    // const noiseFloor = -0.5
+    // pts = noise2D(sampleCount, noiseScale, zOffset, noiseFloor)
+    // cmd.draw(remapToRect(pts, rects[5]), attrs)
+}
+
+// setup and run
+const canvas = document.getElementById('example01')
+if (canvas?.getContext) {
+    const ctx = canvas.getContext('2d')
+
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    distributions(ctx)
+}
+```
+
+```js
+function unDeuxTrois(ctx) {
+    const width = ctx.canvas.width
+    const height = ctx.canvas.height
+
+    // create a grid of positions with inset
+    const cellCountOneSide = 12
+    const inset = 40
+    const availableWidth = width - 2 * inset
+    const availableHeight = height - 2 * inset
+    const cellSize = Math.min(availableWidth, availableHeight) / cellCountOneSide
+
+    for (let j = 0; j < cellCountOneSide; j++) {
+        const pct = j / cellCountOneSide
+        for (let i = 0; i < cellCountOneSide; i++) {
+            ctx.save()
+
+            // translate to cell position
+            const x = inset + i * cellSize + cellSize / 2
+            const y = inset + j * cellSize + cellSize / 2
+            ctx.translate(x, y)
+
+            // rotate to random angle
+            const theta = Math.random() * 2.0 * Math.PI
+            ctx.rotate(theta)
+
+            // draw a line
+            ctx.beginPath()
+
+            if (pct < 0.333) {
+                ctx.moveTo(-cellSize / 2, 0)
+                ctx.lineTo(cellSize / 2, 0)
+            } else if (pct < 0.666) {
+                // draw two lines
+                ctx.moveTo(-cellSize / 2, -cellSize / 8)
+                ctx.lineTo(cellSize / 2, -cellSize / 8)
+                ctx.moveTo(-cellSize / 2, cellSize / 8)
+                ctx.lineTo(cellSize / 2, cellSize / 8)
+            } else {
+                // draw three lines
+                ctx.moveTo(-cellSize / 2, -cellSize / 4)
+                ctx.lineTo(cellSize / 2, -cellSize / 4)
+                ctx.moveTo(-cellSize / 2, 0)
+                ctx.lineTo(cellSize / 2, 0)
+                ctx.moveTo(-cellSize / 2, cellSize / 4)
+                ctx.lineTo(cellSize / 2, cellSize / 4)
+            }
+
+            ctx.strokeStyle = 'white'
+            ctx.lineWidth = 2
+            ctx.stroke()
+            ctx.closePath()
+
+            ctx.restore()
+        }
+    }
+}
+
+// setup and run
+const canvas = document.getElementById('example01')
+if (canvas?.getContext) {
+    const ctx = canvas.getContext('2d')
+
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    unDeuxTrois(ctx)
+}
+```
+
+## Description
+
+### Code Sample
+
+```js
+
+```

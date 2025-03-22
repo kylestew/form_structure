@@ -85,7 +85,7 @@ function createHeading(level) {
 function Pre({ children, ...props }) {
     // Check if this is a special @exec code block
     // HACK: pretty specific to the syntax of the code blocks in the notes
-    if (children.props.children.startsWith('// @exec')) {
+    if (children?.props?.children?.startsWith('// @exec')) {
         // Don't render anything for @exec blocks
         return <>{children}</>
     }
@@ -108,6 +108,9 @@ function Code({ children, ...props }) {
     }
 
     // highlight the code block and display it
+    if (!children) {
+        return <code {...props} />
+    }
     const codeHTML = highlight(children)
     return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
 }
