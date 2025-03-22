@@ -1,10 +1,11 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import Script from 'next/script'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import { highlight } from 'sugar-high'
+import Link from 'next/link'
+import Image from 'next/image'
+// import Script from 'next/script'
 import React from 'react'
 
+/*
 function Table({ data }) {
     const headers = data.headers.map((header, index) => <th key={index}>{header}</th>)
     const rows = data.rows.map((row, index) => (
@@ -51,10 +52,7 @@ function RoundedImage(props) {
     return <Image alt={props.alt} className="rounded-lg" {...props} />
 }
 
-function Code({ children, ...props }) {
-    const codeHTML = highlight(children)
-    return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
-}
+*/
 
 function slugify(str) {
     return str
@@ -85,8 +83,22 @@ function createHeading(level) {
     return Heading
 }
 
-function Canvas() {
-    return <canvas id="myCanvas" width={300} height={150} className="border border-gray-200 rounded-lg" />
+function Code({ children, ...props }) {
+    const codeHTML = highlight(children)
+    return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
+}
+
+function Script({ children, ...props }) {
+    return (
+        <>
+            <script {...props}>{children}</script>
+            <Code>{children}</Code>
+        </>
+    )
+}
+
+function Canvas({ id = 'myCanvas' }) {
+    return <canvas id={id} width={640} height={640} className="border border-black-200 rounded-lg" />
 }
 
 const components = {
@@ -96,10 +108,14 @@ const components = {
     h4: createHeading(4),
     h5: createHeading(5),
     h6: createHeading(6),
-    Image: RoundedImage,
-    a: CustomLink,
+
+    // Image: RoundedImage,
+    // a: CustomLink,
+
     code: Code,
-    Table,
+
+    // Table,
+
     Script,
     Canvas,
 }
