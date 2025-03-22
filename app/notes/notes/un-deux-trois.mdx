@@ -22,3 +22,15 @@ if (canvas?.getContext) {
 ## Description
 
 Un Deux Trois is a generative art piece that creates a mesmerizing grid of lines. The artwork divides the canvas into a 24x24 grid, where each cell contains either one, two, or three parallel lines. The number of lines increases gradually across the grid - cells in the first third contain a single line, the middle third holds two lines, and the final third features three parallel lines. Each line is placed at a random angle within its cell, creating an organic, flowing pattern that balances structure with randomness. The result is a dynamic composition that explores rhythm, density, and spatial relationships through simple geometric elements.
+
+```js
+const canvas = document.getElementById('example01')
+if (canvas?.getContext) {
+    const ctx = canvas.getContext('2d')
+    ctx.fillStyle = 'orange'
+    ctx.fillRect(10, 10, 150, 75)
+    ctx.fillStyle = 'black'
+    ctx.font = '16px sans-serif'
+    ctx.fillText('Hello Canvas', 20, 60)
+}
+```

@@ -1,0 +1,26 @@
+---
+title: 'Test'
+publishedAt: '2025-03-22'
+summary: 'A generative art project that uses the canvas API to create a grid of lines.'
+---
+
+# Hello MDX World
+
+This is my page content.
+
+<Canvas id="example01" />
+
+```js
+// @exec display
+console.log("Client-side script ran11!");
+
+const canvas = document.getElementById('example01')
+if (canvas?.getContext) {
+    const ctx = canvas.getContext('2d')
+    ctx.fillStyle = 'orange'
+    ctx.fillRect(10, 10, 150, 75)
+    ctx.fillStyle = 'black'
+    ctx.font = '16px sans-serif'
+    ctx.fillText('Hello Canvas', 20, 60)
+}
+```

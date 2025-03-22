@@ -1,8 +1,8 @@
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import { highlight } from 'sugar-high'
+import ClientScript from './ClientScript'
 import Link from 'next/link'
 import Image from 'next/image'
-// import Script from 'next/script'
 import React from 'react'
 
 /*
@@ -84,17 +84,26 @@ function createHeading(level) {
 }
 
 function Code({ children, ...props }) {
+    // check if the first line is // @exec or // @meta exec
+    const rawCode = typeof children === 'string' ? children.trim() : ''
+    const lines = rawCode.split('\n')
+    const firstLine = lines[0].trim()
+
+    // execute the code block if marked to do so - do not display
+    const isExecutable = firstLine === '// @exec' || firstLine === '// @meta exec'
+    if (isExecutable) {
+        const code = lines.slice(1).join('\n') // strip the @exec line
+        return (
+            <>
+                <code>running code block...</code>
+                <ClientScript code={code} />
+            </>
+        )
+    }
+
+    // highlight the code block and display it
     const codeHTML = highlight(children)
     return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
-}
-
-function Script({ children, ...props }) {
-    return (
-        <>
-            <script {...props}>{children}</script>
-            <Code>{children}</Code>
-        </>
-    )
 }
 
 function Canvas({ id = 'myCanvas' }) {
@@ -112,11 +121,9 @@ const components = {
     // Image: RoundedImage,
     // a: CustomLink,
 
-    code: Code,
-
     // Table,
 
-    Script,
+    code: Code,
     Canvas,
 }
 
