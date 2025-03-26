@@ -2,7 +2,7 @@
 title: 'Simple Geometric Primitives'
 publishedAt: '2024-04-08'
 summary: 'A practical look at representing basic geometric shapes in code - points, lines, circles, and rectangles.'
-image: primitives.png
+image: geometric-primitives.png
 ---
 
 When working with geometric shapes in creative coding, I prefer to keep things as simple as possible. Here's how I represent and work with basic geometric primitives, focusing on clarity and simplicity over complex object-oriented approaches.
@@ -15,7 +15,7 @@ The simplest representation - just x and y coordinates:
 const point = [100, 200]
 ```
 
-Some examples using point data:
+Some point utility functions:
 
 ```js
 // @meta store:points
@@ -34,17 +34,16 @@ function distance(p1, p2) {
 
 ## Lines
 
-A line is just two points. I usually represent it as either start and end points or a point with a direction:
+A line is just two points, simple!
 
 ```js
-// Line as two points
 const line = [
     [100, 100],
     [200, 200],
 ]
 ```
 
-Some examples using line data:
+Some line utility functions:
 
 ```js
 // @meta store:lines
@@ -56,10 +55,111 @@ function drawLine(ctx, line) {
 }
 
 function pointOnLine(line, t) {
-    return {
-        x: line.start.x + (line.end.x - line.start.x) * t, //
-        y: line.start.y + (line.end.y - line.start.y) * t,
+    return [
+        line[0][0] + (line[1][0] - line[0][0]) * t, //
+        line[0][1] + (line[1][1] - line[0][1]) * t,
+    ]
+}
+```
+
+## Circles
+
+A circle is always a point and radius, no reason to complicate it!
+
+```js
+const circle = [150, 150, 50] // [center x, center y, radius]
+```
+
+Some circle utility functions:
+
+```js
+function drawCircle(ctx, circle) {
+    ctx.beginPath()
+    ctx.arc(circle[0], circle[1], circle[2], 0, Math.PI * 2)
+    ctx.stroke()
+}
+
+/**
+ * Checks if a point lies inside a circle using the distance formula
+ * @param {number[]} point - Point coordinates [x, y]
+ * @param {number[]} circle - Circle definition [centerX, centerY, radius]
+ * @returns {boolean} True if point is inside or on the circle, false otherwise
+ */
+function pointInCircle(point, circle) {
+    const dx = point[0] - circle[0]
+    const dy = point[1] - circle[1]
+    return dx * dx + dy * dy <= circle[2] * circle[2]
+}
+
+/**
+ * Calculates a point on a circle's circumference at a given angle
+ * @param {number[]} circle - Circle definition [centerX, centerY, radius]
+ * @param {number} angle - Angle in radians
+ * @returns {number[]} Point coordinates [x, y] on the circle's circumference
+ */
+function pointOnCircle(circle, angle) {
+    return [
+        circle[0] + Math.cos(angle) * circle[2], //
+        circle[1] + Math.sin(angle) * circle[2],
+    ]
+}
+```
+
+## Rectangles
+
+Rectangles ruin the simplicity streak we were on, there are so many ways to represent them! Let's just reuse the way we represent lines.
+
+```javascript
+const rect = [
+    [100, 100],
+    [200, 150],
+] // [[minX, minY], [maxX, maxY]]
+```
+
+And some very important utility functions:
+
+```js
+function drawRect(ctx, rect) {
+    const [[minX, minY], [maxX, maxY]] = rect
+    const width = maxX - minX
+    const height = maxY - minY
+    ctx.strokeRect(minX, minY, width, height)
+}
+
+function pointInRect(point, rect) {
+    const [[minX, minY], [maxX, maxY]] = rect
+    return point[0] >= minX && point[0] <= maxX && point[1] >= minY && point[1] <= maxY
+}
+
+function rectCenter(rect) {
+    const [[minX, minY], [maxX, maxY]] = rect
+    return [(minX + maxX) / 2, (minY + maxY) / 2]
+}
+```
+
+## Polygons
+
+A polygon is just an array of points that form a closed shape. We'll represent it as an array of [x,y] coordinates:
+
+```js
+const polygon = [
+    [100, 100],
+    [200, 150],
+    [150, 200],
+]
+```
+
+Some polygon utility functions:
+
+```js
+function drawPolygon(ctx, polygon) {
+    ctx.beginPath()
+    ctx.moveTo(polygon[0][0], polygon[0][1])
+    for (let i = 1; i < polygon.length; i++) {
+        ctx.lineTo(polygon[i][0], polygon[i][1])
     }
+    ctx.closePath()
+    ctx.stroke()
 }
 ```
 
@@ -100,77 +200,6 @@ if (canvas?.getContext) {
         ],
     ]
     lines.forEach((line) => drawLine(ctx, line))
-}
-```
-
-## Circles
-
-A circle needs a center point and a radius:
-
-```javascript
-const circle = {
-    center: { x: 150, y: 150 },
-    radius: 50,
-}
-
-// Drawing a circle
-function drawCircle(ctx, circle) {
-    ctx.beginPath()
-    ctx.arc(circle.center.x, circle.center.y, circle.radius, 0, Math.PI * 2)
-    ctx.stroke()
-}
-
-// Check if point is inside circle
-function pointInCircle(point, circle) {
-    const dx = point.x - circle.center.x
-    const dy = point.y - circle.center.y
-    return dx * dx + dy * dy <= circle.radius * circle.radius
-}
-
-// Get point on circle at angle
-function pointOnCircle(circle, angle) {
-    return {
-        x: circle.center.x + Math.cos(angle) * circle.radius,
-        y: circle.center.y + Math.sin(angle) * circle.radius,
-    }
-}
-```
-
-## Rectangles
-
-I represent rectangles either by their position and size, or by their corners:
-
-```javascript
-// Rectangle by position and size
-const rect = {
-    x: 100,
-    y: 100,
-    width: 200,
-    height: 150,
-}
-
-// Rectangle by corners
-const rect2 = {
-    min: { x: 100, y: 100 },
-    max: { x: 300, y: 250 },
-}
-
-// Drawing a rectangle
-function drawRect(ctx, rect) {
-    ctx.strokeRect(rect.x, rect.y, rect.width, rect.height)
-}
-
-// Check if point is inside rectangle
-function pointInRect(point, rect) {
-    return point.x >= rect.x && point.x <= rect.x + rect.width && point.y >= rect.y && point.y <= rect.y + rect.height
-}
-
-// Get rectangle center
-function rectCenter(rect) {
-    return {
-        x: rect.x + rect.width / 2,
-        y: rect.y + rect.height / 2,
-    }
 }
 ```
 
@@ -218,46 +247,3 @@ function connectPoints(points) {
     return lines
 }
 ```
-
-## Why Keep It Simple?
-
-1. **Clarity**: Simple data structures are easy to understand and debug
-2. **Flexibility**: Basic objects can be easily modified or extended
-3. **Serialization**: Simple objects are easy to save/load as JSON
-4. **Performance**: Basic structures have minimal overhead
-5. **Portability**: These representations work anywhere
-
-## Tips for Working with Primitives
-
-1. **Consistency**: Choose one representation and stick to it
-2. **Immutability**: Create new objects rather than modifying existing ones
-3. **Helper Functions**: Create utility functions for common operations
-4. **Type Checking**: Use TypeScript or JSDoc for better type safety
-5. **Documentation**: Comment on the expected format of your shapes
-
-```javascript
-// Example of documenting shape format
-/**
- * @typedef {Object} Point
- * @property {number} x - X coordinate
- * @property {number} y - Y coordinate
- */
-
-/**
- * Calculates distance between two points
- * @param {Point} p1 - First point
- * @param {Point} p2 - Second point
- * @returns {number} Distance between points
- */
-function distance(p1, p2) {
-    const dx = p2.x - p1.x
-    const dy = p2.y - p1.y
-    return Math.sqrt(dx * dx + dy * dy)
-}
-```
-
-This approach to geometric primitives has served me well in creative coding projects, game development, and data visualization. It's simple enough to understand quickly but powerful enough to build complex systems.
-
-Remember: you can always add complexity later when needed, but starting simple makes your code more maintainable and easier to reason about.
-
-TODO: don't forget vectors!!!!
