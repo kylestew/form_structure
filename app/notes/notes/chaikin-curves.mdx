@@ -1,0 +1,161 @@
+---
+title: 'Chaikin Curves: Creating Smooth Lines in Generative Art'
+publishedAt: '2024-04-08'
+summary: 'Explore how Chaikin curves can be used to create smooth, organic lines in generative art and creative coding.'
+image: chaikin.png
+---
+
+https://github.com/kylestew/root/blob/ether/src/algos/chaikin.ts
+
+https://github.com/kylestew/root/blob/ether/src/algos/chaikin.ts
+
+Chaikin curves, developed by George Chaikin in 1974, offer a simple yet powerful way to create smooth curves from a series of points. In generative art, they provide an elegant method for transforming rigid, angular lines into flowing, organic shapes.
+
+## What are Chaikin Curves?
+
+At its core, Chaikin's algorithm is a corner-cutting method. It works by repeatedly replacing each line segment with two new points that are positioned a fraction of the way in from each end (typically 1/4 and 3/4 along the line). After several iterations, this process transforms a polygonal line into a smooth curve.
+
+## The Algorithm
+
+Here's a simple implementation of the Chaikin curve algorithm:
+
+```javascript
+function chaikinCurve(points, iterations) {
+    if (iterations === 0) return points
+
+    let newPoints = []
+    for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i]
+        const p1 = points[i + 1]
+
+        // Create two new points at 1/4 and 3/4 along the line
+        const q0 = {
+            x: p0.x * 0.75 + p1.x * 0.25,
+            y: p0.y * 0.75 + p1.y * 0.25,
+        }
+
+        const q1 = {
+            x: p0.x * 0.25 + p1.x * 0.75,
+            y: p0.y * 0.25 + p1.y * 0.75,
+        }
+
+        newPoints.push(q0, q1)
+    }
+
+    return chaikinCurve(newPoints, iterations - 1)
+}
+```
+
+## Applications in Generative Art
+
+Chaikin curves have several compelling applications in generative art:
+
+### 1. Organic Line Drawing
+
+One of the most straightforward uses is creating natural-looking lines. Instead of drawing straight lines between points, applying the Chaikin algorithm creates smooth, organic curves that can simulate natural phenomena like:
+
+-   Plant growth patterns
+-   River paths
+-   Mountain ridges
+-   Cloud boundaries
+
+### 2. Shape Morphing
+
+By applying different iteration counts or cutting ratios, you can create interesting morphing effects:
+
+```javascript
+function morphingShape(time) {
+    const basePoints = createPolygon(5, 100) // Create a pentagon
+    const iterations = 1 + Math.sin(time) * 3 // Vary between 1-4 iterations
+    return chaikinCurve(basePoints, Math.floor(iterations))
+}
+```
+
+### 3. Pattern Generation
+
+Chaikin curves can be used to create complex patterns by:
+
+-   Applying the algorithm to geometric shapes
+-   Nesting curves within curves
+-   Using curves as paths for other elements
+
+## Interactive Example
+
+```javascript
+{
+    ;(() => {
+        const [iterations, setIterations] = useState(0)
+        const basePoints = [
+            { x: 50, y: 50 },
+            { x: 150, y: 50 },
+            { x: 150, y: 150 },
+            { x: 50, y: 150 },
+            { x: 50, y: 50 },
+        ]
+
+        const points = iterations === 0 ? basePoints : chaikinCurve(basePoints, iterations)
+
+        return (
+            <div className="my-4 p-4 border rounded">
+                <div className="mb-4">
+                    <button
+                        onClick={() => setIterations((prev) => Math.min(prev + 1, 4))}
+                        className="mr-2 px-3 py-1 rounded bg-action text-white"
+                    >
+                        Add Iteration
+                    </button>
+                    <button onClick={() => setIterations(0)} className="px-3 py-1 rounded bg-gray-200">
+                        Reset
+                    </button>
+                </div>
+                <svg width="200" height="200" className="border">
+                    <path
+                        d={`M ${points.map((p) => `${p.x} ${p.y}`).join(' L ')}`}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                    />
+                </svg>
+                <div className="mt-2 text-sm">Iterations: {iterations}</div>
+            </div>
+        )
+    })()
+}
+```
+
+## Mathematical Properties
+
+While Chaikin curves are simpler than other curve algorithms like Bézier curves or B-splines, they have interesting mathematical properties:
+
+1. They converge to a quadratic B-spline curve
+2. Each iteration removes one quarter of the distance between points
+3. The resulting curve is C¹ continuous (continuous in both position and first derivative)
+
+## Tips for Creative Coding
+
+When using Chaikin curves in your generative art:
+
+1. **Iteration Count**: 2-4 iterations usually provide a good balance between smoothness and performance
+2. **Cutting Ratio**: Experiment with different ratios instead of the standard 0.25/0.75
+3. **Point Distribution**: The initial distribution of points greatly affects the final curve
+4. **Animation**: Try animating between different iteration counts or cutting ratios
+
+## Conclusion
+
+Chaikin curves provide a perfect example of how a simple algorithm can create complex, organic results. Their efficiency and versatility make them an invaluable tool in generative art, whether you're creating flowing lines, morphing shapes, or complex patterns.
+
+```javascript
+// Example: Creating a flowing line with noise
+function flowingLine(time) {
+    const points = []
+    for (let i = 0; i < 10; i++) {
+        points.push({
+            x: i * 50,
+            y: 100 + Math.sin(i * 0.5 + time) * 30,
+        })
+    }
+    return chaikinCurve(points, 3)
+}
+```
+
+Whether you're new to generative art or an experienced creative coder, Chaikin curves offer endless possibilities for exploration and creation. Their simplicity makes them accessible, while their results can be surprisingly sophisticated.

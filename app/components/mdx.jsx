@@ -83,9 +83,10 @@ function createHeading(level) {
 }
 
 function Pre({ children, ...props }) {
-    // Check if this is a special @exec code block
+    // Check if this is a special @meta exec code block
     // HACK: pretty specific to the syntax of the code blocks in the notes
-    if (children?.props?.children?.startsWith('// @exec')) {
+    const code = children?.props?.children
+    if (code?.startsWith('// @meta') && code.split(' ').includes('exec')) {
         // Don't render anything for @exec blocks
         return <>{children}</>
     }
@@ -94,24 +95,45 @@ function Pre({ children, ...props }) {
     return <pre {...props}>{children}</pre>
 }
 
+const snippetCache = new Map()
+
 function Code({ children, ...props }) {
-    // check if the first line is // @exec or // @meta exec
+    // check if the first line is begins with // @meta, parse for control instructions
     const rawCode = typeof children === 'string' ? children.trim() : ''
     const lines = rawCode.split('\n')
     const firstLine = lines[0].trim()
+    const [_, ...commands] = firstLine.startsWith('// @meta') ? firstLine.split(' ').slice(1) : []
+
+    // extract remaining lines after any command line
+    let output = firstLine.startsWith('// @meta') ? lines.slice(1).join('\n') : rawCode
+
+    // handle store command - save code to cache
+    const store = commands.find((command) => command.startsWith('store:'))
+    if (store) {
+        const [_, name] = store.split(':')
+        snippetCache.set(name, output)
+    }
+
+    // handle load commands - prepend cached code
+    const loadCommands = commands.filter((command) => command.startsWith('load:'))
+    for (const load of loadCommands) {
+        const [_, name] = load.split(':')
+        if (snippetCache.has(name)) {
+            output = snippetCache.get(name) + '\n' + output
+        }
+    }
 
     // execute the code block if marked to do so - do not display
-    const isExecutable = firstLine === '// @exec' || firstLine === '// @meta exec'
+    const isExecutable = commands.includes('exec')
     if (isExecutable) {
-        const code = lines.slice(1).join('\n') // strip the @exec line
-        return <ClientScript code={code} />
+        return <ClientScript code={output} />
     }
 
     // highlight the code block and display it
     if (!children) {
         return <code {...props} />
     }
-    const codeHTML = highlight(children)
+    const codeHTML = highlight(output)
     return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
 }
 
