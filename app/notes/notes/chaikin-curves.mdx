@@ -5,44 +5,150 @@ summary: 'Explore how Chaikin curves can be used to create smooth, organic lines
 image: chaikin.png
 ---
 
-https://github.com/kylestew/root/blob/ether/src/algos/chaikin.ts
+### References
+
+https://observablehq.com/@pamacha/chaikins-algorithm
 
 https://github.com/kylestew/root/blob/ether/src/algos/chaikin.ts
 
-Chaikin curves, developed by George Chaikin in 1974, offer a simple yet powerful way to create smooth curves from a series of points. In generative art, they provide an elegant method for transforming rigid, angular lines into flowing, organic shapes.
+---
+
+> Chaikin curves, developed by George Chaikin in 1974, offer a simple yet powerful way to create smooth curves from a series of points. In generative art, they provide an elegant method for transforming rigid, angular lines into flowing, organic shapes.
 
 ## What are Chaikin Curves?
 
-At its core, Chaikin's algorithm is a corner-cutting method. It works by repeatedly replacing each line segment with two new points that are positioned a fraction of the way in from each end (typically 1/4 and 3/4 along the line). After several iterations, this process transforms a polygonal line into a smooth curve.
+At its core, Chaikin's algorithm is a corner-cutting method. It works by repeatedly **replacing** each line segment with two new points that are positioned a fraction of the way in from each end (typically 1/4 and 3/4 along the line). After several iterations, this process transforms a polygonal line into a smooth curve.
+
+_Note: The final result is shorter than the original line._
 
 ## The Algorithm
 
-Here's a simple implementation of the Chaikin curve algorithm:
+Here's a simple (recursive, so not simple) implementation of the Chaikin curve algorithm:
 
 ```javascript
+// @meta store:algo
+// points are defined as [[x, y], [x, y], ...]
 function chaikinCurve(points, iterations) {
     if (iterations === 0) return points
 
     let newPoints = []
     for (let i = 0; i < points.length - 1; i++) {
-        const p0 = points[i]
-        const p1 = points[i + 1]
+        const [p0x, p0y] = points[i]
+        const [p1x, p1y] = points[i + 1]
 
         // Create two new points at 1/4 and 3/4 along the line
         const q0 = {
-            x: p0.x * 0.75 + p1.x * 0.25,
-            y: p0.y * 0.75 + p1.y * 0.25,
+            x: p0x * 0.75 + p1x * 0.25,
+            y: p0y * 0.75 + p1y * 0.25,
         }
 
         const q1 = {
-            x: p0.x * 0.25 + p1.x * 0.75,
-            y: p0.y * 0.25 + p1.y * 0.75,
+            x: p0x * 0.25 + p1x * 0.75,
+            y: p0y * 0.25 + p1y * 0.75,
         }
 
         newPoints.push(q0, q1)
     }
 
     return chaikinCurve(newPoints, iterations - 1)
+}
+```
+
+## Animated Example
+
+<Canvas id="example01" width="200" height="200" />
+
+```js
+// @meta exec load:algo
+
+const canvas = document.getElementById('example01')
+if (canvas?.getContext) {
+    const ctx = canvas.getContext('2d')
+
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    ctx.fillStyle = 'white'
+    ctx.strokeStyle = 'white'
+
+    // Draw points
+    const points = [
+        [100, 200],
+        [200, 300],
+        [300, 400],
+    ]
+    points.forEach((point) => drawPoint(ctx, point))
+
+    // Draw lines
+    const lines = [
+        [
+            [100, 100],
+            [200, 200],
+        ],
+        [
+            [220, 220],
+            [260, 320],
+        ],
+    ]
+    lines.forEach((line) => drawLine(ctx, line))
+}
+```
+
+## My Implementation
+
+```javascript
+import { Vec2 } from '../geo/types'
+
+/**
+ * Generates a Chaikin curve based on the given points and number of iterations.
+ *
+ * @param {Array} points - The input points for the curve.
+ * @param {number} iterations - The number of iterations to perform.
+ * @param {boolean} closed - Whether the polygon is closed or not.
+ * @returns {Array} The generated Chaikin curve as an array of points.
+ */
+export function chaikinCurve(points: Vec2[], iterations: number, closed = false): Vec2[] {
+    if (iterations === 0) return points
+    // Chaikin subdivision with consideration for closed or open polygons
+    const smooth = chaikinSubdivide(points, closed)
+    return iterations === 1 ? smooth : chaikinCurve(smooth, iterations - 1, closed)
+}
+
+/**
+ * Subdivides the given points using the Chaikin algorithm.
+ *
+ * @param {Array} points - The input points to subdivide.
+ * @param {boolean} closed - Whether the polygon is closed or not.
+ * @returns {Array} The subdivided points.
+ */
+function chaikinSubdivide(points: Vec2[], closed: boolean): Vec2[] {
+    const result: Vec2[] = []
+    const n = points.length
+
+    for (let i = 0; i < n - 1; i++) {
+        const a = points[i]
+        const b = points[i + 1]
+
+        const p1: Vec2 = [0.75 * a[0] + 0.25 * b[0], 0.75 * a[1] + 0.25 * b[1]]
+        const p2: Vec2 = [0.25 * a[0] + 0.75 * b[0], 0.25 * a[1] + 0.75 * b[1]]
+
+        result.push(p1, p2)
+    }
+
+    if (closed) {
+        const a = points[n - 1]
+        const b = points[0]
+
+        const p1: Vec2 = [0.75 * a[0] + 0.25 * b[0], 0.75 * a[1] + 0.25 * b[1]]
+        const p2: Vec2 = [0.25 * a[0] + 0.75 * b[0], 0.25 * a[1] + 0.75 * b[1]]
+
+        result.push(p1, p2)
+    } else {
+        result.unshift(points[0])
+        result.push(points[n - 1])
+    }
+
+    return result
 }
 ```
 

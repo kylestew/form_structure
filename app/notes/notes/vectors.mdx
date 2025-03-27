@@ -1,8 +1,8 @@
 ---
-title: 'Simple Geometric Primitives'
+title: 'Vectors'
 publishedAt: '2024-04-08'
-summary: 'A practical look at representing basic geometric shapes in code - points, lines, circles, and rectangles.'
-image: geometric-primitives.png
+summary: 'A practical look at representing vectors in code.'
+image: vectors.png
 ---
 
 When working with geometric shapes in creative coding, I prefer to keep things as simple as possible. Here's how I represent and work with basic geometric primitives, focusing on clarity and simplicity over complex object-oriented approaches.
@@ -19,9 +19,9 @@ Some point utility functions:
 
 ```js
 // @meta store:points
-function drawPoint(ctx, point, size = 2) {
+function drawPoint(ctx, point) {
     ctx.beginPath()
-    ctx.arc(point[0], point[1], size, 0, Math.PI * 2)
+    ctx.arc(point[0], point[1], 2, 0, Math.PI * 2)
     ctx.fill()
 }
 
@@ -59,102 +59,6 @@ function pointOnLine(line, t) {
         line[0][0] + (line[1][0] - line[0][0]) * t, //
         line[0][1] + (line[1][1] - line[0][1]) * t,
     ]
-}
-```
-
-Example:
-
-<Canvas id="example01" width={200} height={200} />
-
-```js
-// @meta exec load:lines load:points
-
-const canvas = document.getElementById('example01')
-if (canvas?.getContext) {
-    const ctx = canvas.getContext('2d')
-
-    ctx.fillStyle = 'black'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-    ctx.strokeStyle = 'white'
-    ctx.lineWidth = 4
-    ctx.lineJoin = 'round'
-    ctx.lineCap = 'round'
-
-    const line = [
-        [20, 30],
-        [180, 160],
-    ]
-    drawLine(ctx, line)
-
-    const point = pointOnLine(line, 0.4)
-    ctx.fillStyle = 'red'
-    drawPoint(ctx, point, 6)
-}
-```
-
-```js
-const line = [
-    [20, 30],
-    [180, 160],
-]
-drawLine(ctx, line)
-
-const point = pointOnLine(line, 0.4)
-drawPoint(ctx, point)
-```
-
-### Polylines
-
-A polyline is just an array of points.
-
-```js
-const polyline = [
-    [100, 100],
-    [200, 200],
-    [300, 300],
-```
-
-Some utility functions:
-
-```js
-// @meta store:polylines
-function drawPolyline(ctx, polyline) {
-    ctx.beginPath()
-    ctx.moveTo(polyline[0][0], polyline[0][1])
-    for (let i = 1; i < polyline.length; i++) {
-        ctx.lineTo(polyline[i][0], polyline[i][1])
-    }
-    ctx.stroke()
-}
-```
-
-Example:
-
-<Canvas id="example02" width={200} height={200} />
-
-```js
-// @meta exec load:polylines
-
-const canvas = document.getElementById('example02')
-if (canvas?.getContext) {
-    const ctx = canvas.getContext('2d')
-
-    ctx.fillStyle = 'black'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-    ctx.strokeStyle = 'white'
-    ctx.lineWidth = 4
-    ctx.lineJoin = 'round'
-    ctx.lineCap = 'round'
-
-    const polyline = [
-        [20, 120],
-        [80, 150],
-        [140, 70],
-        [180, 90],
-    ]
-    drawPolyline(ctx, polyline)
 }
 ```
 
@@ -261,12 +165,12 @@ function drawPolygon(ctx, polygon) {
 
 ## Full Example
 
-<Canvas id="exampleNN" />
+<Canvas id="example01" />
 
 ```js
 // @meta exec load:points load:lines
 
-const canvas = document.getElementById('exampleNN')
+const canvas = document.getElementById('example01')
 if (canvas?.getContext) {
     const ctx = canvas.getContext('2d')
 

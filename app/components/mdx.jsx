@@ -137,8 +137,8 @@ function Code({ children, ...props }) {
     return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
 }
 
-function Canvas({ id = 'myCanvas' }) {
-    return <canvas id={id} width={480} height={480} className="border border-black-200 rounded-lg" />
+function Canvas({ id = 'myCanvas', width = 480, height = 480 }) {
+    return <canvas id={id} width={width} height={height} className="border border-black-200 rounded-lg" />
 }
 
 const components = {
