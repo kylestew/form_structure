@@ -1,0 +1,255 @@
+---
+title: 'Chaikin Curves: Creating Smooth Lines in Generative Art'
+publishedAt: '2024-04-08'
+summary: 'Explore how Chaikin curves can be used to create smooth, organic lines in generative art and creative coding.'
+image: chaikin-curves.png
+---
+
+```js
+// @meta exec store:utils
+// hidden utility functions
+function drawPolyline(ctx, polyline, closed = false) {
+    ctx.beginPath()
+    ctx.moveTo(polyline[0][0], polyline[0][1])
+    for (let i = 1; i < polyline.length; i++) {
+        ctx.lineTo(polyline[i][0], polyline[i][1])
+    }
+    if (closed && polyline.length > 2) {
+        ctx.lineTo(polyline[0][0], polyline[0][1])
+    }
+    ctx.stroke()
+}
+function drawPoint(ctx, point, size = 2) {
+    ctx.beginPath()
+    ctx.arc(point[0], point[1], size, 0, Math.PI * 2)
+    ctx.fill()
+}
+```
+
+> Chaikin curves, developed by George Chaikin in 1974, offer a simple yet powerful way to create smooth curves from a series of points. In generative art, they provide an elegant method for transforming rigid, angular lines into flowing, organic shapes.
+
+## What are Chaikin Curves?
+
+At its core, Chaikin's algorithm is a corner-cutting method. It works by repeatedly **replacing** each line segment with two new points that are positioned a fraction of the way in from each end (typically 1/4 and 3/4 along the line). After several iterations, this process transforms a polygonal line into a smooth curve.
+
+_Note: The final result is shorter than the original line._
+
+## The Algorithm
+
+Here's a simple (recursive, so not simple) implementation of the Chaikin curve algorithm:
+
+```javascript
+// @meta store:algo
+// points are defined as [[x, y], [x, y], ...]
+function chaikinCurve(points, iterations) {
+    if (iterations === 0) return points
+
+    let newPoints = []
+    for (let i = 0; i < points.length - 1; i++) {
+        const [p0x, p0y] = points[i]
+        const [p1x, p1y] = points[i + 1]
+
+        // Create two new points at 1/4 and 3/4 along the line
+        const q0 = [
+            p0x * 0.75 + p1x * 0.25, //
+            p0y * 0.75 + p1y * 0.25,
+        ]
+
+        const q1 = [
+            p0x * 0.25 + p1x * 0.75, //
+            p0y * 0.25 + p1y * 0.75,
+        ]
+
+        newPoints.push(q0, q1)
+    }
+
+    return chaikinCurve(newPoints, iterations - 1)
+}
+```
+
+## Animated Example
+
+<Canvas id="example01" />
+
+```js
+// @meta exec load:algo load:utils
+function drawFrame() {
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    ctx.strokeStyle = 'white'
+
+    ctx.lineWidth = 6
+    ctx.lineJoin = 'round'
+    ctx.lineCap = 'round'
+
+    // baseline
+    const polyline = [
+        [40, 40],
+        [150, 300],
+        [280, 200],
+        [420, 440],
+    ]
+
+    // one iteration
+    let curve = chaikinCurve(polyline, tick++)
+    drawPolyline(ctx, curve)
+
+    // draw points
+    ctx.fillStyle = 'red'
+    for (let i = 0; i < curve.length; i++) {
+        drawPoint(ctx, curve[i])
+    }
+
+    if (tick > maxTick) tick = 1
+    setTimeout(() => requestAnimationFrame(drawFrame), tickInterval)
+}
+
+let tick = 1
+const maxTick = 6
+const tickInterval = 1000
+const canvas = document.getElementById('example01')
+const ctx = canvas.getContext('2d')
+requestAnimationFrame(drawFrame)
+```
+
+## Tips for Creative Coding
+
+When using Chaikin curves in your generative art:
+
+1. **Iteration Count**: 2-4 iterations usually provide a good balance between smoothness and performance
+2. **Cutting Ratio**: Experiment with different ratios instead of the standard 0.25/0.75
+3. **Point Distribution**: The initial distribution of points greatly affects the final curve
+4. **Animation**: Try animating between different iteration counts or cutting ratios
+
+## Generative Art Example
+
+<Canvas id="example02" />
+
+```javascript
+// Example: Creating a flowing line with noise
+```
+
+```js
+// @meta exec load:algo load:utils
+function flowingLine(time) {
+    const points = []
+    const radius = 140
+    const centerX = 240
+    const centerY = 240
+
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2
+        const wobble = Math.sin(time * 2 + i * 2) * 40
+        points.push([centerX + Math.cos(angle) * (radius + wobble), centerY + Math.sin(angle) * (radius + wobble)])
+    }
+    points.push([...points[0]]) // Close the circle
+    return [[...points], chaikinCurve(points, 3)]
+}
+
+function drawFrame(time) {
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    ctx.strokeStyle = 'white'
+
+    ctx.lineWidth = 6
+    ctx.lineJoin = 'round'
+    ctx.lineCap = 'round'
+
+    // draw points
+    const [points, curve] = flowingLine(time * 0.001)
+    drawPolyline(ctx, curve)
+
+    ctx.fillStyle = 'red'
+    for (let i = 0; i < points.length; i++) {
+        drawPoint(ctx, points[i], 4)
+    }
+
+    requestAnimationFrame(drawFrame)
+}
+
+// let tick = 1
+// const maxTick = 6
+const tickInterval = 100
+const canvas = document.getElementById('example02')
+const ctx = canvas.getContext('2d')
+requestAnimationFrame(drawFrame)
+```
+
+### References
+
+-   [Chaikin's Algorithm on Observable](https://observablehq.com/@pamacha/chaikins-algorithm)
+-   [Chaikin Curves on Sighack](https://sighack.com/post/chaikin-curves)
+
+```js
+import { Line, Polyline, Polygon, asPoints } from 'root/geo'
+import { random } from 'root/random'
+import { zip, interleave } from 'root/array'
+import { chaikinCurve } from 'root/algos'
+
+function joyDivision(cmd, palette) {
+    // ext.chaikinCurve()
+
+    // make 2 vertical control lines
+    const lineA = new Line([-0.9, 0.7], [-0.9, -0.9])
+    const lineB = new Line([0.9, 0.7], [0.9, -0.9])
+
+    // turn each line into endpoints for horizontal lines
+    const numLines = 32
+    const ptsA = asPoints(lineA, numLines)
+    const ptsB = asPoints(lineB, numLines)
+
+    // zip up the points into lines
+    const lines = zip(ptsA, ptsB).map(([ptA, ptB]) => new Line(ptA, ptB))
+
+    // convert the new lines into N points we can move around
+    const numPoints = 36
+    const linePoints = lines.map((line) => asPoints(line, numPoints))
+
+    // randomly move the points (only on the positive Y axis)
+    const randomnessBig = 0.4
+    const randomnessSmall = 0.005
+    let linePointsMoved = linePoints.map((pts) =>
+        pts.map((pt) => {
+            const x = pt[0]
+            const gaussShape = Math.exp(-8 * x * x)
+            return [pt[0], pt[1] + gaussShape * random(0, randomnessBig)]
+        })
+    )
+
+    // smooth out curve one iteration
+    let smoothPoints = linePointsMoved.map((pts) => chaikinCurve(pts, 2))
+
+    // second pass of random displacement, smaller values
+    linePointsMoved = smoothPoints.map((pts) =>
+        pts.map((pt) => {
+            // (TRICKY BIT)
+            // TODO: learn how these work
+            // gaussian shaping function
+            // only apply on the outsides
+            const x = pt[0]
+            const gaussShape = 1.0 - Math.exp(-8 * x * x)
+            return [pt[0], pt[1] + random(-randomnessSmall, gaussShape * randomnessSmall)]
+        })
+    )
+
+    // finish smoothing things out
+    // smoothPoints = linePointsMoved.map((pts) => chaikinCurve(pts, 2))
+
+    // convert to polylines
+    cmd.clear(palette.background)
+
+    const polylines = smoothPoints.map((pts) => new Polyline(pts, { stroke: palette.secondary, weight: 0.008 }))
+    const polys = polylines.map((polyline) => new Polygon(polyline.pts, { fill: palette.background }))
+    cmd.draw(interleave(polys, polylines))
+}
+joyDivision.title = 'Joy Division'
+export { joyDivision }
+
+// const meta = {
+// title: 'Joy Division',
+// description: 'This is way more complex than needed, probably better to use loops like in the original example.',
+// refLink: 'https://generativeartistry.com/tutorials/joy-division/',
+// }
+```

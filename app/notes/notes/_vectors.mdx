@@ -1,0 +1,249 @@
+---
+title: 'Vectors'
+publishedAt: '2024-04-08'
+summary: 'A practical look at representing vectors in code.'
+image: vectors.png
+---
+
+When working with geometric shapes in creative coding, I prefer to keep things as simple as possible. Here's how I represent and work with basic geometric primitives, focusing on clarity and simplicity over complex object-oriented approaches.
+
+## Points
+
+The simplest representation - just x and y coordinates:
+
+```js
+const point = [100, 200]
+```
+
+Some point utility functions:
+
+```js
+// @meta store:points
+function drawPoint(ctx, point) {
+    ctx.beginPath()
+    ctx.arc(point[0], point[1], 2, 0, Math.PI * 2)
+    ctx.fill()
+}
+
+function distance(p1, p2) {
+    const dx = p2[0] - p1[0]
+    const dy = p2[1] - p1[1]
+    return Math.sqrt(dx * dx + dy * dy)
+}
+```
+
+## Lines
+
+A line is just two points, simple!
+
+```js
+const line = [
+    [100, 100],
+    [200, 200],
+]
+```
+
+Some line utility functions:
+
+```js
+// @meta store:lines
+function drawLine(ctx, line) {
+    ctx.beginPath()
+    ctx.moveTo(line[0][0], line[0][1])
+    ctx.lineTo(line[1][0], line[1][1])
+    ctx.stroke()
+}
+
+function pointOnLine(line, t) {
+    return [
+        line[0][0] + (line[1][0] - line[0][0]) * t, //
+        line[0][1] + (line[1][1] - line[0][1]) * t,
+    ]
+}
+```
+
+## Circles
+
+A circle is always a point and radius, no reason to complicate it!
+
+```js
+const circle = [150, 150, 50] // [center x, center y, radius]
+```
+
+Some circle utility functions:
+
+```js
+function drawCircle(ctx, circle) {
+    ctx.beginPath()
+    ctx.arc(circle[0], circle[1], circle[2], 0, Math.PI * 2)
+    ctx.stroke()
+}
+
+/**
+ * Checks if a point lies inside a circle using the distance formula
+ * @param {number[]} point - Point coordinates [x, y]
+ * @param {number[]} circle - Circle definition [centerX, centerY, radius]
+ * @returns {boolean} True if point is inside or on the circle, false otherwise
+ */
+function pointInCircle(point, circle) {
+    const dx = point[0] - circle[0]
+    const dy = point[1] - circle[1]
+    return dx * dx + dy * dy <= circle[2] * circle[2]
+}
+
+/**
+ * Calculates a point on a circle's circumference at a given angle
+ * @param {number[]} circle - Circle definition [centerX, centerY, radius]
+ * @param {number} angle - Angle in radians
+ * @returns {number[]} Point coordinates [x, y] on the circle's circumference
+ */
+function pointOnCircle(circle, angle) {
+    return [
+        circle[0] + Math.cos(angle) * circle[2], //
+        circle[1] + Math.sin(angle) * circle[2],
+    ]
+}
+```
+
+## Rectangles
+
+Rectangles ruin the simplicity streak we were on, there are so many ways to represent them! Let's just reuse the way we represent lines.
+
+```javascript
+const rect = [
+    [100, 100],
+    [200, 150],
+] // [[minX, minY], [maxX, maxY]]
+```
+
+And some very important utility functions:
+
+```js
+function drawRect(ctx, rect) {
+    const [[minX, minY], [maxX, maxY]] = rect
+    const width = maxX - minX
+    const height = maxY - minY
+    ctx.strokeRect(minX, minY, width, height)
+}
+
+function pointInRect(point, rect) {
+    const [[minX, minY], [maxX, maxY]] = rect
+    return point[0] >= minX && point[0] <= maxX && point[1] >= minY && point[1] <= maxY
+}
+
+function rectCenter(rect) {
+    const [[minX, minY], [maxX, maxY]] = rect
+    return [(minX + maxX) / 2, (minY + maxY) / 2]
+}
+```
+
+## Polygons
+
+A polygon is just an array of points that form a closed shape. We'll represent it as an array of [x,y] coordinates:
+
+```js
+const polygon = [
+    [100, 100],
+    [200, 150],
+    [150, 200],
+]
+```
+
+Some polygon utility functions:
+
+```js
+function drawPolygon(ctx, polygon) {
+    ctx.beginPath()
+    ctx.moveTo(polygon[0][0], polygon[0][1])
+    for (let i = 1; i < polygon.length; i++) {
+        ctx.lineTo(polygon[i][0], polygon[i][1])
+    }
+    ctx.closePath()
+    ctx.stroke()
+}
+```
+
+## Full Example
+
+<Canvas id="example01" />
+
+```js
+// @meta exec load:points load:lines
+
+const canvas = document.getElementById('example01')
+if (canvas?.getContext) {
+    const ctx = canvas.getContext('2d')
+
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    ctx.fillStyle = 'white'
+    ctx.strokeStyle = 'white'
+
+    // Draw points
+    const points = [
+        [100, 200],
+        [200, 300],
+        [300, 400],
+    ]
+    points.forEach((point) => drawPoint(ctx, point))
+
+    // Draw lines
+    const lines = [
+        [
+            [100, 100],
+            [200, 200],
+        ],
+        [
+            [220, 220],
+            [260, 320],
+        ],
+    ]
+    lines.forEach((line) => drawLine(ctx, line))
+}
+```
+
+## Practical Usage Examples
+
+Here's how these primitives work together in practice:
+
+```javascript
+// Creating a grid of points
+function createGrid(cols, rows, spacing) {
+    const points = []
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            points.push({
+                x: x * spacing,
+                y: y * spacing,
+            })
+        }
+    }
+    return points
+}
+
+// Creating a polygon (points in a circle)
+function createPolygon(sides, radius, center = { x: 0, y: 0 }) {
+    const points = []
+    for (let i = 0; i < sides; i++) {
+        const angle = (i / sides) * Math.PI * 2
+        points.push({
+            x: center.x + Math.cos(angle) * radius,
+            y: center.y + Math.sin(angle) * radius,
+        })
+    }
+    return points
+}
+
+// Connect points with lines
+function connectPoints(points) {
+    const lines = []
+    for (let i = 0; i < points.length - 1; i++) {
+        lines.push({
+            start: points[i],
+            end: points[i + 1],
+        })
+    }
+    return lines
+}
+```

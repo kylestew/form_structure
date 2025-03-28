@@ -1,0 +1,161 @@
+@import 'tailwindcss';
+
+@theme {
+    --color-dark: #222222;
+    --color-gray: #404040;
+    --color-light-gray: #808080;
+    --color-light: #ececec;
+    --color-action: #c14d2c;
+}
+
+:root {
+    --sh-class: #2d5e9d;
+    --sh-identifier: #354150;
+    --sh-sign: #8996a3;
+    --sh-string: #007f7a;
+    --sh-keyword: #e02518;
+    --sh-comment: #a19595;
+    --sh-jsxliterals: #6266d1;
+    --sh-property: #e25a1c;
+    --sh-entity: #e25a1c;
+}
+
+.link {
+    @apply text-white font-semibold hover:underline;
+}
+
+p a {
+    @apply text-action;
+}
+p a:hover {
+    @apply underline;
+}
+
+.tools button {
+    @apply w-full hover:bg-action text-white font-bold px-4 py-2 border uppercase;
+}
+
+canvas {
+    @apply max-h-full max-w-full;
+    filter: drop-shadow(0 0 0.6rem #25252533);
+}
+
+.art {
+    filter: drop-shadow(0 0 0.5rem #12121222);
+}
+
+.notes .anchor {
+    @apply absolute invisible no-underline;
+
+    margin-left: -1em;
+    padding-right: 0.5em;
+    width: 80%;
+    max-width: 700px;
+    cursor: pointer;
+}
+
+.anchor:hover {
+    @apply visible;
+}
+
+.notes a {
+    @apply underline transition-all decoration-neutral-400 underline-offset-2 decoration-[0.1em];
+}
+
+.notes .anchor:after {
+    @apply text-neutral-300;
+    content: '#';
+}
+
+.notes *:hover > .anchor {
+    @apply visible;
+}
+
+.notes pre {
+    @apply bg-neutral-50 rounded-lg overflow-x-auto border border-neutral-200 py-2 px-3 text-sm;
+}
+
+.notes code {
+    @apply px-1 py-0.5 rounded-lg;
+}
+
+.notes pre code {
+    @apply p-0;
+    border: initial;
+    line-height: 1.5;
+}
+
+.notes code span {
+    @apply font-medium;
+}
+
+.notes img {
+    /* Don't apply styles to next/image */
+    @apply m-0;
+}
+
+.notes p {
+    @apply my-4 text-neutral-800;
+}
+
+.notes h1 {
+    @apply text-4xl font-medium tracking-tight mt-6 mb-2;
+}
+
+.notes h2 {
+    @apply text-xl font-medium tracking-tight mt-6 mb-2;
+}
+
+.notes h3 {
+    @apply text-xl font-medium tracking-tight mt-6 mb-2;
+}
+
+.notes h4 {
+    @apply text-lg font-medium tracking-tight mt-6 mb-2;
+}
+
+.notes strong {
+    @apply font-medium;
+}
+
+.notes ul {
+    @apply list-disc pl-6;
+}
+
+.notes ol {
+    @apply list-decimal pl-6;
+}
+
+.notes > :first-child {
+    /* Override removing top margin, causing layout shift */
+    margin-top: 1.25em !important;
+    margin-bottom: 1.25em !important;
+}
+
+pre::-webkit-scrollbar {
+    display: none;
+}
+
+pre {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+/* Remove Safari input shadow on mobile */
+input[type='text'],
+input[type='email'] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+table {
+    display: block;
+    max-width: fit-content;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.title {
+    text-wrap: balance;
+}

@@ -1,0 +1,98 @@
+---
+title: 'Hand Drawn'
+publishedAt: '2025-03-26'
+summary: 'Hand drawn shapes.'
+image: 'hand-drawn.png'
+---
+
+<Canvas id="example01" />
+
+```js
+// @meta exec
+// import { Grid } from 'root/geo'
+// import { mapRange } from 'root/math'
+// import { handDrawnCircle } from 'root/mark'
+
+function handDrawnShapes(ctx) {
+    const width = ctx.canvas.width
+    const height = ctx.canvas.height
+
+    // GRID: center, cellSize, rows, cols
+    const grid = new root.geo.Grid([width / 2, height / 2], [width, height], 2, 3)
+    grid.centers().forEach((center, index) => {
+        const rad = root.math.mapRange(index, 0, grid.cellCount, width * 0.4, width * 0.1)
+        const noiseScale = root.math.mapRange(index, 0, grid.cellCount, 0.01, 0.1)
+        // TODO: implement this inside this file and remove from root/mark
+        // const circ = root.mark.handDrawnCircle(center, rad, noiseScale, 1.4, 8, 0.0005)
+
+        // console.log(noiseScale)
+
+        // ctx.beginPath()
+        // circ.forEach(([x, y]) => {
+        //     ctx.lineTo(x, y)
+        // })
+        // ctx.closePath()
+        // ctx.fillStyle = 'white'
+        // ctx.fill()
+    })
+}
+
+// setup and run
+const canvas = document.getElementById('example01')
+if (canvas?.getContext) {
+    const ctx = canvas.getContext('2d')
+
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    handDrawnShapes(ctx)
+}
+```
+
+```js
+import { Vec2 } from '../geo/types'
+
+import { Polygon, asPoints, center } from '../geo/index'
+import { linspace } from '../array/index'
+import { simplex3 } from '../random/noise'
+import { chaikinCurve } from '../algos/chaikin'
+
+export function handDrawnCircle(pos: Vec2, r: number, noiseMult = 0.05, noiseScale = 1.0, steps = 8, zStep = 0.0) {
+    // choose a random starting rotation
+    // const startTheta = random(0, Math.PI * 2.0)
+    const startTheta = 0
+
+    return []
+
+    // use noise as the radial offset for each ring position
+    // return new Polygon(
+    //     chaikinCurve(
+    //         asPoints(
+    //             center(
+    //                 new Polygon(
+    //                     linspace(startTheta, startTheta + 2.0 * Math.PI, steps, false).map((theta) => {
+    //                         // sample noise at base position
+    //                         let x = pos[0] + r * Math.cos(theta)
+    //                         let y = pos[1] + r * Math.sin(theta)
+    //                         const offsetR = noiseMult * simplex3(noiseScale * x, noiseScale * y, zStep)
+    //                         const offsetG = noiseMult * simplex3(noiseScale * x, noiseScale * y, zStep + 1.234)
+
+    //                         // const newR = Math.max(r + offsetR, 0.01)
+    //                         // const newR = r + offsetR
+
+    //                         // add offset to position
+    //                         // x = pos[0] + newR * Math.cos(theta)
+    //                         // y = pos[1] + newR * Math.sin(theta)
+
+    //                         return [x + offsetR, y + offsetG]
+    //                     })
+    //                 ),
+    //                 pos
+    //             )
+    //         ),
+    //         4,
+    //         true
+    //     )
+    // )
+}
+```
