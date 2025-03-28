@@ -53,12 +53,7 @@ function About() {
                         and captivating experiences that resonate with audiences on a profound level.
                     </p>
 
-                    <p className="text-gray mb-4">
-                        Kyle Stewart
-                        <br />
-                    </p>
-
-                    <p className="text-gray mb-4">
+                    {/* <p className="text-gray mb-4">
                         I'm Kyle Stewart, a creative technologist and versatile software engineer exploring how code can
                         be more than functional—how it can evoke feeling, foster play, and expand what's possible.
                     </p>
@@ -89,11 +84,11 @@ function About() {
                         share it. As I continue to develop my creative practice, I'm eager to collaborate on projects
                         that push the boundaries of interactive media, immersive creation, and human–computer
                         collaboration.
-                    </p>
+                    </p> */}
                 </div>
             </div>
 
-            <div className="mb-10">
+            {/* <div className="mb-10">
                 <h2 className="text-4xl text-dark font-semibold flex items-center gap-3 mb-6">
                     <span role="img" aria-label="tools">
                         🛠️
@@ -129,7 +124,7 @@ function About() {
                         <p className="text-gray">Arduino, Raspberry Pi/Pico, ARM (STM32), bare metal, KiCad</p>
                     </div>
                 </div>
-            </div>
+            </div> */}
         </article>
     )
 }

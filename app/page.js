@@ -15,11 +15,11 @@ const projects = [
         title: 'Other Fields',
         categories: ['generative', 'print'],
     },
-    {
-        name: 'on-a-line',
-        title: 'On a Line',
-        categories: ['exe', 'generative'],
-    },
+    // {
+    //     name: 'on-a-line',
+    //     title: 'On a Line',
+    //     categories: ['exe', 'generative'],
+    // },
     {
         name: 'tetralume',
         title: 'Tetralume',
