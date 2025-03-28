@@ -1,0 +1,172 @@
+---
+title: 'Distributions'
+publishedAt: '2025-03-23'
+summary: 'Examples of distributions from various sources of randomness.'
+image: distributions.png
+---
+
+```js
+// @meta exec store:utils
+function createUnitCanvas(id) {
+    const canvas = document.getElementById(id)
+    const ctx = canvas.getContext('2d')
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // unitize canvas
+    ctx.scale(canvas.width, canvas.height)
+    const ptSize = 2.0 / canvas.width
+
+    ctx.fillStyle = 'white'
+
+    return { ctx, ptSize }
+}
+
+function drawPoint(ctx, point, size = 2) {
+    ctx.beginPath()
+    ctx.arc(point[0], point[1], size, 0, Math.PI * 2)
+    ctx.fill()
+}
+
+function drawPoints(ctx, points, size = 2) {
+    points.forEach((point) => drawPoint(ctx, point, size))
+}
+
+function remapToRect(pts, rect, clip = false) {
+    const [x0, y0] = rect.pos
+    const [x1, y1] = rect.max
+    return pts
+        .map(([x, y]) => {
+            const remappedX = root.math.mapRange(x, 0, 1, x0, x1)
+            const remappedY = root.math.mapRange(y, 0, 1, y0, y1)
+            if (clip) {
+                if (remappedX < x0 || remappedX > x1 || remappedY < y0 || remappedY > y1) {
+                    return null // Drop the item
+                } else {
+                    return [remappedX, remappedY]
+                }
+            } else {
+                return [remappedX, remappedY] // Just pass the value
+            }
+        })
+        .filter((item) => item !== null) // Filter out dropped items
+}
+```
+
+### Uniform
+
+<Canvas id="example01" height={300} width={300} />
+
+Simplest form of random - every value has an equal probability of being selected. In 1D, this creates an even spread of points along a line. In 2D, it creates an even spread of points across a plane.
+
+Uniform distributions are useful as a baseline for comparison and for generating truly random positions. However, they often look artificial since natural phenomena rarely follow perfectly uniform patterns.
+
+```js
+// @meta store:uniform
+/**
+ * Generates a random number between the specified minimum and maximum values.
+ * If only one argument is provided, it is assumed to be the maximum value and the minimum value is set to 0.
+ *
+ * @param {number} [min=0] - The minimum value (inclusive). Defaults to 0 if not provided.
+ * @param {number} [max=1] - The maximum value (exclusive). Defaults to 1 if not provided.
+ * @returns {number} - A random number between min and max.
+ */
+function uniform(min = 0, max = 1) {
+    if (arguments.length === 1) {
+        // assume the user passed in a max value
+        max = min
+        min = 0
+    }
+    // Return a random number between min and max
+    return Math.random() * (max - min) + min
+}
+
+// example: create 1000 uniformly random points
+// const pts = Array.from({ length: 1000 }, () => [uniform(), uniform()])
+```
+
+```js
+// @meta exec load:utils load:uniform
+const { ctx, ptSize } = createUnitCanvas('example01')
+
+const pts = Array.from({ length: 1000 }, () => [uniform(), uniform()])
+drawPoints(ctx, pts, ptSize)
+```
+
+### Gaussian
+
+<Canvas id="example02" height={300} width={300} />
+
+_subtitle: Gaussian distribution - mean: 0.5, stdDev: 0.15_
+
+Also known as the normal distribution or "bell curve", Gaussian distributions cluster values around a mean (center) value, with decreasing probability as you move away from the mean. The spread of values is controlled by the standard deviation.
+
+Gaussian distributions are extremely common in nature and statistics. They're useful for creating natural-looking clusters, organic patterns, and modeling real-world variation. The central limit theorem states that many random processes tend toward a Gaussian distribution.
+
+```js
+// @meta store:gaussian
+// Function to generate a normally distributed random number
+// Note: this throws away the 2nd value and can be optimized through caching
+function boxMullerTransform() {
+    let u = 0,
+        v = 0
+    while (u === 0) u = Math.random() // Converting [0,1) to (0,1)
+    while (v === 0) v = Math.random()
+    let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)
+    return z
+}
+
+/**
+ * Calculates a random number from a Gaussian distribution.
+ *
+ * @param {number} mean - The mean value of the distribution.
+ * @param {number} stdDev - The standard deviation of the distribution.
+ * @returns {number} The random number from the Gaussian distribution.
+ */
+function gaussian(mean, stdDev) {
+    return mean + stdDev * boxMullerTransform()
+}
+```
+
+```js
+// @meta exec load:utils load:gaussian
+const { ctx, ptSize } = createUnitCanvas('example02')
+
+const mean = 0.5
+const stdDev = 0.15
+const pts = Array.from({ length: 1000 }, () => [gaussian(mean, stdDev), gaussian(mean, stdDev)])
+drawPoints(ctx, pts, ptSize)
+```
+
+### Pareto
+
+### Noise
+
+_Should this be included?_
+
+## Urban Density
+
+```js
+import { Rectangle } from 'root/geo'
+import { gaussian, pareto, weightedRandom } from 'root/random'
+import { range } from 'root/array'
+
+/* https://www.tylerxhobbs.com/words/probability-distributions-for-algorithmic-artists */
+function urbanDensity(cmd, palette) {
+    const { background, primary, secondary, accent, dark, neutral } = palette
+    const colors = [primary, secondary, accent, neutral]
+
+    // draw random rect (width, heights) according to pareto distribution
+    const rects = range(2000).map(() => {
+        const width = pareto(0.008, 1.0)
+        const height = pareto(0.005, 1.0)
+        const color = weightedRandom(colors, [3, 3, 2, 1])
+        return new Rectangle([gaussian(-0.2, 0.4), gaussian(-0.2, 0.5)], [width, height], { fill: color + 'AA' })
+    })
+
+    cmd.clear(background)
+    cmd.draw(rects)
+}
+urbanDensity.title = 'Urban Density'
+export { urbanDensity }
+```
