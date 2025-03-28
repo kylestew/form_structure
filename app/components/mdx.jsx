@@ -83,10 +83,15 @@ function createHeading(level) {
 }
 
 function Pre({ children, ...props }) {
+    const code = children?.props?.children
+    const lines = code.split('\n')
+    const firstLine = lines[0].trim()
+
+    console.log(firstLine)
+
     // Check if this is a special @meta exec code block
     // HACK: pretty specific to the syntax of the code blocks in the notes
-    const code = children?.props?.children
-    if (code?.startsWith('// @meta') && code.split(' ').includes('exec')) {
+    if (firstLine?.startsWith('// @meta') && firstLine.split(' ').includes('exec')) {
         // Don't render anything for @exec blocks
         return <>{children}</>
     }
