@@ -1,7 +1,7 @@
 ---
-title: 'Heightfields: Visualizing Elevation Data in 2D'
+title: 'Heightfields'
 publishedAt: '2024-04-09'
-summary: 'Learn how to work with and visualize heightfield data using 2D graphics.'
+summary: 'Examples and ideas for working with heightfield data'
 image: heightfields.png
 ---
 
@@ -26,6 +26,17 @@ const heightfield = [
 
 I prefer to use a 1D array and convert to 2D with proper indexing.
 
+### How Are These Different From Heightmaps?
+
+_they aren't really, just different implementations_
+
+-   **Data Structure**: Heightfields typically store raw height values (like floating point numbers) while heightmaps often store height data encoded as grayscale image values (0-255)
+-   **Usage**: Heightfields are commonly used in terrain generation and simulation while heightmaps are more common in graphics/rendering pipelines
+-   **Precision**: Heightfields can store more precise height values since they aren't limited to 8-bit color depth
+-   **Format**: Heightfields are usually stored as arrays/matrices while heightmaps are often stored as image files
+
+In practice, heightmaps can be thought of as a specific representation of heightfield data optimized for graphics usage.
+
 ### Displaying a Heightfield
 
 This is a simplified pixel exact rendering of a heightfield. It takes advantage of Canvas upscaling and forces pixels to be square. Canvas pixel data size and heightfield size should match.
@@ -42,7 +53,7 @@ for (let i = 0; i < pixels.length; i += 4) {
     const y = Math.floor(i / 4 / gridSize)
 
     // Get height value from 1D heightfield array
-    // values are expecte to be between 0-1
+    // values are expected to be between 0-1
     const height = heightfield[y * gridSize + x]
 
     // Convert height to RGB color using color mapping function
@@ -110,6 +121,26 @@ function displayHeightfield(ctx, gridSize, heightfield, getColor) {
     // Draw the image data to the canvas
     ctx.putImageData(imageData, 0, 0)
 }
+
+// normalize values for better display
+function normalizeHeightfield(heightfield) {
+    let min = Infinity
+    let max = -Infinity
+
+    // Find min and max values manually (avoids large array spread issue)
+    for (let i = 0; i < heightfield.length; i++) {
+        if (heightfield[i] < min) min = heightfield[i]
+        if (heightfield[i] > max) max = heightfield[i]
+    }
+
+    // Avoid division by zero if all values are the same
+    if (max === min) {
+        return heightfield.map(() => 0.5) // Default to mid-range if no variation
+    }
+
+    // Normalize values
+    return heightfield.map((value) => (value - min) / (max - min))
+}
 ```
 
 ## Simple Heightfield
@@ -160,7 +191,7 @@ displayHeightfield(ctx, gridSize, heightfield, (height) => {
 })
 ```
 
-## Terrain Generation
+## Heightfield Terrain Generation
 
 <Canvas id="example_terrain" />
 
@@ -174,6 +205,7 @@ A simple way to generate terrain is to layer different noise functions together.
 // @meta exec store:simplex
 // alias the noise function for the upcoming examples
 const simplex2 = root.random.simplex2
+const seed = root.random.seed
 ```
 
 We're using the simplex noise here instead of Perlin noise because it's faster to compute and produces better results for our use case.
@@ -246,12 +278,10 @@ function getTerrainColor(height) {
 ```
 
 ```javascript
-// @meta exec load:simplex load:fbm load:display
+// @meta exec load:simplex load:fbm load:terrainColors load:display
 // === EXAMPLE TERRAIN GENERATION ===
 const canvas = document.getElementById('example_terrain')
 const ctx = canvas.getContext('2d')
-ctx.fillStyle = 'black'
-ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 // create heightfield to match canvas pixel size
 const gridSize = canvas.width
@@ -264,87 +294,134 @@ for (let y = 0; y < gridSize; y++) {
     }
 }
 
-// TODO: normalize?
-
-displayHeightfield(ctx, gridSize, heightfield, (height) => {
-    // Map [-1,1] to [0,1] then to [0,255] for red channel
-    const val = ((height + 1) / 2) * 255
-    return [val, val, val]
-})
-
-/*
-// normalize values
-function normalizeHeightfield(heightfield) {
-    let min = Infinity
-    let max = -Infinity
-
-    // Find min and max values manually (avoids large array spread issue)
-    for (let i = 0; i < heightfield.length; i++) {
-        if (heightfield[i] < min) min = heightfield[i]
-        if (heightfield[i] > max) max = heightfield[i]
-    }
-
-    // Avoid division by zero if all values are the same
-    if (max === min) {
-        return heightfield.map(() => 0.5) // Default to mid-range if no variation
-    }
-
-    // Normalize values
-    return heightfield.map((value) => (value - min) / (max - min))
-}
 heightfield = normalizeHeightfield(heightfield)
-*/
+displayHeightfield(ctx, gridSize, heightfield, getTerrainColor)
 ```
 
 ## Better Terrain
 
-From the video series
+<Canvas id="example_better_terrain" />
 
-## Common Operations
+Some useful techniques and ideas from [Sebastian Lague](https://www.youtube.com/@SebastianLague) in his [Terrain Generation](https://www.youtube.com/watch?v=i-KHXz-o71c) series.
 
-### Smoothing
+### Apply Falloff Mask
 
-Smoothing can help reduce noise in heightfield data:
+Simulate islands by applying a falloff mask to the edges of the heightfield. This falloff mask will be multiplied with the heightfield to diminish the height at the edges.
 
 ```javascript
-function smoothHeightfield(heightfield) {
-    const result = Array.from(heightfield.map((row) => [...row]))
-    const height = heightfield.length
-    const width = heightfield[0].length
+// @meta store:falloff
+function generateFalloffMask(size, strength = 1.0, offset = 0.0) {
+    const map = new Float32Array(size * size)
 
-    for (let y = 1; y < height - 1; y++) {
-        for (let x = 1; x < width - 1; x++) {
-            // Average with neighboring cells
-            result[y][x] =
-                (heightfield[y - 1][x] +
-                    heightfield[y + 1][x] +
-                    heightfield[y][x - 1] +
-                    heightfield[y][x + 1] +
-                    heightfield[y][x]) /
-                5
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            // Convert coordinates to -1 to 1 range
+            const x = (i / size) * 2 - 1
+            const y = (j / size) * 2 - 1
+
+            // Calculate distance from center (0,0)
+            const distanceFromCenter = Math.sqrt(x * x + y * y)
+
+            // Create smooth falloff with configurable strength
+            let value = 1 - Math.pow(distanceFromCenter, strength)
+
+            // Add offset and clamp between 0 and 1
+            value = Math.max(0, Math.min(1, value + offset))
+
+            map[i * size + j] = value
         }
     }
-    return result
+
+    return map
 }
 ```
 
-## TODO: load GIS heightfield data?
+### Apply Height Curve
+
+Apply a height curve function to increase dramatic differences in height. This will compress lower heights and emphasize higher ones.
+
+```javascript
+// @meta store:heightCurve
+function applyHeightCurve(height, power = 2.0) {
+    // Apply a power curve to emphasize higher elevations
+    // Values < 1 will compress lower heights and emphasize higher ones
+    return Math.pow(height, power)
+}
+```
+
+### Updated Example
+
+Combining the falloff mask and height curve when generating the heightfield terrain, we get:
+
+```javascript
+// @meta store:generateTerrain
+function generateTerrain(gridSize, scale, octaves, persistance, lacunarity) {
+    let heightfield = new Float32Array(gridSize * gridSize)
+
+    // new terrain each load
+    seed(Math.random())
+
+    // fill with heighfield values
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            heightfield[y * gridSize + x] = noiseFBM(x, y, scale, octaves, persistance, lacunarity)
+        }
+    }
+
+    // normalize for better display
+    heightfield = normalizeHeightfield(heightfield)
+
+    // apply falloff mask
+    const falloffMap = generateFalloffMask(gridSize)
+    for (let i = 0; i < heightfield.length; i++) {
+        heightfield[i] *= falloffMap[i] * 2.0 // why 2.0? I don't remember
+    }
+
+    // apply height curve
+    for (let i = 0; i < heightfield.length; i++) {
+        heightfield[i] = applyHeightCurve(heightfield[i], 1.6)
+    }
+
+    return heightfield
+}
+```
+
+```javascript
+// @meta exec load:simplex load:fbm load:terrainColors load:falloff load:generateTerrain load:heightCurve load:display
+// === EXAMPLE BETTER TERRAIN ===
+const canvas = document.getElementById('example_better_terrain')
+const ctx = canvas.getContext('2d')
+
+const gridSize = canvas.width
+
+const scale = 0.003
+const octaves = 6
+const persistance = 0.5
+const lacunarity = 2.0
+const heightfield = generateTerrain(gridSize, scale, octaves, persistance, lacunarity)
+
+displayHeightfield(ctx, gridSize, heightfield, getTerrainColor)
+```
+
+## Terrain Normals
+
+TODO TODO TODO
+
+## 3D Terrain
+
+TODO TODO TODO
 
 ## Resources
 
--   [Digital Elevation Model Data](https://www.usgs.gov/programs/national-geospatial-program/national-map)
--   [Terrain Generation Algorithms](https://en.wikipedia.org/wiki/Terrain_generation)
--   [GIS Fundamentals](https://www.gislounge.com/category/gis-fundamentals/)
-
-https://www.sidefx.com/docs/houdini/model/heightfields.html
-
-https://www.michaelfogleman.com/projects/hmm/
-https://www.michaelfogleman.com/projects/terrarium/
-https://www.michaelfogleman.com/projects/pirate-maps/
-https://www.michaelfogleman.com/projects/hirise/
+-   [Houdini Heightfields](https://www.sidefx.com/docs/houdini/model/heightfields.html)
 
 ### Further Study
 
-Relation to heightmaps???
-
-https://heman.readthedocs.io/en/latest/overview.html
+-   Load GIS heightfield data from earth or space datasets
+-   Define edge behavior and tiling
+-   Smoothing operations
+-   Take more operations from Houdini docs
+-   [Heman](https://heman.readthedocs.io/en/latest/overview.html)
+-   [HiRISE](https://www.michaelfogleman.com/projects/hirise/)
+-   [Pirate Maps - Michael Fogleman](https://www.michaelfogleman.com/projects/pirate-maps/)
+-   [Terrarium - Michael Fogleman](https://www.michaelfogleman.com/projects/terrarium/)
