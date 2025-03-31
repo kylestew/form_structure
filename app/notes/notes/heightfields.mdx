@@ -80,7 +80,7 @@ ctx.putImageData(imageData, 0, 0)
  * @param {function} getColor - Function that takes a height value (0-1) and returns [r,g,b] color array
  * @returns {void}
  */
-function displayHeightfield(ctx, gridSize, heightfield, getColor) {
+function displayHeightfield(ctx, gridSize, heightfield, getColor, smooth = false) {
     // Resize canvas if needed - the canvas data size needs to match the heightfield grid size
     if (ctx.canvas.width !== gridSize || ctx.canvas.height !== gridSize) {
         // maintain CSS display size
@@ -92,8 +92,8 @@ function displayHeightfield(ctx, gridSize, heightfield, getColor) {
     }
 
     // disable image smoothing for sharp edges
-    ctx.imageSmoothingEnabled = false
-    ctx.canvas.style.imageRendering = 'pixelated'
+    ctx.imageSmoothingEnabled = smooth
+    ctx.canvas.style.imageRendering = smooth ? 'auto' : 'pixelated'
 
     // Create an ImageData object to manipulate pixels directly
     const imageData = ctx.createImageData(gridSize, gridSize)
@@ -295,7 +295,7 @@ for (let y = 0; y < gridSize; y++) {
 }
 
 heightfield = normalizeHeightfield(heightfield)
-displayHeightfield(ctx, gridSize, heightfield, getTerrainColor)
+displayHeightfield(ctx, gridSize, heightfield, getTerrainColor, true)
 ```
 
 ## Better Terrain
@@ -400,7 +400,7 @@ const persistance = 0.5
 const lacunarity = 2.0
 const heightfield = generateTerrain(gridSize, scale, octaves, persistance, lacunarity)
 
-displayHeightfield(ctx, gridSize, heightfield, getTerrainColor)
+displayHeightfield(ctx, gridSize, heightfield, getTerrainColor, true)
 ```
 
 ## Terrain Normals
