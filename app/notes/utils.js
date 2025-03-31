@@ -33,11 +33,21 @@ function readMDXFile(filePath) {
 function getMDXData(dir) {
     let mdxFiles = getMDXFiles(dir)
     return mdxFiles.map((file) => {
-        let { metadata, content } = readMDXFile(path.join(dir, file))
+        let filePath = path.join(dir, file)
+        let { metadata, content } = readMDXFile(filePath)
         let slug = path.basename(file, path.extname(file))
 
+        // Get file stats for dates
+        let stats = fs.statSync(filePath)
+        let createdAt = stats.birthtime.toISOString().split('T')[0]
+        let updatedAt = stats.mtime.toISOString().split('T')[0]
+
         return {
-            metadata,
+            metadata: {
+                ...metadata,
+                createdAt,
+                updatedAt,
+            },
             slug,
             content,
         }

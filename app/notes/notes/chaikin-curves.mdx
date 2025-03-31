@@ -24,6 +24,9 @@ function drawPoint(ctx, point, size = 2) {
     ctx.arc(point[0], point[1], size, 0, Math.PI * 2)
     ctx.fill()
 }
+function drawPoints(ctx, points, size = 2) {
+    points.forEach((point) => drawPoint(ctx, point, size))
+}
 ```
 
 > Chaikin curves, developed by George Chaikin in 1974, offer a simple yet powerful way to create smooth curves from a series of points. In generative art, they provide an elegant method for transforming rigid, angular lines into flowing, organic shapes.
@@ -67,7 +70,7 @@ function chaikinCurve(points, iterations) {
 }
 ```
 
-## Animated Example
+## Animated Explanation
 
 <Canvas id="example01" />
 
@@ -92,7 +95,7 @@ function drawFrame() {
     ]
 
     // one iteration
-    let curve = chaikinCurve(polyline, tick++)
+    let curve = chaikinCurve(polyline, tick)
     drawPolyline(ctx, curve)
 
     // draw points
@@ -101,6 +104,14 @@ function drawFrame() {
         drawPoint(ctx, curve[i])
     }
 
+    // draw iteration count
+    ctx.fillStyle = 'white'
+    ctx.font = '24px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'bottom'
+    ctx.fillText(`Iterations: ${tick - 1}`, canvas.width / 2, canvas.height - 20)
+
+    tick++
     if (tick > maxTick) tick = 1
     setTimeout(() => requestAnimationFrame(drawFrame), tickInterval)
 }
@@ -113,22 +124,11 @@ const ctx = canvas.getContext('2d')
 requestAnimationFrame(drawFrame)
 ```
 
-## Tips for Creative Coding
-
-When using Chaikin curves in your generative art:
-
-1. **Iteration Count**: 2-4 iterations usually provide a good balance between smoothness and performance
-2. **Cutting Ratio**: Experiment with different ratios instead of the standard 0.25/0.75
-3. **Point Distribution**: The initial distribution of points greatly affects the final curve
-4. **Animation**: Try animating between different iteration counts or cutting ratios
-
-## Generative Art Example
+## Generative Art Examples
 
 <Canvas id="example02" />
 
-```javascript
-// Example: Creating a flowing line with noise
-```
+_Subtitle: Sine Blob_
 
 ```js
 // @meta exec load:algo load:utils
@@ -177,10 +177,9 @@ const ctx = canvas.getContext('2d')
 requestAnimationFrame(drawFrame)
 ```
 
-### References
+<Canvas id="example_joy_div" />
 
--   [Chaikin's Algorithm on Observable](https://observablehq.com/@pamacha/chaikins-algorithm)
--   [Chaikin Curves on Sighack](https://sighack.com/post/chaikin-curves)
+_Subtitle: Joy Division_
 
 ```js
 import { Line, Polyline, Polygon, asPoints } from 'root/geo'
@@ -253,3 +252,57 @@ export { joyDivision }
 // refLink: 'https://generativeartistry.com/tutorials/joy-division/',
 // }
 ```
+
+<Canvas id="example_rats_nest" />
+
+_Subtitle: Rats Nest_
+
+```js
+// @meta exec load:utils load:algo
+function boxMullerTransform() {
+    let u = 0,
+        v = 0
+    while (u === 0) u = Math.random() // Converting [0,1) to (0,1)
+    while (v === 0) v = Math.random()
+    let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)
+    return z
+}
+function gaussian(mean, stdDev) {
+    return mean + stdDev * boxMullerTransform()
+}
+
+const canvas = document.getElementById('example_rats_nest')
+const ctx = canvas.getContext('2d')
+
+// unitize canvas
+ctx.scale(canvas.width, canvas.height)
+const ptSize = 2.0 / canvas.width
+
+function drawFrame() {
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, 1, 1)
+
+    ctx.strokeStyle = 'white'
+    ctx.lineWidth = ptSize
+    ctx.lineJoin = 'round'
+    ctx.lineCap = 'round'
+
+    const pts = Array.from({ length: 100 }, () => [gaussian(0.5, 0.2), gaussian(0.5, 0.2)])
+
+    ctx.fillStyle = 'red'
+    drawPoints(ctx, pts, ptSize)
+
+    let curve = chaikinCurve(pts, 5)
+    drawPolyline(ctx, curve)
+}
+
+canvas.addEventListener('click', () => {
+    drawFrame()
+})
+drawFrame()
+```
+
+### References
+
+-   [Chaikin's Algorithm on Observable](https://observablehq.com/@pamacha/chaikins-algorithm)
+-   [Chaikin Curves on Sighack](https://sighack.com/post/chaikin-curves)

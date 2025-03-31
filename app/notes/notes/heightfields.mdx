@@ -1,0 +1,427 @@
+---
+title: 'Heightfields'
+publishedAt: '2024-04-09'
+summary: 'Examples and ideas for working with heightfield data'
+image: heightfields.png
+---
+
+## Understanding Heightfields
+
+A heightfield is a 2D array of height values that can represent terrain or other 3D surfaces. Each value in the array represents the elevation at that point. This note discusses and shows some interesting ways to work with heightfield data.
+
+_Note: Heightfields cannot have overhangs since they are a one to one mapping of height values to x, y coordinates. An overhang or cave would require more than one height value per point._
+
+### Data Structure
+
+A basic heightfield can be represented as a 2D array where each value represents the elevation at that point.
+
+```javascript
+const heightfield = [
+    [0.4, 0.6, 1.0, 0.5],
+    [0.5, 0.7, 0.8, 0.6],
+    [0.2, 0.5, 0.6, 0.4],
+    [0.0, 0.2, 0.4, 0.2],
+]
+```
+
+I prefer to use a 1D array and convert to 2D with proper indexing.
+
+### How Are These Different From Heightmaps?
+
+_they aren't really, just different implementations_
+
+-   **Data Structure**: Heightfields typically store raw height values (like floating point numbers) while heightmaps often store height data encoded as grayscale image values (0-255)
+-   **Usage**: Heightfields are commonly used in terrain generation and simulation while heightmaps are more common in graphics/rendering pipelines
+-   **Precision**: Heightfields can store more precise height values since they aren't limited to 8-bit color depth
+-   **Format**: Heightfields are usually stored as arrays/matrices while heightmaps are often stored as image files
+
+In practice, heightmaps can be thought of as a specific representation of heightfield data optimized for graphics usage.
+
+### Displaying a Heightfield
+
+This is a simplified pixel exact rendering of a heightfield. It takes advantage of Canvas upscaling and forces pixels to be square. Canvas pixel data size and heightfield size should match.
+
+```javascript
+// Create an ImageData object to manipulate pixels directly
+const imageData = ctx.createImageData(gridSize, gridSize)
+const pixels = imageData.data // Uint8ClampedArray of RGBA values
+
+// Iterate through each pixel in the image data
+for (let i = 0; i < pixels.length; i += 4) {
+    // Calculate x,y coordinates from the pixel index
+    const x = (i / 4) % gridSize
+    const y = Math.floor(i / 4 / gridSize)
+
+    // Get height value from 1D heightfield array
+    // values are expected to be between 0-1
+    const height = heightfield[y * gridSize + x]
+
+    // Convert height to RGB color using color mapping function
+    const [r, g, b] = getColor(height)
+
+    // Set RGBA values in pixel array
+    pixels[i] = r // Red
+    pixels[i + 1] = g // Green
+    pixels[i + 2] = b // Blue
+    pixels[i + 3] = 255 // Alpha (fully opaque)
+}
+
+// Draw the image data to the canvas
+ctx.putImageData(imageData, 0, 0)
+```
+
+```javascript
+// @meta exec store:display
+/**
+ * Displays a heightfield on a canvas using a color mapping function
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
+ * @param {number} gridSize - Size of the heightfield grid (must be square)
+ * @param {number[]} heightfield - 1D array of height values between 0-1
+ * @param {function} getColor - Function that takes a height value (0-1) and returns [r,g,b] color array
+ * @returns {void}
+ */
+function displayHeightfield(ctx, gridSize, heightfield, getColor, smooth = false) {
+    // Resize canvas if needed - the canvas data size needs to match the heightfield grid size
+    if (ctx.canvas.width !== gridSize || ctx.canvas.height !== gridSize) {
+        // maintain CSS display size
+        ctx.canvas.style.width = `${ctx.canvas.width}px`
+        ctx.canvas.style.height = `${ctx.canvas.height}px`
+
+        ctx.canvas.width = gridSize
+        ctx.canvas.height = gridSize
+    }
+
+    // disable image smoothing for sharp edges
+    ctx.imageSmoothingEnabled = smooth
+    ctx.canvas.style.imageRendering = smooth ? 'auto' : 'pixelated'
+
+    // Create an ImageData object to manipulate pixels directly
+    const imageData = ctx.createImageData(gridSize, gridSize)
+    const pixels = imageData.data // Uint8ClampedArray of RGBA values
+
+    // Iterate through each pixel in the image data
+    for (let i = 0; i < pixels.length; i += 4) {
+        // Calculate x,y coordinates from the pixel index
+        const x = (i / 4) % gridSize
+        const y = Math.floor(i / 4 / gridSize)
+
+        // Get height value from 1D heightfield array
+        const height = heightfield[y * gridSize + x]
+
+        // Convert height to RGB color using callback
+        const [r, g, b] = getColor(height)
+
+        // Set RGBA values in pixel array
+        pixels[i] = r // Red
+        pixels[i + 1] = g // Green
+        pixels[i + 2] = b // Blue
+        pixels[i + 3] = 255 // Alpha (fully opaque)
+    }
+
+    // Draw the image data to the canvas
+    ctx.putImageData(imageData, 0, 0)
+}
+
+// normalize values for better display
+function normalizeHeightfield(heightfield) {
+    let min = Infinity
+    let max = -Infinity
+
+    // Find min and max values manually (avoids large array spread issue)
+    for (let i = 0; i < heightfield.length; i++) {
+        if (heightfield[i] < min) min = heightfield[i]
+        if (heightfield[i] > max) max = heightfield[i]
+    }
+
+    // Avoid division by zero if all values are the same
+    if (max === min) {
+        return heightfield.map(() => 0.5) // Default to mid-range if no variation
+    }
+
+    // Normalize values
+    return heightfield.map((value) => (value - min) / (max - min))
+}
+```
+
+## Simple Heightfield
+
+<Canvas id="example_simple" />
+
+_White is 1.0, black is 0.0_
+
+Create a heightfield array and fill with values from a simple math function.
+
+```javascript
+const gridSize = 64
+let heightfield = new Float32Array(gridSize * gridSize)
+for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+        const dx = x - gridSize / 2
+        const dy = y - gridSize / 2
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        heightfield[y * gridSize + x] = Math.sin(dist * 0.5)
+    }
+}
+```
+
+```javascript
+// @meta exec load:display
+
+// create and fill heightfield
+const gridSize = 64
+let heightfield = new Float32Array(gridSize * gridSize)
+for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+        const dx = x - gridSize / 2
+        const dy = y - gridSize / 2
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        heightfield[y * gridSize + x] = Math.sin(dist * 0.5)
+    }
+}
+
+const canvas = document.getElementById('example_simple')
+const ctx = canvas.getContext('2d')
+ctx.fillStyle = 'black'
+ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+displayHeightfield(ctx, gridSize, heightfield, (height) => {
+    // Map [-1,1] to [0,1] then to [0,255] for red channel
+    const val = ((height + 1) / 2) * 255
+    return [val, val, val]
+})
+```
+
+## Heightfield Terrain Generation
+
+<Canvas id="example_terrain" />
+
+_Terrain generation using FBM noise_
+
+### Terrain Height Values
+
+A simple way to generate terrain is to layer different noise functions together. This is a technique called [Fractal Brownian Motion (FBM)](https://iquilezles.org/articles/fbm/) popularized by [Inigo Quilez](https://iquilezles.org/). I also like the interactive explanation by [Patricio Gonzalez Vivo](https://patriciogonzalezvivo.com/) in his [The Book of Shaders](https://thebookofshaders.com/13/).
+
+```javascript
+// @meta exec store:simplex
+// alias the noise function for the upcoming examples
+const simplex2 = root.random.simplex2
+const seed = root.random.seed
+```
+
+We're using the simplex noise here instead of Perlin noise because it's faster to compute and produces better results for our use case.
+
+```javascript
+// @meta store:fbm
+/**
+ * Generates Fractal Brownian Motion noise by layering multiple octaves of simplex noise
+ * @param {number} x - X coordinate to sample
+ * @param {number} y - Y coordinate to sample
+ * @param {number} scale - Base frequency scale. Higher values = more zoomed out noise
+ * @param {number} octaves - Number of noise layers to combine
+ * @param {number} persistance - How quickly amplitude decreases per octave (0-1)
+ * @param {number} lacunarity - How quickly frequency increases per octave (typically 2)
+ * @returns {number} Combined noise value between 0 and 1
+ */
+function noiseFBM(x, y, scale = 1.0, octaves = 4, persistance = 0.5, lacunarity = 2.0) {
+    let amplitude = 1.0
+    let frequency = scale
+    let height = 0.0
+    let maxAmplitude = 0.0
+    for (let i = 0; i < octaves; i++) {
+        height += simplex2(x * frequency, y * frequency) * amplitude
+        maxAmplitude += amplitude
+
+        amplitude *= persistance
+        frequency *= lacunarity
+    }
+    return height / maxAmplitude
+}
+```
+
+FBM noise can then be used to generate heightfield values.
+
+```javascript
+const scale = 0.005
+const octaves = 6
+const persistance = 0.4
+for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+        heightfield[y * gridSize + x] = noiseFBM(x, y, scale, octaves, persistance)
+    }
+}
+```
+
+### Color Mapping
+
+```javascript
+// @meta store:terrainColors
+const terrainColors = [
+    [0.3, [0, 0, 128]], // Deep water (dark blue)
+    [0.4, [0, 0, 255]], // Shallow water (blue)
+    [0.45, [194, 178, 128]], // Sand (beige)
+    [0.6, [0, 170, 0]], // Grass 1 (darker green)
+    [0.7, [0, 255, 0]], // Grass 2 (lighter green)
+    [0.8, [96, 96, 96]], // Rock 1 (darker gray)
+    [0.9, [160, 160, 160]], // Rock 2 (lighter gray)
+    [1.0, [255, 255, 255]], // Snow (white)
+]
+
+function getTerrainColor(height) {
+    for (let i = 0; i < terrainColors.length; i++) {
+        const [level, rgb] = terrainColors[i]
+        if (height <= level) {
+            return rgb
+        }
+    }
+    return [255, 255, 255] // Default to snow (fallback)
+}
+```
+
+```javascript
+// @meta exec load:simplex load:fbm load:terrainColors load:display
+// === EXAMPLE TERRAIN GENERATION ===
+const canvas = document.getElementById('example_terrain')
+const ctx = canvas.getContext('2d')
+
+// create heightfield to match canvas pixel size
+const gridSize = canvas.width
+let heightfield = new Float32Array(gridSize * gridSize)
+
+// sample FBM
+for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+        heightfield[y * gridSize + x] = noiseFBM(x, y, 0.005, 6, 0.4)
+    }
+}
+
+heightfield = normalizeHeightfield(heightfield)
+displayHeightfield(ctx, gridSize, heightfield, getTerrainColor, true)
+```
+
+## Better Terrain
+
+<Canvas id="example_better_terrain" />
+
+Some useful techniques and ideas from [Sebastian Lague](https://www.youtube.com/@SebastianLague) in his [Terrain Generation](https://www.youtube.com/watch?v=i-KHXz-o71c) series.
+
+### Apply Falloff Mask
+
+Simulate islands by applying a falloff mask to the edges of the heightfield. This falloff mask will be multiplied with the heightfield to diminish the height at the edges.
+
+```javascript
+// @meta store:falloff
+function generateFalloffMask(size, strength = 1.0, offset = 0.0) {
+    const map = new Float32Array(size * size)
+
+    for (let i = 0; i < size; i++) {
+        for (let j = 0; j < size; j++) {
+            // Convert coordinates to -1 to 1 range
+            const x = (i / size) * 2 - 1
+            const y = (j / size) * 2 - 1
+
+            // Calculate distance from center (0,0)
+            const distanceFromCenter = Math.sqrt(x * x + y * y)
+
+            // Create smooth falloff with configurable strength
+            let value = 1 - Math.pow(distanceFromCenter, strength)
+
+            // Add offset and clamp between 0 and 1
+            value = Math.max(0, Math.min(1, value + offset))
+
+            map[i * size + j] = value
+        }
+    }
+
+    return map
+}
+```
+
+### Apply Height Curve
+
+Apply a height curve function to increase dramatic differences in height. This will compress lower heights and emphasize higher ones.
+
+```javascript
+// @meta store:heightCurve
+function applyHeightCurve(height, power = 2.0) {
+    // Apply a power curve to emphasize higher elevations
+    // Values < 1 will compress lower heights and emphasize higher ones
+    return Math.pow(height, power)
+}
+```
+
+### Updated Example
+
+Combining the falloff mask and height curve when generating the heightfield terrain, we get:
+
+```javascript
+// @meta store:generateTerrain
+function generateTerrain(gridSize, scale, octaves, persistance, lacunarity) {
+    let heightfield = new Float32Array(gridSize * gridSize)
+
+    // new terrain each load
+    seed(Math.random())
+
+    // fill with heighfield values
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            heightfield[y * gridSize + x] = noiseFBM(x, y, scale, octaves, persistance, lacunarity)
+        }
+    }
+
+    // normalize for better display
+    heightfield = normalizeHeightfield(heightfield)
+
+    // apply falloff mask
+    const falloffMap = generateFalloffMask(gridSize)
+    for (let i = 0; i < heightfield.length; i++) {
+        heightfield[i] *= falloffMap[i] * 2.0 // why 2.0? I don't remember
+    }
+
+    // apply height curve
+    for (let i = 0; i < heightfield.length; i++) {
+        heightfield[i] = applyHeightCurve(heightfield[i], 1.6)
+    }
+
+    return heightfield
+}
+```
+
+```javascript
+// @meta exec load:simplex load:fbm load:terrainColors load:falloff load:generateTerrain load:heightCurve load:display
+// === EXAMPLE BETTER TERRAIN ===
+const canvas = document.getElementById('example_better_terrain')
+const ctx = canvas.getContext('2d')
+
+const gridSize = canvas.width
+
+const scale = 0.003
+const octaves = 6
+const persistance = 0.5
+const lacunarity = 2.0
+const heightfield = generateTerrain(gridSize, scale, octaves, persistance, lacunarity)
+
+displayHeightfield(ctx, gridSize, heightfield, getTerrainColor, true)
+```
+
+## Terrain Normals
+
+TODO TODO TODO
+
+## 3D Terrain
+
+TODO TODO TODO
+
+## Resources
+
+-   [Houdini Heightfields](https://www.sidefx.com/docs/houdini/model/heightfields.html)
+
+### Further Study
+
+-   Load GIS heightfield data from earth or space datasets
+-   Define edge behavior and tiling
+-   Smoothing operations
+-   Take more operations from Houdini docs
+-   [Heman](https://heman.readthedocs.io/en/latest/overview.html)
+-   [HiRISE](https://www.michaelfogleman.com/projects/hirise/)
+-   [Pirate Maps - Michael Fogleman](https://www.michaelfogleman.com/projects/pirate-maps/)
+-   [Terrarium - Michael Fogleman](https://www.michaelfogleman.com/projects/terrarium/)

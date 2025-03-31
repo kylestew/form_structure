@@ -1,0 +1,185 @@
+---
+title: '3D Projection'
+publishedAt: '2025-03-29'
+summary: 'Learn how to project 3D shapes onto a 2D plane.'
+image: 3d-projection.png
+---
+
+Inspired by [Matt DesLauriers](https://www.mattdesl.com/), this note explores how to project 3D shapes onto a 2D plane. It’s something I do a lot in my work, partly because it plays well with tools like Canvas or SVG, but also because it lets me drive a pen plotter.
+
+Like Matt describes, the first step is projecting from 3D world-space into 2D screen-space. To make that easier to reason about, a virtual camera utility is used to set an eye position and target. The camera utility returns a `project()` function that converts 3D to 2D coordinates.
+
+```javascript
+// List of 3D coordinates
+const vertices = [
+    [-0.5, 0, -0.5],
+    [0.5, 0, -0.5],
+    // ... more vertices
+]
+
+// A utility that projects 3D points to 2D screen-space
+// Using a virtual 'camera' that has a 3D position and target
+// And viewport width and height
+const position = [1, 1, 1]
+const target = [0, 0, 0]
+const project = createCamera({ position, target, width, height })
+
+// Project the 3D to 2D
+const screenPoints = vertices.map((p) => project(p))
+// ... Now draw the 2D points somehow (e.g. as paths)
+```
+
+## Camera Utility
+
+This is pretty much a direct copy of [Matt's Example](https://codesandbox.io/p/sandbox/canvas-3d-examples-tkyxr?file=%2Fmain.js) to JavaScript.
+
+```javascript
+// @meta exec
+console.log(root.matrix)
+```
+
+```javascript
+// @meta store:camera
+function createCamera(props = {}) {
+    const {
+        fov = 50,
+        x = 0,
+        y = 0,
+        target = [0, 0, 0],
+        up = [0, 1, 0],
+        mode = 'perspective',
+        width = 1,
+        height = 1,
+    } = props
+
+    // let zoom = props.zoom != null ? props.zoom : 1
+    // let position = props.position || [1, 1, 1]
+    // const ortho = mode !== 'perspective'
+    // const defaultNear = ortho ? -100 : 0.01
+    // const defaultFar = ortho ? 100 : 1000
+    // const near = props.near != null ? props.near : defaultNear
+    // const far = props.far != null ? props.far : defaultFar
+    // const filmGauge = props.filmGauge != null ? props.filmGauge : 35
+    // const filmOffset = props.filmOffset != null ? props.filmOffset : 0
+
+    // const size = 2
+    // const aspect = width / height
+    // const H = size * aspect
+    // const V = size
+
+    // const left = props.left != null ? props.left : -1
+    // const right = props.right != null ? props.right : 1
+    // const bottom = props.bottom != null ? props.bottom : -1
+    // const top = props.top != null ? props.top : 1
+
+    // let projection
+    // if (mode === 'isometric') {
+    //     const posLen = vec3.length(position)
+    //     position = vec3.scale([], position, posLen !== 0 ? 1 / posLen : 1)
+    //     zoom /= posLen / 2
+    //     projection = createOrthoFromView([], -H, H, -V, V, zoom, near, far)
+    // } else if (mode === 'perspective') {
+    //     projection = createPerspectiveFromView([], fov, aspect, near, far, zoom, filmGauge, filmOffset)
+    // } else {
+    //     projection = createOrthoFromView([], left, right, bottom, top, zoom, near, far)
+    // }
+
+    // const targetMatrix = mat4.targetTo([], position, target, up)
+    // const cameraMatrix = mat4.fromTranslation([], position)
+    // mat4.multiply(cameraMatrix, cameraMatrix, targetMatrix)
+
+    // const view = mat4.invert([], cameraMatrix)
+    // const combinedProjView = mat4.multiply([], projection, view)
+    // const viewport = [x, y, width, height]
+
+    // return (p) => {
+    //     const [x, y, w, h] = viewport
+    //     const pos = cameraProject([], p, viewport, combinedProjView)
+    //     pos[1] = h - pos[1] // invert Y coord
+    //     return pos
+    // }
+}
+```
+
+<Canvas id="example01" />
+
+```javascript
+const vertices = [
+    [-0.5, 0, -0.5],
+    [0.5, 0, -0.5],
+    [0.5, 0, 0.5],
+    [-0.5, 0, 0.5],
+]
+
+function draw(ctx, width, height) {
+    ctx.clearRect(0, 0, width, height)
+
+    // Draw background
+    ctx.fillStyle = 'hsl(0, 0%, 95%)'
+    ctx.fillRect(0, 0, width, height)
+
+    // Set fill/stroke color
+    context.fillStyle = context.strokeStyle = 'black'
+
+    // Min dimension of screen
+    const dim = Math.min(width, height)
+}
+
+const canvas = document.getElementById('example01')
+if (canvas?.getContext) {
+    const ctx = canvas.getContext('2d')
+    const width = ctx.canvas.width
+    const height = ctx.canvas.height
+
+    draw(ctx, width, height)
+}
+
+/*
+
+    // Determine the new position of our camera in 3D space
+    // It will orbit around in a circle and also span up and down on Y axis
+    const curTime = time + 2.5;
+    const orbitAngle = curTime * 0.5;
+    const orbitDistance = 1;
+    const u = Math.cos(orbitAngle) * orbitDistance;
+    const v = Math.sin(orbitAngle) * orbitDistance;
+    const y = Math.sin(curTime) * orbitDistance * 2;
+    const position = [u, y, v];
+
+    // Setup a camera projection function
+    const project = createCamera({
+      // You can also try using different projection methods
+      // mode: "isometric",
+      position,
+      width,
+      height
+    });
+
+    // Project 3D points to 2D screen-space positions
+    const points2D = vertices.map((v) => project(v));
+
+    // Connect points to form a 3D square
+    context.beginPath();
+    points2D.forEach((p) => {
+      const [x, y] = p;
+      context.lineTo(x, y);
+    });
+    context.closePath();
+    context.stroke();
+
+    // Draw each point as a circle
+    points2D.forEach((p) => {
+      const [x, y] = p;
+      context.beginPath();
+      context.arc(x, y, dim * 0.01, 0, Math.PI * 2);
+      context.fill();
+    });
+  };
+*/
+```
+
+## References
+
+-   [Subscapes Part 3](https://mattdesl.substack.com/p/subscapes-part-3)
+
+https://www.michaelfogleman.com/projects/line-art/
