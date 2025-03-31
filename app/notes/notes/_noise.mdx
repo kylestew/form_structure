@@ -1,0 +1,158 @@
+---
+title: 'Noise'
+publishedAt: '2025-03-29'
+summary: 'Learn how to project 3D shapes onto a 2D plane.'
+image: 3d-projection.png
+---
+
+## Random
+
+### Hash Functions
+
+PCG Hash
+
+```c
+uint pcg_hash(uint input)
+{
+    uint state = input * 747796405u + 2891336453u;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
+}
+```
+
+## Noise
+
+### Value Noise
+
+### Perlin Noise
+
+### Simplex Noise
+
+```javascript
+// @meta exec store:display
+/**
+ * Displays a heightfield on a canvas using a color mapping function
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
+ * @param {number} gridSize - Size of the heightfield grid (must be square)
+ * @param {number[]} heightfield - 1D array of height values between 0-1
+ * @param {function} getColor - Function that takes a height value (0-1) and returns [r,g,b] color array
+ * @returns {void}
+ */
+function displayHeightfield(ctx, gridSize, heightfield, getColor) {
+    // Resize canvas if needed - the canvas data size needs to match the heightfield grid size
+    if (ctx.canvas.width !== gridSize || ctx.canvas.height !== gridSize) {
+        // maintain CSS display size
+        ctx.canvas.style.width = `${ctx.canvas.width}px`
+        ctx.canvas.style.height = `${ctx.canvas.height}px`
+
+        ctx.canvas.width = gridSize
+        ctx.canvas.height = gridSize
+    }
+
+    // disable image smoothing for sharp edges
+    ctx.imageSmoothingEnabled = false
+    ctx.canvas.style.imageRendering = 'pixelated'
+
+    // Create an ImageData object to manipulate pixels directly
+    const imageData = ctx.createImageData(gridSize, gridSize)
+    const pixels = imageData.data // Uint8ClampedArray of RGBA values
+
+    // Iterate through each pixel in the image data
+    for (let i = 0; i < pixels.length; i += 4) {
+        // Calculate x,y coordinates from the pixel index
+        const x = (i / 4) % gridSize
+        const y = Math.floor(i / 4 / gridSize)
+
+        // Get height value from 1D heightfield array
+        const height = heightfield[y * gridSize + x]
+
+        // Convert height to RGB color using callback
+        const [r, g, b] = getColor(height)
+
+        // Set RGBA values in pixel array
+        pixels[i] = r // Red
+        pixels[i + 1] = g // Green
+        pixels[i + 2] = b // Blue
+        pixels[i + 3] = 255 // Alpha (fully opaque)
+    }
+
+    // Draw the image data to the canvas
+    ctx.putImageData(imageData, 0, 0)
+}
+```
+
+<Canvas id="example_terrain" />
+
+A simple way to generate terrain is to layer different noise functions together. This is a technique called [Fractal Brownian Motion (FBM)](https://iquilezles.org/articles/fbm/) popularized by [Inigo Quilez](https://iquilezles.org/). I also like the interactive explanation by [Patricio Gonzalez Vivo](https://patriciogonzalezvivo.com/) in his [The Book of Shaders](https://thebookofshaders.com/13/).
+
+```javascript
+// @meta exec store:simplex
+// alias the noise function for the upcoming examples
+const simplex2 = root.random.simplex2
+```
+
+```javascript
+// @meta store:fbm
+/**
+ * Generates Fractal Brownian Motion noise by layering multiple octaves of simplex noise
+ * @param {number} x - X coordinate to sample
+ * @param {number} y - Y coordinate to sample
+ * @param {number} scale - Base frequency scale. Higher values = more zoomed out noise
+ * @param {number} octaves - Number of noise layers to combine
+ * @param {number} persistance - How quickly amplitude decreases per octave (0-1)
+ * @param {number} lacunarity - How quickly frequency increases per octave (typically 2)
+ * @returns {number} Combined noise value between 0 and 1
+ */
+function noiseFBM(x, y, scale = 1.0, octaves = 4, persistance = 0.5, lacunarity = 2.0) {
+    let amplitude = 1.0
+    let frequency = scale
+    let height = 0.0
+    let maxAmplitude = 0.0
+    for (let i = 0; i < octaves; i++) {
+        height += simplex2(x * frequency, y * frequency) * amplitude
+        maxAmplitude += amplitude
+
+        amplitude *= persistance
+        frequency *= lacunarity
+    }
+    return height / maxAmplitude
+}
+```
+
+```javascript
+// @meta exec load:simplex load:fbm load:display
+
+const canvas = document.getElementById('example_terrain')
+const ctx = canvas.getContext('2d')
+ctx.fillStyle = 'black'
+ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+// create heightfield to match canvas pixel size
+const gridSize = canvas.width
+let heightfield = new Float32Array(gridSize * gridSize)
+
+// sample FBM
+for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+        heightfield[y * gridSize + x] = noiseFBM(x, y, 0.005, 6, 0.4)
+    }
+}
+
+// TODO: normalize?
+
+displayHeightfield(ctx, gridSize, heightfield, (height) => {
+    // Map [-1,1] to [0,1] then to [0,255] for red channel
+    const val = ((height + 1) / 2) * 255
+    return [val, val, val]
+})
+```
+
+https://www.reedbeta.com/blog/hash-functions-for-gpu-rendering/
+
+## Resources
+
+https://www.youtube.com/watch?v=DxUY42r_6Cg
+
+https://www.reedbeta.com/blog/hash-functions-for-gpu-rendering/
+
+https://thebookofshaders.com/10/
