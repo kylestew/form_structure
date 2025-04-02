@@ -1,0 +1,221 @@
+---
+title: 'Falling Sand'
+summary: '???'
+image: sand.png
+---
+
+```javascript
+// @meta exec store:grid
+class Grid {
+    constructor(width, height) {
+        this.width = width
+        this.height = height
+
+        // memory structure [ weight, r, g, b, weight, r, g, b, ... ]
+        this.grid = new Uint8Array(width * height * 4) // Already zeroed
+    }
+
+    clear() {
+        this.grid.fill(0) // fast grid clear
+    }
+
+    getIndex(x, y) {
+        if (x < 0 || x >= this.width || y < 0 || y >= this.height) return -1
+        return (y * this.width + x) * 4
+    }
+
+    set(x, y, weight, r, g, b) {
+        const idx = this.getIndex(x, y)
+        if (idx === -1) return // Bounds check
+
+        this.grid.set([weight, r, g, b], idx) // More efficient than 4 assignments
+    }
+
+    get(x, y) {
+        const idx = this.getIndex(x, y)
+        if (idx === -1) return null // Return null for out-of-bounds
+
+        return {
+            weight: this.grid[idx],
+            r: this.grid[idx + 1],
+            g: this.grid[idx + 2],
+            b: this.grid[idx + 3],
+        }
+    }
+
+    getFast(x, y, out = []) {
+        const idx = this.getIndex(x, y)
+        if (idx === -1) return null
+
+        // Write directly to `out` to avoid allocations
+        out[0] = this.grid[idx] // weight
+        out[1] = this.grid[idx + 1] // r
+        out[2] = this.grid[idx + 2] // g
+        out[3] = this.grid[idx + 3] // b
+
+        return out
+    }
+
+    isEmpty(idx) {
+        return this.grid[idx] === 0 // zero weight is empty
+    }
+
+    swap(idx1, idx2) {
+        if (idx1 < 0 || idx1 > this.grid.length) return
+        if (idx2 < 0 || idx2 > this.grid.length) return
+
+        for (let i = 0; i < 4; i++) {
+            const temp = this.grid[idx1 + i]
+            this.grid[idx1 + i] = this.grid[idx2 + i]
+            this.grid[idx2 + i] = temp
+        }
+    }
+}
+```
+
+```javascript
+// @meta exec store:display
+function display(ctx, grid) {
+    // Resize canvas if needed - the canvas data size needs to match the heightfield grid size
+    if (ctx.canvas.width !== gridSize || ctx.canvas.height !== gridSize) {
+        // maintain CSS display size
+        ctx.canvas.style.width = `${ctx.canvas.width}px`
+        ctx.canvas.style.height = `${ctx.canvas.height}px`
+
+        ctx.canvas.width = grid.width
+        ctx.canvas.height = grid.height
+    }
+
+    // disable image smoothing for sharp edges
+    ctx.imageSmoothingEnabled = false
+    ctx.canvas.style.imageRendering = 'pixelated'
+
+    const imageData = ctx.createImageData(gridSize, gridSize)
+    const pixels = imageData.data // Uint8ClampedArray
+    let data = [0, 0, 0, 0]
+    for (let i = 0; i < pixels.length; i += 4) {
+        // Calculate x,y position from pixel index
+        const x = (i / 4) % gridSize
+        const y = Math.floor(i / 4 / gridSize)
+
+        // Get cell data from grid
+        grid.getFast(x, y, data)
+
+        // Copy RGB values from cell data
+        pixels[i] = data[1] // Red
+        pixels[i + 1] = data[2] // Green
+        pixels[i + 2] = data[3] // Blue
+        pixels[i + 3] = 255 // Alpha (fully opaque)
+    }
+    ctx.putImageData(imageData, 0, 0)
+}
+```
+
+A falling sand simulation models individual grains of sand that move downward due to gravity, bump into and interact with other sand particles, and can slide or tumble sideways when stacked unstably.
+
+## Rules
+
+TODO: animation explanation or image
+
+```javascript
+// @meta store:rules
+function updatePixel(grid, x, y) {
+    const idx = grid.getIndex(x, y)
+    if (idx < 0) return // out-of-bounds check
+
+    // const type = this.grid[idx]
+    // if (type === SAND) {
+    //     const belowIdx = this.getIndex(x, y + 1)
+    //     if (belowIdx == -1) return // we are at the bottom
+
+    //     let leftIdx = this.getIndex(x - 1, y + 1)
+    //     let rightIdx = this.getIndex(x + 1, y + 1)
+
+    //     if (Math.random() < 0.5) {
+    //         let swap = leftIdx
+    //         leftIdx = rightIdx
+    //         rightIdx = swap
+    //     }
+
+    //     if (this.isEmpty(belowIdx)) {
+    //         this.swap(idx, belowIdx)
+    //     } else if (leftIdx > -1 && this.isEmpty(leftIdx)) {
+    //         this.swap(idx, leftIdx)
+    //     } else if (rightIdx > -1 && this.isEmpty(rightIdx)) {
+    //         this.swap(idx, rightIdx)
+    //     }
+    // }
+}
+```
+
+With these simple rules, sand pouring forms neat triangular piles.
+
+<Canvas id="example_simple_rules" width={200} height={400} />
+
+_click to restart_
+
+```js
+// @meta exec load:grid load:display
+const canvas = document.getElementById('example_simple_rules')
+const ctx = canvas.getContext('2d')
+ctx.fillStyle = 'black'
+ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+// == SETUP ==
+const gridSize = 64
+const grid = new Grid(gridSize, gridSize)
+
+//     set(x, y, weight, r, g, b) {
+//         const idx = this.getIndex(x, y)
+//         if (idx === -1) return // Bounds check
+
+//         this.grid.set([weight, r, g, b], idx) // More efficient than 4 assignments
+//     }
+
+grid.set(32, 12, 100, 255, 0, 0)
+
+// TODO: animate sand falling from the same source over and over again
+
+// step() {
+//     for (let y = this.height - 1; y >= 0; y--) {
+//         // const leftToRight = Math.random() > 0.5
+//         for (let x = this.width - 1; x >= 0; x--) {
+//             // const x = leftToRight ? i : -i - 1 + this.width
+//             this.updatePixel(x, y)
+//         }
+//     }
+// }
+
+display(ctx, grid)
+```
+
+## Adding Weight
+
+https://joshua-bagley.com/isoplanet-technical/
+
+## Resources
+
+-   [Isoplanet - Joshua Bagley](https://joshua-bagley.com/isoplanet/)
+-   [Isoplanet - Artblocks](https://www.artblocks.io/collection/isoplanet-by-joshua-bagley)
+-   [Making a Falling Sand Simulator](https://jason.today/falling-sand)
+-   [Coding Train](https://www.youtube.com/watch?v=L4u7Zy_b868)
+-   [This is Sand](https://thisissand.com/)
+-   [Sandspiel](https://sandspiel.club/)
+
+### Further Research
+
+Types of rules to explore
+
+-   Rock/Wood
+-   Fire
+-   Erosion (global)
+-   Water
+-   Plants / Grass
+-   Sky (global)
+-   Birds
+
+Other Ideas
+
+-   Textures to init sand state?
+-   Add Sky and background
+-   Simple erosion simulation

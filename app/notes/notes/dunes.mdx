@@ -4,11 +4,145 @@ summary: 'A look at simulating sand dunes through a generative approach.'
 image: dunes.png
 ---
 
+<Canvas id="example_01" />
+
+## The Model
+
+_A (too) simple dune model, some assumptions:_
+
+From: [Designing a Sand Dune Algorithm - Entagma](https://entagma.com/essential-td-skills-designing-implementing-algorithms/)
+
+-   Dunes are formed by wind blowing sand
+-   Sand is taken away from parts of the terrain that point roughly in the same direction as the wind
+-   Sand is deposited in areas of the terrain that are roughly opposite to our wind direction
+
+## Implementation
+
+We are using [Heightfields](/notes/heightfields) to represent dunes as they are a simple and effective way to represent a 2D surface without overhangs.
+
+A vector field can be used to represent the wind direction. (TODO: vector field note)
+
+### Calculate Gradient of Heightfield
+
+See [Heightfields - Terrain Normals](/notes/heightfields#terrain-normals) for more details on calculating the gradient of a heightfield.
+
+### Compare Gradient to Wind Direction
+
+Use dot product of normalized vectors
+
+-   if vectors point in same direction, dot product is 1
+-   if vectors point in opposite directions, dot product is -1
+-   if vectors are perpendicular, dot product is 0
+
+So if the direction of the dune is exactly the same as the wind direction, the dot product will be 1 and we can subtract it from the heightfield. If the dot is negative, we can also subtract it from the heightfield (effectively adding sand to the dune).
+
+```javascript
+// @meta exec store:display
+/**
+ * Displays a heightfield on a canvas using a color mapping function
+ * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
+ * @param {number} gridSize - Size of the heightfield grid (must be square)
+ * @param {number[]} heightfield - 1D array of height values between 0-1
+ * @param {function} getColor - Function that takes a height value (0-1) and returns [r,g,b] color array
+ * @returns {void}
+ */
+function displayHeightfield(ctx, gridSize, heightfield, getColor, smooth = false) {
+    // Resize canvas if needed - the canvas data size needs to match the heightfield grid size
+    if (ctx.canvas.width !== gridSize || ctx.canvas.height !== gridSize) {
+        // maintain CSS display size
+        ctx.canvas.style.width = `${ctx.canvas.width}px`
+        ctx.canvas.style.height = `${ctx.canvas.height}px`
+
+        ctx.canvas.width = gridSize
+        ctx.canvas.height = gridSize
+    }
+
+    // disable image smoothing for sharp edges
+    ctx.imageSmoothingEnabled = smooth
+    ctx.canvas.style.imageRendering = smooth ? 'auto' : 'pixelated'
+
+    // Create an ImageData object to manipulate pixels directly
+    const imageData = ctx.createImageData(gridSize, gridSize)
+    const pixels = imageData.data // Uint8ClampedArray of RGBA values
+
+    // Iterate through each pixel in the image data
+    for (let i = 0; i < pixels.length; i += 4) {
+        // Calculate x,y coordinates from the pixel index
+        const x = (i / 4) % gridSize
+        const y = Math.floor(i / 4 / gridSize)
+
+        // Get height value from 1D heightfield array
+        const height = heightfield[y * gridSize + x]
+
+        // Convert height to RGB color using callback
+        const [r, g, b] = getColor(height)
+
+        // Set RGBA values in pixel array
+        pixels[i] = r // Red
+        pixels[i + 1] = g // Green
+        pixels[i + 2] = b // Blue
+        pixels[i + 3] = 255 // Alpha (fully opaque)
+    }
+
+    // Draw the image data to the canvas
+    ctx.putImageData(imageData, 0, 0)
+}
+
+// normalize values for better display
+function normalizeHeightfield(heightfield) {
+    let min = Infinity
+    let max = -Infinity
+
+    // Find min and max values manually (avoids large array spread issue)
+    for (let i = 0; i < heightfield.length; i++) {
+        if (heightfield[i] < min) min = heightfield[i]
+        if (heightfield[i] > max) max = heightfield[i]
+    }
+
+    // Avoid division by zero if all values are the same
+    if (max === min) {
+        return heightfield.map(() => 0.5) // Default to mid-range if no variation
+    }
+
+    // Normalize values
+    return heightfield.map((value) => (value - min) / (max - min))
+}
+```
+
+```javascript
+// @meta exec load:display
+const fbm2D = root.random.fbm2D
+
+const canvas = document.getElementById('example_01')
+const ctx = canvas.getContext('2d')
+ctx.fillStyle = 'black'
+ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+// create and fill heightfield
+const gridSize = canvas.width
+let heightfield = new Float32Array(gridSize * gridSize)
+for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+        heightfield[y * gridSize + x] = fbm2D(x, y, 0.02, 4, 0.5, 2.0)
+    }
+}
+
+displayHeightfield(ctx, gridSize, heightfield, (height) => {
+    // Map [-1,1] to [0,1] then to [0,255] for red channel
+    const val = ((height + 1) / 2) * 255
+    return [val, val, val]
+})
+```
+
+https://youtu.be/YiAtM4EpQ4U?t=314
+
 ## Resources
 
-https://entagma.com/essential-td-skills-designing-implementing-algorithms/
+-   [Models of Dunefield Morphology](https://smallpond.ca/jim/sand/dunefieldMorphology/index.html)
 
-https://www.youtube.com/watch?v=-5cJUkqnuSA
+https://pepefx.blogspot.com/2018/
+
+-   [Sand Dune Simulation in Houdini](https://www.youtube.com/watch?v=-5cJUkqnuSA)
 
 ### Further Research
 
