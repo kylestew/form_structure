@@ -1,0 +1,153 @@
+---
+title: 'Cellular Automata'
+summary: '???'
+image: ca.png
+---
+
+```javascript
+// @meta exec store:grid
+class Automata1D {
+    constructor(width, generations) {
+        this.generations = generations
+        this._width = width
+        this._height = generations
+        this.grid = new Uint8Array(width * generations) // Already zeroed
+    }
+
+    clear() {
+        this.grid.fill(0) // fast grid clear
+    }
+
+    /*
+    getIndex(x, y) {
+        if (x < 0 || x >= this.width || y < 0 || y >= this.height) return -1
+        return (y * this.width + x) * 4
+    }
+
+    set(x, y, weight, r, g, b) {
+        const idx = this.getIndex(x, y)
+        if (idx === -1) return // Bounds check
+
+        this.grid.set([weight, r, g, b], idx) // More efficient than 4 assignments
+    }
+
+    get(x, y) {
+        const idx = this.getIndex(x, y)
+        if (idx === -1) return null // Return null for out-of-bounds
+
+        return {
+            weight: this.grid[idx],
+            r: this.grid[idx + 1],
+            g: this.grid[idx + 2],
+            b: this.grid[idx + 3],
+        }
+    }
+
+    getFast(x, y, out = []) {
+        const idx = this.getIndex(x, y)
+        if (idx === -1) return null
+
+        // Write directly to `out` to avoid allocations
+        out[0] = this.grid[idx] // weight
+        out[1] = this.grid[idx + 1] // r
+        out[2] = this.grid[idx + 2] // g
+        out[3] = this.grid[idx + 3] // b
+
+        return out
+    }
+*/
+
+    dump(ctx, color = [255, 0, 0], background = [0, 0, 0]) {
+        const imageData = ctx.createImageData(ctx.canvas.width, ctx.canvas.height)
+        const pixels = imageData.data // Uint8ClampedArray
+        for (let i = 0; i < pixels.length; i += 4) {
+            // for each pixel
+            const [r, g, b] = this.grid[i / 4] === 1 ? color : background
+
+            pixels[i] = r
+            pixels[i + 1] = g
+            pixels[i + 2] = b
+            pixels[i + 3] = 255
+        }
+        ctx.putImageData(imageData, 0, 0)
+    }
+}
+```
+
+```javascript
+// @meta exec store:display
+function prepareCanvas(ctx, width, height, displayWidth, displayHeight) {
+    // force CSS display size
+    ctx.canvas.style.width = `${displayWidth}px`
+    ctx.canvas.style.height = `${displayHeight}px`
+
+    // data size
+    ctx.canvas.width = width
+    ctx.canvas.height = height
+
+    // disable image smoothing for sharp edges
+    ctx.imageSmoothingEnabled = false
+    ctx.canvas.style.imageRendering = 'pixelated'
+}
+```
+
+## Definining Characteristics
+
+-   Cell - the individual unit of the CA
+-   State - the value of a cell
+-   Neighborhood - which cells interact with a given cell
+-   Rules - how the next generation is determined from the current generation
+
+### 1D Automata
+
+<Canvas id="example_01" width={8 * 20} height={20 * 20} />
+
+_click to restart_
+
+-   Neighborhood: 3 cells
+-   Cell State: 0 or 1
+-   Neighborhood Combindations: 2^3 = 8
+-   Possible Rulesets: 2^8 = 256
+
+Example Ruleset:
+
+-   000 -> 0
+-   001 -> 1
+-   010 -> 0
+-   011 -> 0
+-   100 -> 1
+-   101 -> 1
+-   110 -> 0
+-   111 -> 1
+
+```js
+// @meta exec load:grid load:display
+const width = 8
+const generations = 10
+const ca = new Automata1D(width, generations)
+
+const canvas = document.getElementById('example_01')
+const ctx = canvas.getContext('2d')
+prepareCanvas(ctx, width, generations, width * 40, generations * 40) // scale and pixelate
+
+// seed the CA
+ca.grid[0] = 1
+ca.grid[1] = 0
+ca.grid[2] = 1
+ca.grid[3] = 0
+ca.grid[4] = 1
+ca.grid[5] = 0
+ca.grid[6] = 1
+ca.grid[7] = 0
+
+// for n generations...
+// let gen = ca.getGeneration(i)
+// let nextGen = gen...
+// ca.setGeneration(i, nextGen)
+
+ca.dump(ctx, [253, 252, 244], [42, 44, 47])
+```
+
+## Resources
+
+-   [Cellular Automata - The Coding Train](https://www.youtube.com/watch?v=Ggxt06qSAe4)

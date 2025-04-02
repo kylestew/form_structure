@@ -77,7 +77,7 @@ class Grid {
 // @meta exec store:display
 function display(ctx, grid) {
     // Resize canvas if needed - the canvas data size needs to match the heightfield grid size
-    if (ctx.canvas.width !== gridSize || ctx.canvas.height !== gridSize) {
+    if (ctx.canvas.width !== grid.width || ctx.canvas.height !== grid.height) {
         // maintain CSS display size
         ctx.canvas.style.width = `${ctx.canvas.width}px`
         ctx.canvas.style.height = `${ctx.canvas.height}px`
@@ -90,13 +90,13 @@ function display(ctx, grid) {
     ctx.imageSmoothingEnabled = false
     ctx.canvas.style.imageRendering = 'pixelated'
 
-    const imageData = ctx.createImageData(gridSize, gridSize)
+    const imageData = ctx.createImageData(grid.width, grid.height)
     const pixels = imageData.data // Uint8ClampedArray
     let data = [0, 0, 0, 0]
     for (let i = 0; i < pixels.length; i += 4) {
         // Calculate x,y position from pixel index
-        const x = (i / 4) % gridSize
-        const y = Math.floor(i / 4 / gridSize)
+        const x = (i / 4) % grid.width
+        const y = Math.floor(i / 4 / grid.width)
 
         // Get cell data from grid
         grid.getFast(x, y, data)
@@ -162,19 +162,12 @@ ctx.fillStyle = 'black'
 ctx.fillRect(0, 0, canvas.width, canvas.height)
 
 // == SETUP ==
-const gridSize = 64
-const grid = new Grid(gridSize, gridSize)
+const grid = new Grid(200 / 4, 400 / 4)
 
-//     set(x, y, weight, r, g, b) {
-//         const idx = this.getIndex(x, y)
-//         if (idx === -1) return // Bounds check
-
-//         this.grid.set([weight, r, g, b], idx) // More efficient than 4 assignments
-//     }
-
-grid.set(32, 12, 100, 255, 0, 0)
+grid.set(grid.width / 2, 12, 100, 255, 0, 0)
 
 // TODO: animate sand falling from the same source over and over again
+//....
 
 // step() {
 //     for (let y = this.height - 1; y >= 0; y--) {
