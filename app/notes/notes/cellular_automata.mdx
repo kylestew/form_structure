@@ -89,42 +89,88 @@ Example Ruleset:
 -   110 -> 0
 -   111 -> 1
 
+In Code:
+
 ```js
 // @meta store:calculateState
-function calculateState(left, state, right) {
-    return 1
+/**
+ * Calculates the next state of a cell in a 1D cellular automaton based on its neighborhood
+ * @param {number} left - The state of the left neighbor (0 or 1)
+ * @param {number} state - The current state of the cell (0 or 1)
+ * @param {number} right - The state of the right neighbor (0 or 1)
+ * @param {number} rule - The rule number to apply (0-255, default 110)
+ * @returns {number} The next state of the cell (0 or 1)
+ *
+ * The rule parameter encodes the output for each possible 3-bit neighborhood:
+ * For rule 110:
+ * 111 -> 0  (bit 7)
+ * 110 -> 1  (bit 6)
+ * 101 -> 1  (bit 5)
+ * 100 -> 0  (bit 4)
+ * 011 -> 1  (bit 3)
+ * 010 -> 1  (bit 2)
+ * 001 -> 1  (bit 1)
+ * 000 -> 0  (bit 0)
+ */
+function calculateState(left, state, right, rule = 110) {
+    const idx = (left << 2) | (state << 1) | right
+    return (rule >> idx) & 1
 }
 ```
 
 ```js
 // @meta exec load:grid load:display load:calculateState
-const width = 8
-const generations = 10
+const width = 192
+const generations = 256
 const ca = new Automata1D(width, generations)
 
 const canvas = document.getElementById('example_01')
 const ctx = canvas.getContext('2d')
-prepareCanvas(ctx, width, generations, width * 40, generations * 40) // scale and pixelate
+prepareCanvas(ctx, width, generations, width * 3, generations * 3) // scale and pixelate
+
+canvas.onclick = () => {
+    // Reset grid
+    ca.grid.fill(0)
+    ca.grid[Math.floor(width / 2)] = 1 // Reset single cell in middle
+
+    // Reset generation counter
+    currentGen = 0
+
+    // Pick new random rule
+    rule = Math.floor(Math.random() * 256)
+
+    // Restart animation if it had stopped
+    if (currentGen < ca.generations - 1) {
+        animate()
+    }
+}
 
 // seed the CA with generation 0
-ca.grid[0] = 1
-ca.grid[1] = 0
-ca.grid[2] = 1
-ca.grid[3] = 0
-ca.grid[4] = 1
-ca.grid[5] = 0
-ca.grid[6] = 1
-ca.grid[7] = 0
+ca.grid[Math.floor(width / 2)] = 1 // Single cell in middle
 
-// for n generations...
-let gen = ca.getGeneration(0)
-let nextGen = []
-for (let i = 0; i < gen.length; i++) {
-    nextGen[i] = calculateState(gen[i - 1], gen[i], gen[i + 1])
+let rule = Math.floor(Math.random() * 256)
+
+let currentGen = 0
+
+function animate() {
+    if (currentGen < ca.generations - 1) {
+        let gen = ca.getGeneration(currentGen)
+        let nextGen = []
+        for (let i = 0; i < gen.length; i++) {
+            // Handle edge cases by wrapping around
+            const left = i === 0 ? gen[gen.length - 1] : gen[i - 1]
+            const right = i === gen.length - 1 ? gen[0] : gen[i + 1]
+            nextGen[i] = calculateState(left, gen[i], right, rule)
+        }
+        ca.setGeneration(currentGen + 1, nextGen)
+        currentGen++
+
+        ca.dump(ctx, [253, 252, 244], [42, 44, 47])
+        requestAnimationFrame(animate)
+    }
 }
-ca.setGeneration(1, nextGen)
 
-ca.dump(ctx, [253, 252, 244], [42, 44, 47])
+animate()
 ```
 
 ## Resources
