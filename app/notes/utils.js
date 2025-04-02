@@ -59,7 +59,7 @@ export function getNotes() {
 }
 
 export function formatImage(image) {
-    return `/images/notes/covers/${image}`
+    return `/images/_notes/covers/${image}`
 }
 
 export function formatDate(dateStr, includeRelative = false) {
