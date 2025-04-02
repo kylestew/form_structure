@@ -10,6 +10,7 @@ class Grid {
     constructor(width, height) {
         this.width = width | 0 // Force to integer
         this.height = height | 0
+        this.grainCapacity = width * height
 
         // memory structure [ weight, r, g, b, weight, r, g, b, ... ]
         this.grid = new Uint8Array(width * height * 4) // Already zeroed
@@ -78,6 +79,15 @@ class Grid {
             this.grid[idx1 + i] = this.grid[idx2 + i]
             this.grid[idx2 + i] = temp
         }
+    }
+
+    countGrains() {
+        let count = 0
+        // Iterate through grid checking weight values
+        for (let i = 0; i < this.grid.length; i += 4) {
+            if (this.grid[i] > 0) count++
+        }
+        return count
     }
 
     /* Rule Fn expected to be in form f(idx, belowIdx, leftIdx, rightIdx, isEmptyFn, swapFn) */
@@ -210,8 +220,11 @@ function animate() {
         grid.set(grid.width / 2, 12, 100, palette[3])
     }
 
-    display(ctx, grid, palette[0])
-    requestAnimationFrame(animate)
+    // stop if we have reached a certain height
+    if (grid.countGrains() < grid.grainCapacity * 0.75) {
+        display(ctx, grid, palette[0])
+        requestAnimationFrame(animate)
+    }
 }
 animate()
 ```
@@ -264,8 +277,11 @@ function animate() {
         pIdx2 = (pIdx2 + 1) % palette.length
     }
 
-    display(ctx, grid, palette[0])
-    requestAnimationFrame(animate)
+    // stop if we have reached a certain height
+    if (grid.countGrains() < grid.grainCapacity * 0.75) {
+        display(ctx, grid, palette[0])
+        requestAnimationFrame(animate)
+    }
 }
 animate()
 ```
