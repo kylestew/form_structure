@@ -1,0 +1,168 @@
+---
+title: 'Electrostatic Halftoning'
+summary: '????'
+image: halftoning.png
+---
+
+1. All particles attract all other particles
+2. Dark parts of the image attract particles
+
+<Canvas id="example_01" width={128} height={128} />
+
+```javascript
+// @meta exec
+const canvas = document.getElementById('example_01')
+const ctx = canvas.getContext('2d')
+ctx.fillStyle = 'black'
+ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+const gridSize = canvas.width
+const u = new Float32Array(gridSize * gridSize)
+const force = new Float32Array(gridSize * gridSize * 2)
+
+function haltoneTime() {
+    // let sum = u.reduce((sum, val) => sum + val, 0) / 100
+
+    // // scatter sum points in space
+    // // Create array of random points
+    // const points = []
+    // const numPoints = Math.floor(sum)
+
+    // for (let i = 0; i < numPoints; i++) {
+    //     points.push([Math.random() * gridSize, Math.random() * gridSize])
+    // }
+
+    // calculate the force at each pixel in greyscale image
+    // for each pixel in the image
+    let count = 0
+    for (let i = 0; i < u.length; i++) {
+        // Get x,y position of current point
+        const x = i % gridSize
+        const y = Math.floor(i / gridSize)
+
+        // loop through all other pixels in the image
+        for (let j = 0; j < u.length; j++) {
+            if (i === j) continue
+
+            // Get value of other point
+            const value = u[j]
+
+            // Get x,y position of other point
+            const otherX = j % gridSize
+            const otherY = Math.floor(j / gridSize)
+
+            // Calculate vector between points
+            const dx = otherX - x
+            const dy = otherY - y
+
+            // Calculate distance (normalized by canvas width)
+            const dist = Math.sqrt(dx * dx + dy * dy) / gridSize
+
+            // Normalize vector (avoid division by zero)
+            if (dist > 0) {
+                const nx = dx / dist
+                const ny = dy / dist
+
+                // calculate force value
+                const forceX = ((1.0 - value) / dist) * nx
+                const forceY = ((1.0 - value) / dist) * ny
+
+                // add force to force array
+                force[i * 2] += forceX
+                force[i * 2 + 1] += forceY
+            }
+        }
+    }
+
+    // Create image data to display forces
+    const forceImageData = ctx.createImageData(gridSize, gridSize)
+    const forcePixels = forceImageData.data
+
+    // Find min/max force values for debugging
+    let minForceX = Infinity
+    let maxForceX = -Infinity
+    let minForceY = Infinity
+    let maxForceY = -Infinity
+
+    for (let i = 0; i < force.length; i += 2) {
+        minForceX = Math.min(minForceX, force[i])
+        maxForceX = Math.max(maxForceX, force[i])
+        minForceY = Math.min(minForceY, force[i + 1])
+        maxForceY = Math.max(maxForceY, force[i + 1])
+    }
+
+    console.log('Force X range:', minForceX, 'to', maxForceX)
+    console.log('Force Y range:', minForceY, 'to', maxForceY)
+
+    // Write force values to pixels
+    for (let i = 0; i < u; i++) {
+        const forceX = force[i * 2]
+        const forceY = force[i * 2 + 1]
+
+        // Map force components to color channels (similar to gradient visualization)
+        const scalingFactor = 30000.0
+        const r = Math.min(255, Math.max(0, 128 + forceX * scalingFactor))
+        const g = Math.min(255, Math.max(0, 128 + forceY * scalingFactor))
+        const b = 0
+        const a = 255
+
+        // Set pixel values
+        const pixelIndex = i * 4
+        forcePixels[pixelIndex] = r
+        forcePixels[pixelIndex + 1] = g
+        forcePixels[pixelIndex + 2] = b
+        forcePixels[pixelIndex + 3] = a
+    }
+
+    // Draw force visualization
+    ctx.putImageData(forceImageData, 0, 0)
+}
+
+// Load image
+const img = new Image()
+img.src = '/images/notes/halftoning/tux_kitten.jpg'
+img.onload = () => {
+    // Create temporary canvas to draw and read image data
+    const tempCanvas = document.createElement('canvas')
+    tempCanvas.width = gridSize
+    tempCanvas.height = gridSize
+    const tempCtx = tempCanvas.getContext('2d')
+
+    // Draw image scaled to grid size
+    tempCtx.drawImage(img, 0, 0, gridSize, gridSize)
+
+    // Get image data
+    const imageData = tempCtx.getImageData(0, 0, gridSize, gridSize)
+    const pixels = imageData.data
+
+    // Convert to grayscale and invert, store in grid
+    for (let i = 0; i < pixels.length; i += 4) {
+        const r = pixels[i]
+        const g = pixels[i + 1]
+        const b = pixels[i + 2]
+        // Standard grayscale conversion weights
+        u[i / 4] = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    }
+
+    // Draw grayscale image to canvas
+    const displayImageData = ctx.createImageData(gridSize, gridSize)
+    const displayPixels = displayImageData.data
+    for (let i = 0; i < u.length; i++) {
+        const value = Math.floor(u[i] * 255)
+        displayPixels[i * 4] = value // R
+        displayPixels[i * 4 + 1] = value // G
+        displayPixels[i * 4 + 2] = value // B
+        displayPixels[i * 4 + 3] = 255 // A
+    }
+    ctx.putImageData(displayImageData, 0, 0)
+
+    haltoneTime()
+}
+```
+
+## References
+
+-   [Example](https://x.com/artixels/status/1439909994179137537)
+-   [Entagma - Original Idea Source](https://entagma.com/advanced-setups-08-from-paper-to-vex-electrostatic-halftoning/)
+-   [Electrostatic Halftoning](https://www.mia.uni-saarland.de/Research/Electrostatic_Halftoning/index.shtml)
+-   [Research Paper](https://www.researchgate.net/publication/344852879_25D_Computational_Image_Stippling)

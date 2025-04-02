@@ -25,6 +25,7 @@ function Table({ data }) {
         </table>
     )
 }
+    */
 
 function CustomLink(props) {
     const { href, children, ...rest } = props
@@ -51,7 +52,6 @@ function CustomLink(props) {
 function RoundedImage(props) {
     return <Image alt={props.alt} className="rounded-lg" {...props} />
 }
-*/
 
 function slugify(str) {
     return str
@@ -141,7 +141,7 @@ function Code({ children, ...props }) {
 }
 
 function Canvas({ id = 'myCanvas', width = 480, height = 480 }) {
-    return <canvas id={id} width={width} height={height} className="border border-black-200 rounded-lg" />
+    return <canvas id={id} width={width} height={height} className="border border-black-200" />
 }
 
 const components = {
@@ -152,8 +152,8 @@ const components = {
     h5: createHeading(5),
     h6: createHeading(6),
 
-    // Image: RoundedImage,
-    // a: CustomLink,
+    Image: RoundedImage,
+    a: CustomLink,
     // Table,
 
     // conditional code blocks

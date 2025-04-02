@@ -1,0 +1,319 @@
+---
+title: 'Falling Sand'
+summary: 'A simple falling sand simulation'
+image: sand.png
+---
+
+```javascript
+// @meta exec store:grid
+class Grid {
+    constructor(width, height) {
+        this.width = width | 0 // Force to integer
+        this.height = height | 0
+        this.grainCapacity = width * height
+
+        // memory structure [ weight, r, g, b, weight, r, g, b, ... ]
+        this.grid = new Uint8Array(width * height * 4) // Already zeroed
+    }
+
+    clear() {
+        this.grid.fill(0) // fast grid clear
+    }
+
+    getIndex(x, y) {
+        if (x < 0 || x >= this.width || y < 0 || y >= this.height) return -1
+        return (y * this.width + x) * 4
+    }
+
+    /**
+     * Sets a particle at the given coordinates with specified weight and RGB values
+     * @param {number} x - The x coordinate
+     * @param {number} y - The y coordinate
+     * @param {number} weight - The weight/density of the particle (0-255)
+     * @param {number[]} rgb - Array containing [r,g,b] color values (0-255)
+     * @returns {void}
+     */
+    set(x, y, weight, rgb) {
+        const idx = this.getIndex(x, y)
+        if (idx === -1) return // Bounds check
+
+        // Get rgb values from array
+        this.grid.set([weight, ...rgb], idx) // More efficient than 4 assignments
+    }
+
+    get(x, y) {
+        const idx = this.getIndex(x, y)
+        if (idx === -1) return null // Return null for out-of-bounds
+
+        return {
+            weight: this.grid[idx],
+            r: this.grid[idx + 1],
+            g: this.grid[idx + 2],
+            b: this.grid[idx + 3],
+        }
+    }
+
+    getFast(x, y, out = []) {
+        const idx = this.getIndex(x, y)
+        if (idx === -1) return null
+
+        // Write directly to `out` to avoid allocations
+        out[0] = this.grid[idx] // weight
+        out[1] = this.grid[idx + 1] // r
+        out[2] = this.grid[idx + 2] // g
+        out[3] = this.grid[idx + 3] // b
+
+        return out
+    }
+
+    isEmpty(idx) {
+        return this.grid[idx] === 0 // zero weight is empty
+    }
+
+    swap(idx1, idx2) {
+        if (idx1 < 0 || idx1 > this.grid.length) return
+        if (idx2 < 0 || idx2 > this.grid.length) return
+
+        for (let i = 0; i < 4; i++) {
+            const temp = this.grid[idx1 + i]
+            this.grid[idx1 + i] = this.grid[idx2 + i]
+            this.grid[idx2 + i] = temp
+        }
+    }
+
+    countGrains() {
+        // TODO: instead should we just count the incoming grains as they are added?
+        let count = 0
+        // Iterate through grid checking weight values
+        for (let i = 0; i < this.grid.length; i += 4) {
+            if (this.grid[i] > 0) count++
+        }
+        return count
+    }
+
+    /* Rule Fn expected to be in form f(idx, belowIdx, leftIdx, rightIdx, isEmptyFn, swapFn) */
+    step(ruleFn) {
+        // iterate bottom to top, right to left
+        for (let y = this.height - 2; y >= 0; y--) {
+            // skip the last row as it's static
+            for (let x = this.width - 1; x >= 0; x--) {
+                // cell in bounds and not empty
+                const idx = this.getIndex(x, y)
+                if (idx >= 0 && idx < this.grid.length && !this.isEmpty(idx)) {
+                    const belowIdx = this.getIndex(x, y + 1)
+                    if (belowIdx == -1) continue // we are at the bottom
+                    let leftIdx = this.getIndex(x - 1, y + 1)
+                    let rightIdx = this.getIndex(x + 1, y + 1)
+
+                    ruleFn(idx, belowIdx, leftIdx, rightIdx, this.isEmpty.bind(this), this.swap.bind(this))
+                }
+            }
+        }
+    }
+}
+```
+
+```javascript
+// @meta exec store:display
+function display(ctx, grid, background = [0, 0, 0]) {
+    // Resize canvas if needed - the canvas data size needs to match the heightfield grid size
+    if (ctx.canvas.width !== grid.width || ctx.canvas.height !== grid.height) {
+        // maintain CSS display size
+        ctx.canvas.style.width = `${ctx.canvas.width}px`
+        ctx.canvas.style.height = `${ctx.canvas.height}px`
+
+        ctx.canvas.width = grid.width
+        ctx.canvas.height = grid.height
+    }
+
+    // disable image smoothing for sharp edges
+    ctx.imageSmoothingEnabled = false
+    ctx.canvas.style.imageRendering = 'pixelated'
+
+    const imageData = ctx.createImageData(grid.width, grid.height)
+    const pixels = imageData.data // Uint8ClampedArray
+    let data = [0, 0, 0, 0]
+    for (let i = 0; i < pixels.length; i += 4) {
+        // Calculate x,y position from pixel index
+        const x = (i / 4) % grid.width
+        const y = Math.floor(i / 4 / grid.width)
+
+        // Get cell data from grid
+        grid.getFast(x, y, data)
+
+        if (data[0] > 0) {
+            // if the cell is not empty
+            // Copy RGB values from cell data
+            pixels[i] = data[1] // Red
+            pixels[i + 1] = data[2] // Green
+            pixels[i + 2] = data[3] // Blue
+            pixels[i + 3] = 255 // Alpha (fully opaque)
+        } else {
+            // Set background color from the background parameter
+            pixels[i] = background[0] // Red
+            pixels[i + 1] = background[1] // Green
+            pixels[i + 2] = background[2] // Blue
+            pixels[i + 3] = 255 // Alpha
+        }
+    }
+    ctx.putImageData(imageData, 0, 0)
+}
+```
+
+A falling sand simulation models individual grains of sand that move downward due to gravity, bump into and interact with other sand particles, and can slide or tumble sideways when stacked unstably.
+
+## Basic Rules
+
+-   Rule 1: If the cell below is empty, swap the cell with the cell below
+-   Rule 2: If the cell left is empty, swap the cell with the cell left
+-   Rule 3: If the cell right is empty, swap the cell with the cell right
+
+In Code:
+
+```javascript
+// @meta store:basicRules
+function basicRules(idx, belowIdx, leftIdx, rightIdx, isEmptyFn, swapFn) {
+    // Rule 1: If the cell below is empty, swap the cell with the cell below
+    if (isEmptyFn(belowIdx)) {
+        swapFn(idx, belowIdx)
+    } else {
+        // randomize left and right falling direction
+        if (Math.random() < 0.5) {
+            let swap = leftIdx
+            leftIdx = rightIdx
+            rightIdx = swap
+        }
+
+        if (leftIdx > -1 && isEmptyFn(leftIdx)) {
+            // Rule 2: If the cell left is empty, swap the cell with the cell left
+            swapFn(idx, leftIdx)
+        } else if (rightIdx > -1 && isEmptyFn(rightIdx)) {
+            // Rule 3: If the cell right is empty, swap the cell with the cell right
+            swapFn(idx, rightIdx)
+        }
+    }
+}
+```
+
+With these simple rules, sand pouring forms neat triangular piles.
+
+<Canvas id="example_basic_rules" width={200} height={300} />
+
+_click to restart_
+
+```js
+// @meta exec load:grid load:display load:basicRules
+const canvas = document.getElementById('example_basic_rules')
+const ctx = canvas.getContext('2d')
+
+const grid = new Grid(200 / 4, 300 / 4)
+
+canvas.onclick = () => {
+    grid.clear()
+}
+
+const palette = root.palette
+function animate() {
+    grid.step(basicRules)
+
+    // randomly add new sand 33% of the time
+    if (Math.random() < 0.33) {
+        grid.set(grid.width / 2, 12, 100, palette[3])
+    }
+
+    // stop if we have reached a certain height
+    if (grid.countGrains() < grid.grainCapacity * 0.75) {
+        display(ctx, grid, palette[0])
+        requestAnimationFrame(animate)
+    }
+}
+animate()
+```
+
+## Varying Placement & Colors
+
+Let's see if we can make this more interesting by varying the placement and colors of the sand.
+
+<Canvas id="example_varying_placement_colors" width={400} height={600} />
+
+_click to restart_
+
+```js
+// @meta exec load:grid load:display load:basicRules
+const canvas = document.getElementById('example_varying_placement_colors')
+const ctx = canvas.getContext('2d')
+
+const grid = new Grid(200 / 2, 300 / 2)
+
+canvas.onclick = () => {
+    grid.clear()
+    // Randomize palette indices
+    pIdx1 = Math.floor(Math.random() * (palette.length - 1)) + 1
+    pIdx2 = Math.floor(Math.random() * (palette.length - 1)) + 1
+}
+
+const palette = root.palette
+let osc1 = 0
+let osc2 = 0
+let pIdx1 = 1
+let pIdx2 = 4
+function animate() {
+    grid.step(basicRules)
+
+    // Two independent oscillators with different frequencies
+    xOff1 = Math.round(Math.sin(Date.now() * 0.0001) * (grid.width / 6))
+    xOff2 = Math.round(Math.sin(Date.now() * 0.0003) * (grid.width / 8))
+
+    // Add sand from two oscillators with different colors
+    if (Math.random() < 0.333) {
+        grid.set(grid.width / 2 + xOff1, 12, 100, palette[pIdx1])
+        grid.set(grid.width / 2 + xOff2, 12, 100, palette[pIdx2])
+    }
+
+    // Independently cycle palette indices
+    if (Math.random() < 0.0015) {
+        pIdx1 = (pIdx1 + 1) % palette.length
+    }
+    if (Math.random() < 0.001) {
+        pIdx2 = (pIdx2 + 1) % palette.length
+    }
+
+    // stop if we have reached a certain height
+    if (grid.countGrains() < grid.grainCapacity * 0.75) {
+        display(ctx, grid, palette[0])
+        requestAnimationFrame(animate)
+    }
+}
+animate()
+```
+
+## Adding Weight
+
+https://joshua-bagley.com/isoplanet-technical/
+
+## Resources
+
+-   [Isoplanet - Joshua Bagley](https://joshua-bagley.com/isoplanet/)
+-   [Isoplanet - Artblocks](https://www.artblocks.io/collection/isoplanet-by-joshua-bagley)
+-   [Making a Falling Sand Simulator](https://jason.today/falling-sand)
+-   [Coding Train](https://www.youtube.com/watch?v=L4u7Zy_b868)
+-   [This is Sand](https://thisissand.com/)
+-   [Sandspiel](https://sandspiel.club/)
+
+### Further Research
+
+Types of rules to explore
+
+-   Rock/Wood
+-   Fire
+-   Erosion (global)
+-   Water
+-   Plants / Grass
+-   Sky (global)
+-   Birds
+
+Other Ideas
+
+-   Textures to init sand state?
+-   Add Sky and background
+-   Simple erosion simulation

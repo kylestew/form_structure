@@ -1,6 +1,5 @@
 ---
 title: 'Heightfields'
-publishedAt: '2024-04-09'
 summary: 'Examples and ideas for working with heightfield data'
 image: heightfields.png
 ---
@@ -24,7 +23,7 @@ const heightfield = [
 ]
 ```
 
-I prefer to use a 1D array and convert to 2D with proper indexing.
+_I prefer to use a 1D array and convert to 2D with proper indexing._
 
 ### How Are These Different From Heightmaps?
 
@@ -405,11 +404,288 @@ displayHeightfield(ctx, gridSize, heightfield, getTerrainColor, true)
 
 ## Terrain Normals
 
-TODO TODO TODO
+<Canvas id="example_normals" />
+
+In order to calculate normals, we need to calculate the gradient of the heightfield. This is a vector that points in the direction of the steepest ascent. The method we will use is called _finite difference approximation_.
+
+```c
+∂h/∂x ≈ (heightfield[x+1, y] - heightfield[x-1, y]) / 2
+∂h/∂y ≈ (heightfield[x, y+1] - heightfield[x, y-1]) / 2
+```
+
+However, at the edges of the grid, x-1, x+1, y-1, or y+1 might go out of bounds. So we clamp indices to stay within the grid (0 to gridSize - 1):
+
+-   At the left edge: (heightfield[x+1] - heightfield[x])
+-   At the right edge: (heightfield[x] - heightfield[x-1])
+
+Giving us the final implementation:
+
+```javascript
+// @meta store:gradient
+function calcGrad(x, y, gridSize, hf) {
+    // Clamp helper
+    const clamp = (val, min, max) => Math.max(min, Math.min(max, val))
+
+    // Get clamped neighbors
+    const xm1 = clamp(x - 1, 0, gridSize - 1)
+    const xp1 = clamp(x + 1, 0, gridSize - 1)
+    const ym1 = clamp(y - 1, 0, gridSize - 1)
+    const yp1 = clamp(y + 1, 0, gridSize - 1)
+
+    // Look up height values
+    const left = hf[y * gridSize + xm1]
+    const right = hf[y * gridSize + xp1]
+    const top = hf[ym1 * gridSize + x]
+    const bottom = hf[yp1 * gridSize + x]
+
+    // Compute gradient
+    const gradX = xp1 !== xm1 ? (right - left) / (xp1 - xm1) : 0
+    const gradY = yp1 !== ym1 ? (bottom - top) / (yp1 - ym1) : 0
+
+    return [gradX, gradY]
+}
+```
+
+```javascript
+// @meta exec load:simplex load:fbm load:display load:gradient load:terrainColors
+// === EXAMPLE TERRAIN NORMALS ===
+const canvas = document.getElementById('example_normals')
+const ctx = canvas.getContext('2d')
+const gridSize = canvas.width
+
+// heightfield data
+const scale = 0.001
+const octaves = 6
+const persistance = 0.5
+const lacunarity = 2.0
+
+let heightfield = new Float32Array(gridSize * gridSize)
+// seed(Math.random())
+
+for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+        heightfield[y * gridSize + x] = noiseFBM(x, y, scale, octaves, persistance, lacunarity)
+    }
+}
+
+heightfield = normalizeHeightfield(heightfield)
+
+// gradient data
+const grad = new Float32Array(gridSize * gridSize * 2) // x,y components
+for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+        const [gradX, gradY] = calcGrad(x, y, gridSize, heightfield)
+        grad[y * gridSize * 2 + x * 2] = gradX
+        grad[y * gridSize * 2 + x * 2 + 1] = gradY
+    }
+}
+
+function displayNormals() {
+    const imageData = ctx.createImageData(gridSize, gridSize)
+    const pixels = imageData.data // Uint8ClampedArray
+
+    for (let i = 0, j = 0; i < heightfield.length; i += 1, j += 4) {
+        // Get gradient components for this pixel
+        const gradX = grad[i * 2]
+        const gradY = grad[i * 2 + 1]
+
+        // Calculate gradient magnitude
+        // const magnitude = Math.sqrt(gradX * gradX + gradY * gradY)
+
+        // Normalize for visualization (adjust scaling factor as needed)
+        const scalingFactor = 30000.0 // not sure why its jacked up so much
+
+        // Map gradient components to color channels
+        const r = Math.min(255, Math.max(0, 128 + gradX * scalingFactor))
+        const g = Math.min(255, Math.max(0, 128 + gradY * scalingFactor))
+        const b = 0
+
+        pixels[j] = r // Red channel (X gradient)
+        pixels[j + 1] = g // Green channel (Y gradient)
+        pixels[j + 2] = b // Blue channel (magnitude)
+        pixels[j + 3] = 255 // Alpha (fully opaque)
+    }
+
+    ctx.putImageData(imageData, 0, 0)
+}
+// displayHeightfield(ctx, gridSize, heightfield, getTerrainColor)
+displayNormals()
+```
 
 ## 3D Terrain
 
-TODO TODO TODO
+<Canvas id="example_3d" />
+
+Heightfield to Mesh Code:
+
+```javascript
+function heightfieldToMesh(heightfield, gridSize, scale = 1.0, heightScale = 50.0) {
+    const vertices = new Float32Array(gridSize * gridSize * 3) // x, y, z for each vertex
+    const indices = new Uint32Array((gridSize - 1) * (gridSize - 1) * 6) // 2 triangles (6 indices) per grid cell
+    const normals = new Float32Array(gridSize * gridSize * 3)
+
+    // Generate vertices
+    for (let z = 0; z < gridSize; z++) {
+        for (let x = 0; x < gridSize; x++) {
+            const vertexIndex = (z * gridSize + x) * 3
+            vertices[vertexIndex] = (x - gridSize / 2) * scale // X position
+            vertices[vertexIndex + 1] = heightfield[z * gridSize + x] * scale * heightScale // Y position (height)
+            vertices[vertexIndex + 2] = (z - gridSize / 2) * scale // Z position
+        }
+    }
+
+    // Generate indices for triangles
+    let indexCount = 0
+    for (let z = 0; z < gridSize - 1; z++) {
+        for (let x = 0; x < gridSize - 1; x++) {
+            const topLeft = z * gridSize + x
+            const topRight = topLeft + 1
+            const bottomLeft = (z + 1) * gridSize + x
+            const bottomRight = bottomLeft + 1
+
+            // First triangle
+            indices[indexCount++] = topLeft
+            indices[indexCount++] = bottomLeft
+            indices[indexCount++] = topRight
+
+            // Second triangle
+            indices[indexCount++] = topRight
+            indices[indexCount++] = bottomLeft
+            indices[indexCount++] = bottomRight
+        }
+    }
+
+    // Calculate normals
+    for (let z = 0; z < gridSize; z++) {
+        for (let x = 0; x < gridSize; x++) {
+            const vertexIndex = (z * gridSize + x) * 3
+
+            // Get heights of neighboring vertices
+            const left = x > 0 ? heightfield[z * gridSize + (x - 1)] : heightfield[z * gridSize + x]
+            const right = x < gridSize - 1 ? heightfield[z * gridSize + (x + 1)] : heightfield[z * gridSize + x]
+            const top = z > 0 ? heightfield[(z - 1) * gridSize + x] : heightfield[z * gridSize + x]
+            const bottom = z < gridSize - 1 ? heightfield[(z + 1) * gridSize + x] : heightfield[z * gridSize + x]
+
+            // Calculate normal using central differences
+            const dx = (right - left) * scale * 50
+            const dz = (bottom - top) * scale * 50
+
+            // Cross product of tangent vectors
+            normals[vertexIndex] = -dx
+            normals[vertexIndex + 1] = 2.0 * scale
+            normals[vertexIndex + 2] = -dz
+
+            // Normalize
+            const length = Math.sqrt(
+                normals[vertexIndex] * normals[vertexIndex] +
+                    normals[vertexIndex + 1] * normals[vertexIndex + 1] +
+                    normals[vertexIndex + 2] * normals[vertexIndex + 2]
+            )
+
+            normals[vertexIndex] /= length
+            normals[vertexIndex + 1] /= length
+            normals[vertexIndex + 2] /= length
+        }
+    }
+
+    return {
+        vertices,
+        indices,
+        normals,
+    }
+}
+
+export { heightfieldToMesh }
+```
+
+```javascript
+// @meta exec
+
+// == SETUP ==
+// const gridSize = 1024
+// const heightfield = generateHeightfield(gridSize, 0.003, 6, 0.5, 2.0)
+// const falloffMap = generateFalloffMap(gridSize)
+// const curvedHeightfield = new Float32Array(heightfield.length)
+
+// for (let i = 0; i < heightfield.length; i++) {
+//     heightfield[i] *= falloffMap[i] * 2.0
+// }
+// for (let i = 0; i < heightfield.length; i++) {
+//     curvedHeightfield[i] = applyHeightCurve(heightfield[i])
+// }
+
+// const terrainMesh = heightfieldToMesh(curvedHeightfield, gridSize, 1.0, 50.0)
+
+const THREE = root.THREE
+const scene = new THREE.Scene()
+const canvas = document.getElementById('example_3d')
+const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 2000)
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
+renderer.setSize(canvas.width, canvas.height)
+
+// Add lights
+const ambientLight = new THREE.AmbientLight(0x404040) // Soft white light
+scene.add(ambientLight)
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
+directionalLight.position.set(1, 1, 1)
+scene.add(directionalLight)
+
+// Position camera
+camera.position.set(300, 200, 300)
+camera.lookAt(0, 0, 0)
+
+// Create a flat plane
+const planeGeometry = new THREE.PlaneGeometry(500, 500, 1, 1)
+const planeMaterial = new THREE.MeshPhongMaterial({ color: 0x808080, side: THREE.DoubleSide })
+const plane = new THREE.Mesh(planeGeometry, planeMaterial)
+plane.rotation.x = -Math.PI / 2 // Rotate to be horizontal
+scene.add(plane)
+
+// // Create the terrain mesh
+// const geometry = new THREE.BufferGeometry()
+// geometry.setAttribute('position', new THREE.BufferAttribute(terrainMesh.vertices, 3))
+// geometry.setAttribute('normal', new THREE.BufferAttribute(terrainMesh.normals, 3))
+// geometry.setIndex(new THREE.BufferAttribute(terrainMesh.indices, 1))
+
+// // Add vertex colors
+// const colors = new Float32Array(gridSize * gridSize * 3)
+// for (let i = 0; i < gridSize * gridSize; i++) {
+//     const height = heightfield[i]
+//     const [r, g, b] = getTerrainColor(height)
+//     // Convert RGB values from 0-255 to 0-1
+//     colors[i * 3] = r / 255
+//     colors[i * 3 + 1] = g / 255
+//     colors[i * 3 + 2] = b / 255
+// }
+// geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+
+// const material = new THREE.MeshPhongMaterial({
+//     vertexColors: true,
+//     side: THREE.DoubleSide,
+// })
+// const mesh = new THREE.Mesh(geometry, material)
+// scene.add(mesh)
+
+// Add OrbitControls for interactive camera
+const controls = new root.OrbitControls(camera, renderer.domElement)
+controls.enableDamping = true
+controls.dampingFactor = 0.05
+
+// Add these after creating the scene
+const axesHelper = new THREE.AxesHelper(100)
+scene.add(axesHelper)
+
+const gridHelper = new THREE.GridHelper(1000, 10)
+scene.add(gridHelper)
+
+// Animation loop
+function animate() {
+    requestAnimationFrame(animate)
+    controls.update()
+    renderer.render(scene, camera)
+}
+animate()
+```
 
 ## Resources
 
@@ -425,3 +701,8 @@ TODO TODO TODO
 -   [HiRISE](https://www.michaelfogleman.com/projects/hirise/)
 -   [Pirate Maps - Michael Fogleman](https://www.michaelfogleman.com/projects/pirate-maps/)
 -   [Terrarium - Michael Fogleman](https://www.michaelfogleman.com/projects/terrarium/)
+-   [3d Planet Generation](https://www.youtube.com/watch?v=QN39W020LqU)
+
+https://www.youtube.com/watch?v=eaXk97ujbPQ
+https://www.youtube.com/watch?v=gsJHzBTPG0Y&t=850s
+https://entagma.com/live-rendering-of-heightfields-in-rs

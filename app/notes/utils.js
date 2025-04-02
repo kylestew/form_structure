@@ -59,41 +59,35 @@ export function getNotes() {
 }
 
 export function formatImage(image) {
-    return `/images/notes/covers/${image}`
+    return `/images/_notes/covers/${image}`
 }
 
-export function formatDate(date, includeRelative = false) {
-    let currentDate = new Date()
-    if (!date.includes('T')) {
-        date = `${date}T00:00:00`
-    }
-    let targetDate = new Date(date)
+export function formatDate(dateStr, includeRelative = false) {
+    const DAY_MS = 1000 * 60 * 60 * 24
+    const now = new Date()
+    const date = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00`)
 
-    let yearsAgo = currentDate.getFullYear() - targetDate.getFullYear()
-    let monthsAgo = currentDate.getMonth() - targetDate.getMonth()
-    let daysAgo = currentDate.getDate() - targetDate.getDate()
+    const diffMs = now - date
+    const diffDays = Math.floor(diffMs / DAY_MS)
 
-    let formattedDate = ''
-
-    if (yearsAgo > 0) {
-        formattedDate = `${yearsAgo}y ago`
-    } else if (monthsAgo > 0) {
-        formattedDate = `${monthsAgo}mo ago`
-    } else if (daysAgo > 0) {
-        formattedDate = `${daysAgo}d ago`
-    } else {
-        formattedDate = 'Today'
+    let relative = 'Today'
+    if (diffDays > 0) {
+        if (diffDays < 30) {
+            relative = `${diffDays}d ago`
+        } else if (diffDays < 365) {
+            const months = Math.floor(diffDays / 30)
+            relative = `${months}mo ago`
+        } else {
+            const years = Math.floor(diffDays / 365)
+            relative = `${years}y ago`
+        }
     }
 
-    let fullDate = targetDate.toLocaleString('en-us', {
+    const fullDate = date.toLocaleString('en-us', {
         month: 'long',
         day: 'numeric',
         year: 'numeric',
     })
 
-    if (!includeRelative) {
-        return fullDate
-    }
-
-    return `${fullDate} (${formattedDate})`
+    return includeRelative ? `${fullDate} (${relative})` : fullDate
 }
