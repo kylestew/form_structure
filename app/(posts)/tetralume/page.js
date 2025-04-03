@@ -24,7 +24,7 @@ function Project() {
                 through an eclectic electronic musical soundscape.
             </p>
 
-            <div className="text-xl font-semibold text-dark mb-4">Technical Details</div>
+            <div className="text-xl font-semibold text-dark mb-4">Challenges</div>
             <p className="text text-gray mb-8">
                 The biggest challenge we encountered while developing Tetralume was animating onto a 3D structure.
                 Traditional animation systems are targeted towards a flat-screen. We iterated my ideas on mapping an

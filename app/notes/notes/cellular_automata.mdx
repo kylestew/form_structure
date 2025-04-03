@@ -1,0 +1,178 @@
+---
+title: 'Cellular Automata'
+summary: 'Exploration of basic cellular automata by Stephen Wolfram'
+image: ca.png
+---
+
+```javascript
+// @meta exec store:grid
+class Automata1D {
+    constructor(width, generations) {
+        this.generations = generations
+        this._width = width
+        this._height = generations
+        this.grid = new Uint8Array(width * generations) // Already zeroed
+    }
+
+    clear() {
+        this.grid.fill(0) // fast grid clear
+    }
+
+    getGeneration(n) {
+        return this.grid.slice(n * this._width, (n + 1) * this._width)
+    }
+
+    setGeneration(n, gen) {
+        this.grid.set(gen, n * this._width)
+    }
+
+    dump(ctx, color = [255, 0, 0], background = [0, 0, 0]) {
+        const imageData = ctx.createImageData(ctx.canvas.width, ctx.canvas.height)
+        const pixels = imageData.data // Uint8ClampedArray
+        for (let i = 0; i < pixels.length; i += 4) {
+            // for each pixel
+            const [r, g, b] = this.grid[i / 4] === 1 ? color : background
+
+            pixels[i] = r
+            pixels[i + 1] = g
+            pixels[i + 2] = b
+            pixels[i + 3] = 255
+        }
+        ctx.putImageData(imageData, 0, 0)
+    }
+}
+```
+
+```javascript
+// @meta exec store:display
+function prepareCanvas(ctx, width, height, displayWidth, displayHeight) {
+    // force CSS display size
+    ctx.canvas.style.width = `${displayWidth}px`
+    ctx.canvas.style.height = `${displayHeight}px`
+
+    // data size
+    ctx.canvas.width = width
+    ctx.canvas.height = height
+
+    // disable image smoothing for sharp edges
+    ctx.imageSmoothingEnabled = false
+    ctx.canvas.style.imageRendering = 'pixelated'
+}
+```
+
+## Definining Characteristics
+
+-   Cell - the individual unit of the CA
+-   State - the value of a cell
+-   Neighborhood - which cells interact with a given cell
+-   Rules - how the next generation is determined from the current generation
+
+### 1D Automata
+
+<Canvas id="example_01" width={8 * 20} height={20 * 20} />
+
+_click to restart_
+
+-   Neighborhood: 3 cells
+-   Cell State: 0 or 1
+-   Neighborhood Combindations: 2^3 = 8
+-   Possible Rulesets: 2^8 = 256
+
+Example Ruleset:
+
+-   000 -> 0
+-   001 -> 1
+-   010 -> 0
+-   011 -> 0
+-   100 -> 1
+-   101 -> 1
+-   110 -> 0
+-   111 -> 1
+
+In Code:
+
+```js
+// @meta store:calculateState
+/**
+ * Calculates the next state of a cell in a 1D cellular automaton based on its neighborhood
+ * @param {number} left - The state of the left neighbor (0 or 1)
+ * @param {number} state - The current state of the cell (0 or 1)
+ * @param {number} right - The state of the right neighbor (0 or 1)
+ * @param {number} rule - The rule number to apply (0-255, default 110)
+ * @returns {number} The next state of the cell (0 or 1)
+ *
+ * The rule parameter encodes the output for each possible 3-bit neighborhood:
+ * For rule 110:
+ * 111 -> 0  (bit 7)
+ * 110 -> 1  (bit 6)
+ * 101 -> 1  (bit 5)
+ * 100 -> 0  (bit 4)
+ * 011 -> 1  (bit 3)
+ * 010 -> 1  (bit 2)
+ * 001 -> 1  (bit 1)
+ * 000 -> 0  (bit 0)
+ */
+function calculateState(left, state, right, rule = 110) {
+    const idx = (left << 2) | (state << 1) | right
+    return (rule >> idx) & 1
+}
+```
+
+```js
+// @meta exec load:grid load:display load:calculateState
+const width = 192
+const generations = 256
+const ca = new Automata1D(width, generations)
+
+const canvas = document.getElementById('example_01')
+const ctx = canvas.getContext('2d')
+prepareCanvas(ctx, width, generations, width * 3, generations * 3) // scale and pixelate
+
+canvas.onclick = () => {
+    // Reset grid
+    ca.grid.fill(0)
+    ca.grid[Math.floor(width / 2)] = 1 // Reset single cell in middle
+
+    // Reset generation counter
+    currentGen = 0
+
+    // Pick new random rule
+    rule = Math.floor(Math.random() * 256)
+
+    // Restart animation if it had stopped
+    if (currentGen < ca.generations - 1) {
+        animate()
+    }
+}
+
+// seed the CA with generation 0
+ca.grid[Math.floor(width / 2)] = 1 // Single cell in middle
+
+let rule = Math.floor(Math.random() * 256)
+
+let currentGen = 0
+
+function animate() {
+    if (currentGen < ca.generations - 1) {
+        let gen = ca.getGeneration(currentGen)
+        let nextGen = []
+        for (let i = 0; i < gen.length; i++) {
+            // Handle edge cases by wrapping around
+            const left = i === 0 ? gen[gen.length - 1] : gen[i - 1]
+            const right = i === gen.length - 1 ? gen[0] : gen[i + 1]
+            nextGen[i] = calculateState(left, gen[i], right, rule)
+        }
+        ca.setGeneration(currentGen + 1, nextGen)
+        currentGen++
+
+        ca.dump(ctx, [253, 252, 244], [42, 44, 47])
+        requestAnimationFrame(animate)
+    }
+}
+
+animate()
+```
+
+## Resources
+
+-   [Cellular Automata - The Coding Train](https://www.youtube.com/watch?v=Ggxt06qSAe4)
