@@ -6,6 +6,11 @@ import Footer from '@/app/components/footer'
 
 const projects = [
     {
+        name: 'neon-sprawl',
+        title: 'Neon Sprawl',
+        categories: ['physical', 'interactive', 'projection'],
+    },
+    {
         name: 'dancing-laser-fairies',
         title: 'Dancing Laser Fairies',
         categories: ['exe', 'generative', 'animated'],
