@@ -234,9 +234,92 @@ function animate() {
 animate()
 ```
 
+## Cellular Automata
+
+We can also think of this as a sort of CA. Encoding the 3 cells below as a 3 bit number, we can enumerate all 7 possible states:
+
+-   [0,0,0] => 0 => [0,X,0]
+-   [0,0,1] => 1 => [0,X,1]
+-   [0,1,0] => 2 => [X,1,X] (special case)
+-   [0,1,1] => 3 => [X,1,1]
+-   [1,0,0] => 4 => [1,X,0]
+-   [1,0,1] => 5 => [1,X,1]
+-   [1,1,0] => 6 => [1,1,X]
+-   [1,1,1] => 7 => [1,1,1]
+
+Which simplifies to 4 rules:
+
+-   0, 1, 4, 5 -> swap with center cell
+-   3 -> swap with left cell
+-   6 -> swap with right cell
+-   2 -> apply _special case_
+-   7 -> no action (full)
+
+_special case_: for the case where both left and right are available, swap with the left cell with 50% probability.
+
+In code: I'm not sure this is more clear, but it's an interesting exercise.
+
+```js
+// @meta store:caRules
+function caRules(idx, belowIdx, leftIdx, rightIdx, grid) {
+    // Encode the 3 cells below as a 3-bit number: left (4), below (2), right (1)
+    const encoded =
+        (grid.isEmpty(leftIdx) ? 0 : 4) + //
+        (grid.isEmpty(belowIdx) ? 0 : 2) + //
+        (grid.isEmpty(rightIdx) ? 0 : 1)
+
+    if ([0, 1, 4, 5].includes(encoded)) {
+        grid.swap(idx, belowIdx)
+    } else if (encoded === 3) {
+        grid.swap(idx, leftIdx)
+    } else if (encoded === 6) {
+        grid.swap(idx, rightIdx)
+    } else if (encoded === 2) {
+        // Randomly choose between left and right if both are available
+        const target = Math.random() < 0.5 ? leftIdx : rightIdx
+        grid.swap(idx, target)
+    } // 7 is a no-op (full)
+}
+```
+
+Same as before, but with the CA rules.
+
+<Canvas id="example_ca_rules" width={200} height={300} />
+
+_click to restart_
+
+```js
+// @meta exec load:grid load:display load:caRules
+const canvas = document.getElementById('example_ca_rules')
+const ctx = canvas.getContext('2d')
+
+const grid = new Grid(200 / 4, 300 / 4)
+
+canvas.onclick = () => {
+    grid.clear()
+}
+
+const palette = root.palette
+function animate() {
+    grid.step(caRules)
+
+    // randomly add new sand 33% of the time
+    if (Math.random() < 0.33) {
+        grid.set(grid.width / 2, 12, 100, palette[3])
+    }
+
+    // stop if we have reached a certain height
+    if (grid.countGrains() < grid.grainCapacity * 0.75) {
+        display(ctx, grid, palette[0])
+        requestAnimationFrame(animate)
+    }
+}
+animate()
+```
+
 ## Varying Placement & Colors
 
-Let's see if we can make this more interesting by varying the placement and colors of the sand.
+Let's see if we can make this more interesting by varying the placement and colors of the sand. Two "cursors" move independently and drop sand with different colors.
 
 <Canvas id="example_varying_placement_colors" width={400} height={600} />
 
@@ -285,6 +368,14 @@ function animate() {
     // stop if we have reached a certain height
     if (grid.countGrains() < grid.grainCapacity * 0.75) {
         display(ctx, grid, palette[0])
+
+        // Draw small circles at cursor positions
+        ctx.fillStyle = 'rgba(255,255,255,0.5)'
+        ctx.beginPath()
+        ctx.arc(grid.width / 2 + xOff1, 12, 2, 0, Math.PI * 2)
+        ctx.arc(grid.width / 2 + xOff2, 12, 2, 0, Math.PI * 2)
+        ctx.fill()
+
         requestAnimationFrame(animate)
     }
 }
@@ -293,82 +384,118 @@ animate()
 
 ## Adding Weight
 
-<Canvas id="example_weighted_rules" width={200} height={300} />
+For the case where a particle collides with another particle below it, we can add another dimension to the rules. If the particle below has less "weight" assigned to it, we can attempt to push it asside (left or right).
 
-_click to restart_
+1. Give sand particles a random weight on generation.
+2. When it collides with a particle of less weight, it will attempt to push that particle asside if there is open space.
+3. Shade the heavier particles to be darker.
 
-Give sand particles a random weight on generation. When it collides with a particle of less weight, it will attempt to push that particle asside. Shade the heavier particles to be darker.
+In code:
 
 ```javascript
 // @meta store:weightedRules
+function attemptDisplace(idx, leftIdx, belowIdx, rightIdx, encoded, grid) {
+    // make sure its actually heavier
+    if (grid.getWeight(belowIdx) > grid.getWeight(idx)) {
+        return false
+    }
+
+    if (encoded === 3) {
+        // we can push the particle to the left open space
+        grid.swap(belowIdx, leftIdx)
+        grid.swap(idx, belowIdx)
+        return true
+    } else if (encoded === 6) {
+        // we can push the particle to the right open space
+        grid.swap(belowIdx, rightIdx)
+        grid.swap(idx, belowIdx)
+        return true
+    } else if (encoded === 2) {
+        // both left and right are open, so we get to choose
+        const target = Math.random() < 0.5 ? leftIdx : rightIdx
+        grid.swap(belowIdx, target)
+        grid.swap(idx, belowIdx)
+        return true
+    }
+    return false
+}
+
 function weightedRules(idx, belowIdx, leftIdx, rightIdx, grid) {
-    // // attempt to push particles to the left or right
-    // if (!isEmptyFn(belowIdx)) {
-    //     // get the weight of the particle below
-    //     // TODO: this isn't working
-    //     const weight = getWeightFn(idx)
-    //     const belowWeight = getWeightFn(belowIdx)
-    //     if (belowWeight < weight) {
-    //         // Try to push to left or right randomly
-    //         if (Math.random() < 0.5 && leftIdx > -1 && isEmptyFn(leftIdx)) {
-    //             swapFn(belowIdx, leftIdx)
-    //             swapFn(idx, belowIdx)
-    //         } else if (rightIdx > -1 && isEmptyFn(rightIdx)) {
-    //             swapFn(belowIdx, rightIdx)
-    //             swapFn(idx, belowIdx)
-    //         } else {
-    //             swapFn(idx, belowIdx)
-    //         }
-    //     }
-    //     return
-    // }
-    // // Rule 1: If the cell below is empty, swap the cell with the cell below
-    // if (isEmptyFn(belowIdx)) {
-    //     swapFn(idx, belowIdx)
-    // } else {
-    //     // randomize left and right falling direction
-    //     if (Math.random() < 0.5) {
-    //         let swap = leftIdx
-    //         leftIdx = rightIdx
-    //         rightIdx = swap
-    //     }
-    //     if (leftIdx > -1 && isEmptyFn(leftIdx)) {
-    //         // Rule 2: If the cell left is empty, swap the cell with the cell left
-    //         swapFn(idx, leftIdx)
-    //     } else if (rightIdx > -1 && isEmptyFn(rightIdx)) {
-    //         // Rule 3: If the cell right is empty, swap the cell with the cell right
-    //         swapFn(idx, rightIdx)
-    //     }
-    // }
+    // Encode the 3 cells below as a 3-bit number: left (4), below (2), right (1)
+    const encoded =
+        (grid.isEmpty(leftIdx) ? 0 : 4) + //
+        (grid.isEmpty(belowIdx) ? 0 : 2) + //
+        (grid.isEmpty(rightIdx) ? 0 : 1)
+
+    if ([0, 1, 4, 5].includes(encoded)) {
+        grid.swap(idx, belowIdx)
+    } else if (encoded === 3) {
+        if (!attemptDisplace(idx, leftIdx, belowIdx, rightIdx, encoded, grid)) grid.swap(idx, leftIdx)
+    } else if (encoded === 6) {
+        if (!attemptDisplace(idx, leftIdx, belowIdx, rightIdx, encoded, grid)) grid.swap(idx, rightIdx)
+    } else if (encoded === 2) {
+        if (!attemptDisplace(idx, leftIdx, belowIdx, rightIdx, encoded, grid)) {
+            // Randomly choose between left and right if both are available
+            const target = Math.random() < 0.5 ? leftIdx : rightIdx
+            grid.swap(idx, target)
+        }
+    } // 7 is a no-op (full)
 }
 ```
+
+Weighted Sand:
+
+<Canvas id="example_weighted_rules" width={400} height={600} />
+
+_click to restart_
 
 ```js
 // @meta exec load:grid load:display load:weightedRules
 const canvas = document.getElementById('example_weighted_rules')
 const ctx = canvas.getContext('2d')
 
-const grid = new Grid(200 / 4, 300 / 4)
+const grid = new Grid(400 / 4, 600 / 4)
 canvas.onclick = () => {
     grid.clear()
 }
 
+function dropSand(x, baseColor) {
+    // randomly add new sand 33% of the time
+    if (Math.random() < 0.2) {
+        const weight = Math.random() * 50 + 50
+        const brightness = 0.8 + (weight - 50) / 250 // Scale brightness between 0.8-1.0
+        const color = baseColor.map((c) => c * brightness)
+        grid.set(grid.width / 2 + x, 12, weight, color)
+    }
+}
+
 const palette = root.palette
+const cursors = [0.0, 0.0, 0.0]
 function animate() {
     grid.step(weightedRules)
 
-    // randomly add new sand 33% of the time
-    if (Math.random() < 0.33) {
-        const weight = Math.floor(Math.random() * 100) + 50 // between 50-150
-        // Map weight (50-150) to color brightness (0.5-1.0)
-        const brightness = 0.5 + ((weight - 50) / 100) * 0.5
-        const color = palette[3].map((c) => c * brightness)
-        grid.set(grid.width / 2, 12, weight, color)
-    }
+    // Offset each cursor independently
+    cursors[0] = Math.round(Math.sin(Date.now() * 0.0002) * (grid.width / 8))
+    cursors[1] = Math.round(Math.sin(Date.now() * 0.0003) * (grid.width / 8))
+    cursors[2] = Math.round(Math.sin(Date.now() * 0.00025) * (grid.width / 8))
+
+    // Drop sand from cursors
+    dropSand(cursors[0], palette[1])
+    dropSand(cursors[1], palette[3])
+    dropSand(cursors[2], palette[4])
 
     // stop if we have reached a certain height
     if (grid.countGrains() < grid.grainCapacity * 0.75) {
         display(ctx, grid, palette[0])
+
+        // Draw small circles at cursor positions
+        ctx.fillStyle = 'rgba(255,255,255,0.5)'
+        ctx.beginPath()
+        ctx.arc(grid.width / 2 + cursors[0], 12, 2, 0, Math.PI * 2)
+        ctx.arc(grid.width / 2 + cursors[1], 12, 2, 0, Math.PI * 2)
+        ctx.arc(grid.width / 2 + cursors[2], 12, 2, 0, Math.PI * 2)
+        ctx.fill()
+
         requestAnimationFrame(animate)
     }
 }
