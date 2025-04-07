@@ -475,9 +475,9 @@ function animate() {
     grid.step(weightedRules)
 
     // Offset each cursor independently
-    cursors[0] = Math.round(Math.sin(Date.now() * 0.0002) * (grid.width / 8))
-    cursors[1] = Math.round(Math.sin(Date.now() * 0.0003) * (grid.width / 8))
-    cursors[2] = Math.round(Math.sin(Date.now() * 0.00025) * (grid.width / 8))
+    cursors[0] = Math.round(Math.cos(Date.now() * 0.00008) * (grid.width / 3))
+    cursors[1] = Math.round(Math.sin(Date.now() * 0.00007) * (grid.width / 3))
+    cursors[2] = Math.round(Math.sin(Date.now() * 0.00008) * (grid.width / 3))
 
     // Drop sand from cursors
     dropSand(cursors[0], palette[1])
