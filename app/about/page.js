@@ -133,7 +133,7 @@ function About() {
 
                 <div className="space-y-2">
                     <a
-                        href="https://www.instagram.com/form.structure/"
+                        href="https://www.linkedin.com/in/kyle-stewart-91851166/"
                         className="text-blue-400 hover:text-blue-300 flex items-center"
                     >
                         <span className="mr-2">→</span>
