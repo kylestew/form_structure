@@ -1,0 +1,175 @@
+---
+title: 'Fluid Simulations'
+summary: 'A simple fluid simulation using the Navier-Stokes equations'
+image: fluid-sim.png
+---
+
+We're going to implement a grid-based fluid simulation. Both velocity and density are assumed to be constant within a given cell. We store the velocity and density arrays, including a previous array for processing at each time step. An extra layer of cells is added around the grid to simplify boundary conditions (where N + 2 comes from).
+
+The grid must be square - a simplification we've chosen. We are using a staggered grid as dicussed [here](https://www.youtube.com/watch?v=iKAVRgIrUOU&t=211s)
+
+```javascript
+// @meta store:data
+const N = 64 // N is the number of cells for a side of our square grid
+const size = (N + 2) * (N + 2) // add padding for boundary conditions
+
+const u = new Float32Array(size) // velocity in the x direction
+const v = new Float32Array(size) // velocity in the y direction
+const uN = new Float32Array(size) // temp velocity in the x direction
+const vN = new Float32Array(size) // temp velocity in the y direction
+
+// walls or obstacles [1.0 - fluid, 0.0 - solid]
+const s = new Float32Array(size)
+
+const p = new Float32Array(size) // pressure field
+const m = new Float32Array(size) // smoke field
+const mN = new Float32Array(size) // temp smoke field
+m.fill(1.0)
+
+function IX(i, j) {
+    return i + j * (N + 2) // padding boundary condition
+}
+```
+
+## The Process
+
+![641equ01](/images/_notes/fluid/641equ01.jpg)
+
+(TODO: describe and understand which part of the equation does what)
+
+Our simulation is a snapshot of the velocity and density grids after repeatedly resolving the three terms over each time step:
+
+1. Integration - Update the velocity field (e.g. external forces, gravity, etc.)
+2. Projection - Make the fluid incompressible (second Navier-Stokes equation)
+3. Advection - Density (or smoke, etc) follows the velocity field (so does velocity)
+
+X. Diffusion - Diffuse the density field (TODO: is this different than vector projection?)
+
+## Implementation
+
+### 1. Integration - Update Velocity Field
+
+Simple: loop through all the grid cells and apply gravity to the y velocity.
+
+```javascript
+// @meta store:integrate
+function integrate(dt, gravity) {
+    for (var i = 1; i < N; i++) {
+        for (var j = 1; j < N; j++) {
+            if (s[IX(i, j)] != 0.0 && s[IX(i, j - 1)] != 0.0)
+                // if we aren't a wall or obstacle
+                // only gravity is applied, so only the y velocity (array v) is affected
+                v[IX(i, j)] += gravity * dt
+        }
+    }
+}
+```
+
+### 2. Projection - Solving for Incompressibility
+
+1. Calculate the divergence of the velocity field.
+
+```psuedocode
+for all i,j
+    div <- vi,j+1 - vi,j-1 + vi+1,j - vi-1,j
+```
+
+2. Subtract the divergence from each velocity component.
+
+```psuedocode
+ui,j   <- ui,j   + div/4
+ui+1,j <- ui+1,j - div/4
+vi,j   <- vi,j   + div/4
+vi,j+1 <- vi,j+1 - div/4
+```
+
+Also, need to handle the boundary conditions and obstacles.
+
+gauss-seidel method
+ADD BORDER CELLS (not implemented)
+Simple to implement - review paper
+However needs multiple iterations to converge
+Can speed up with overrelaxation (don't bother yet)
+
+```javascript
+function solveIncompressibility(numIters, dt) {
+    for (let iter = 0; iter < numIters; iter++) {
+        for (let i = 1; i < N; i++) {
+            for (let j = 1; j < N; j++) {
+                // TODO: this isn't fully implemented
+
+                // calculate the divergence
+                const div = u[IX(i + 1, j)] - u[IX(i, j)] + v[IX(i, j + 1)] - v[IX(i, j)]
+
+                // subtract the divergence from each velocity component
+                u[IX(i, j)] += div / 4
+                u[IX(i + 1, j)] -= div / 4
+                v[IX(i, j)] += div / 4
+                v[IX(i, j + 1)] -= div / 4
+            }
+        }
+    }
+}
+```
+
+### 3. Advection - Density follows the velocity field
+
+Since we are using a grid based simulation, we need to move the velocity fields inside our grid.
+
+We work backwards from the velocity field to find out where the velocity is coming from.
+???
+
+## Simulation Step
+
+```javascript
+// @meta store:simulation_step
+
+function simulate(dt, gravity, substeps) {
+    integrate(dt, gravity)
+
+    // clear pressure
+    // solveIncompressibility(numIters, dt)
+
+    // extrapolate()
+}
+```
+
+## Example
+
+<Canvas id="example01" width={640} height={640} />
+
+```javascript
+// @meta exec load:data load:integrate load:simulation_step
+const canvas = document.getElementById('example01')
+const ctx = canvas.getContext('2d')
+
+const dt = 1.0 / 60.0
+const substeps = 40
+// const gravity = -9.81
+const gravity = 0 // painting mode
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    ctx.fillStyle = '#FF0000'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+}
+
+function update() {
+    simulate(dt, gravity, substeps)
+    draw()
+    // requestAnimationFrame(update)
+}
+update()
+```
+
+### References
+
+-   [Real-Time Fluid Dynamics for Games](https://www.dgp.toronto.edu/public_user/stam/reality/Research/pdf/GDC03.pdf)
+-   [How to write an Eulerian fluid simulator with 200 lines of code](https://www.youtube.com/watch?v=iKAVRgIrUOU)
+
+If you're stuck
+
+-   https://www.youtube.com/watch?v=qsYE1wMEMPA
+-   [Fluid Simulation Notes](https://www.cs.ubc.ca/~rbridson/fluidsimulation/fluids_notes.pdf)
+-   https://developer.nvidia.com/gpugems/gpugems/part-vi-beyond-triangles/chapter-38-fast-fluid-dynamics-simulation-gpu

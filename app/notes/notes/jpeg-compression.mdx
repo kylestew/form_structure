@@ -1,0 +1,452 @@
+---
+title: 'JPEG Compression is Magic'
+summary: 'Messing around with the JPEG compression algorithm as an exploration of glitch art'
+image: jpeg.png
+---
+
+```javascript
+// @meta exec store:loadImageData
+function loadImageData(imagePath, callback) {
+    const img = new Image()
+    img.src = imagePath
+    img.onload = () => {
+        const w = img.width
+        const h = img.height
+
+        // draw into a canvas to get image data
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, w, h)
+        const imageData = ctx.getImageData(0, 0, w, h)
+
+        callback(imageData)
+    }
+}
+```
+
+> JPEGs are fricking magic
+
+It's like that scene in Willy Wonka where the kid is sent through the TV
+
+## The Process
+
+### 1: Convert to YCbCr color space
+
+We don't see color quite as well as greyscale (something to do with rods and cones in your eyes), also we are more sensitive to green than other colors. JPEG (and many other technologies) make use of this "hack" by converting the image to YCbCr color space.
+
+Original
+
+<Canvas id="originalImageCanvas" width={480} height={480} />
+Y
+<Canvas id="yCanvas" width={240} height={240} />
+Cb
+<Canvas id="cbCanvas" width={240} height={240} />
+Cr
+<Canvas id="crCanvas" width={240} height={240} />
+
+Conversion code:
+
+```javascript
+// @meta store:convertToYCbCr
+function convertToYCbCr(imageData) {
+    // Create ImageData objects for Y, Cb, and Cr channels
+    const yData = new ImageData(imageData.width, imageData.height)
+    const cbData = new ImageData(imageData.width, imageData.height)
+    const crData = new ImageData(imageData.width, imageData.height)
+
+    const data = imageData.data
+    for (let i = 0; i < imageData.data.length; i += 4) {
+        const r = data[i]
+        const g = data[i + 1]
+        const b = data[i + 2]
+
+        // Using BT.601 "full range" style formulas (similar to JPEG)
+        const y = 0.299 * r + 0.587 * g + 0.114 * b
+        const cb = -0.168736 * r - 0.331264 * g + 0.5 * b + 128
+        const cr = 0.5 * r - 0.418688 * g - 0.081312 * b + 128
+
+        // Clamp values to 0-255 for display
+        const yDisplay = Math.max(0, Math.min(255, y))
+        const cbDisplay = Math.max(0, Math.min(255, cb))
+        const crDisplay = Math.max(0, Math.min(255, cr))
+
+        yData.data[i] = yDisplay
+        yData.data[i + 1] = yDisplay
+        yData.data[i + 2] = yDisplay
+        yData.data[i + 3] = 255.0
+
+        cbData.data[i] = cbDisplay
+        cbData.data[i + 1] = cbDisplay
+        cbData.data[i + 2] = cbDisplay
+        cbData.data[i + 3] = 255.0
+
+        crData.data[i] = crDisplay
+        crData.data[i + 1] = crDisplay
+        crData.data[i + 2] = crDisplay
+        crData.data[i + 3] = 255.0
+    }
+
+    return { yData, cbData, crData }
+}
+```
+
+```javascript
+// @meta exec store:convertToRGB
+function convertToRGB(yData, cbData, crData) {
+    // Create single RGB ImageData object
+    const rgbData = new ImageData(yData.width, yData.height)
+
+    for (let i = 0; i < yData.data.length; i += 4) {
+        const y = yData.data[i]
+        const cb = cbData.data[i] - 128 // Subtract 128 to get back to signed values
+        const cr = crData.data[i] - 128
+
+        // Convert YCbCr back to RGB using BT.601 "full range" inverse formulas
+        const r = y + 1.402 * cr
+        const g = y - 0.344136 * cb - 0.714136 * cr
+        const b = y + 1.772 * cb
+
+        // Clamp values to 0-255 and set RGB channels
+        rgbData.data[i] = Math.max(0, Math.min(255, r))
+        rgbData.data[i + 1] = Math.max(0, Math.min(255, g))
+        rgbData.data[i + 2] = Math.max(0, Math.min(255, b))
+        rgbData.data[i + 3] = 255
+    }
+
+    return rgbData
+}
+```
+
+```javascript
+// @meta exec load:loadImageData load:convertToYCbCr
+const originalImageCanvas = document.getElementById('originalImageCanvas')
+const yCanvas = document.getElementById('yCanvas')
+const cbCanvas = document.getElementById('cbCanvas')
+const crCanvas = document.getElementById('crCanvas')
+
+const ctxOriginal = originalImageCanvas.getContext('2d')
+const ctxY = yCanvas.getContext('2d')
+const ctxCb = cbCanvas.getContext('2d')
+const ctxCr = crCanvas.getContext('2d')
+
+loadImageData('/images/_notes/jpeg/mad_cat.jpg', (imageData) => {
+    // make all canvases the same size - matching the image
+    originalImageCanvas.width = imageData.width
+    originalImageCanvas.height = imageData.height
+    yCanvas.width = imageData.width
+    yCanvas.height = imageData.height
+    cbCanvas.width = imageData.width
+    cbCanvas.height = imageData.height
+    crCanvas.width = imageData.width
+    crCanvas.height = imageData.height
+
+    // draw into the original canvas
+    ctxOriginal.putImageData(imageData, 0, 0)
+
+    // Convert to YCbCr
+    const { yData, cbData, crData } = convertToYCbCr(imageData)
+
+    ctxY.putImageData(yData, 0, 0)
+    ctxCb.putImageData(cbData, 0, 0)
+    ctxCr.putImageData(crData, 0, 0)
+})
+```
+
+### 2: Downsample the chroma channels (Cb and Cr) by a factor of 2, 4, etc
+
+Since we are less sensitive to color, we can downsample the chroma channels by a factor of 2, 4, etc. Here we are downsampling by a factor of 4 to exaggerate the effect. Downsampling is done by averaging the values of the pixels in the block.
+
+```javascript
+// @meta store:downsample
+function downsample(imageData) {
+    const downsampleFactor = 4
+    const downsampledData = new ImageData(imageData.width / downsampleFactor, imageData.height / downsampleFactor)
+
+    for (let y = 0; y < imageData.height; y += downsampleFactor) {
+        for (let x = 0; x < imageData.width; x += downsampleFactor) {
+            let sum = 0
+            for (let dy = 0; dy < downsampleFactor; dy++) {
+                for (let dx = 0; dx < downsampleFactor; dx++) {
+                    const i = ((y + dy) * imageData.width + (x + dx)) * 4
+                    sum += imageData.data[i]
+                }
+            }
+
+            // Average the values
+            const avg = sum / (downsampleFactor * downsampleFactor)
+
+            // Set the downsampled pixel
+            const dstIdx = ((y / downsampleFactor) * (imageData.width / downsampleFactor) + x / downsampleFactor) * 4
+            downsampledData.data[dstIdx] = avg
+            downsampledData.data[dstIdx + 1] = avg
+            downsampledData.data[dstIdx + 2] = avg
+            downsampledData.data[dstIdx + 3] = 255
+        }
+    }
+
+    return downsampledData
+}
+```
+
+```javascript
+// @meta exec store:upsample
+function upsample(imageData) {
+    const upsampleFactor = 4
+    const originalWidth = imageData.width
+    const originalHeight = imageData.height
+    const upsampledWidth = originalWidth * upsampleFactor
+    const upsampledHeight = originalHeight * upsampleFactor
+
+    const upsampledData = new ImageData(upsampledWidth, upsampledHeight)
+
+    for (let y = 0; y < originalHeight; y++) {
+        // Loop through each row of the original image
+        for (let x = 0; x < originalWidth; x++) {
+            // Loop through each column of the original image
+            // Get the color of the current original pixel
+            const srcIdx = (y * originalWidth + x) * 4
+            const r = imageData.data[srcIdx]
+            const g = imageData.data[srcIdx + 1]
+            const b = imageData.data[srcIdx + 2]
+            const a = imageData.data[srcIdx + 3]
+
+            // Fill a block of pixels in the upsampled image
+            for (let dy = 0; dy < upsampleFactor; dy++) {
+                // Loop for the height of the block
+                for (let dx = 0; dx < upsampleFactor; dx++) {
+                    // Loop for the width of the block
+                    const destY = y * upsampleFactor + dy
+                    const destX = x * upsampleFactor + dx
+                    const dstIdx = (destY * upsampledWidth + destX) * 4
+
+                    upsampledData.data[dstIdx] = r
+                    upsampledData.data[dstIdx + 1] = g
+                    upsampledData.data[dstIdx + 2] = b
+                    upsampledData.data[dstIdx + 3] = a
+                }
+            }
+        }
+    }
+    return upsampledData
+}
+```
+
+Cb
+
+<Canvas id="cbDownsampled" width={240} height={240} />
+
+Cr
+
+<Canvas id="crDownsampled" width={240} height={240} />
+
+Recombined Image After Downsampling (split with original for comparison)
+
+<Canvas id="recombined" width={480} height={480} />
+
+I can't tell the difference between the original and the recombined image, can you?
+
+```javascript
+// @meta exec load:loadImageData load:convertToYCbCr load:downsample load:convertToRGB load:upsample
+const cbDownsampledCanvas = document.getElementById('cbDownsampled')
+const crDownsampledCanvas = document.getElementById('crDownsampled')
+const ctxCbDownsampled = cbDownsampledCanvas.getContext('2d')
+const ctxCrDownsampled = crDownsampledCanvas.getContext('2d')
+const recombinedCanvas = document.getElementById('recombined')
+const recombinedCtx = recombinedCanvas.getContext('2d')
+
+loadImageData('/images/_notes/jpeg/mad_cat.jpg', (imageData) => {
+    const { yData, cbData, crData } = convertToYCbCr(imageData)
+
+    // Set canvas sizes to match downsampled dimensions
+    cbDownsampledCanvas.width = imageData.width / 4
+    cbDownsampledCanvas.height = imageData.height / 4
+    crDownsampledCanvas.width = imageData.width / 4
+    crDownsampledCanvas.height = imageData.height / 4
+
+    // Downsample the chroma channels
+    const downsampledCbImageData = downsample(cbData)
+    const downsampledCrImageData = downsample(crData)
+
+    // display the downsampled chroma channels
+    ctxCbDownsampled.putImageData(downsampledCbImageData, 0, 0)
+    ctxCrDownsampled.putImageData(downsampledCrImageData, 0, 0)
+
+    // Upsample the chroma channels so we can recombine and compare
+    const upsampledCbImageData = upsample(downsampledCbImageData)
+    const upsampledCrImageData = upsample(downsampledCrImageData)
+
+    // Recombine the Y, Cb, and Cr channels
+    const recombinedImageData = convertToRGB(yData, upsampledCbImageData, upsampledCrImageData)
+
+    // display the recombined image split with original for compare
+    const displayData = recombinedCtx.getImageData(0, 0, recombinedCanvas.width, recombinedCanvas.height)
+    for (let i = 0; i < displayData.data.length; i += 4) {
+        const x = (i / 4) % recombinedCanvas.width
+        if (x > recombinedCanvas.width / 2) {
+            displayData.data[i] = imageData.data[i]
+            displayData.data[i + 1] = imageData.data[i + 1]
+            displayData.data[i + 2] = imageData.data[i + 2]
+            displayData.data[i + 3] = imageData.data[i + 3]
+        } else {
+            displayData.data[i] = recombinedImageData.data[i]
+            displayData.data[i + 1] = recombinedImageData.data[i + 1]
+            displayData.data[i + 2] = recombinedImageData.data[i + 2]
+            displayData.data[i + 3] = recombinedImageData.data[i + 3]
+        }
+    }
+    recombinedCtx.putImageData(displayData, 0, 0)
+})
+```
+
+### 3: Apply the DCT (Discrete Cosine Transform)
+
+Most images shot by camera don't contain high frequency changes. Also, our vision is less sensitive to it. Let's remove high frequency changes to save some space.
+
+To do this we use the [DCT-II (Discrete Cosine Transform)](https://en.wikipedia.org/wiki/JPEG#Discrete_cosine_transform)
+
+```javascript
+// @meta store:dct
+
+/// Forward DCT (DCT-II)
+/// Takes an ImageData object and returns a Float32Array of DCT coefficients
+function dct(imageData) {
+    const { width, height, data } = imageData
+
+    // convert image to value data, level shifted
+    const gray = []
+    for (let y = 0; y < height; y++) {
+        const row = []
+        for (let x = 0; x < width; x++) {
+            const i = (y * width + x) * 4
+            row.push(data[i]) // Red channel
+        }
+        gray.push(row)
+    }
+    console.log(gray)
+
+    // Apply 2D DCT-II
+    const dct = []
+    for (let u = 0; u < height; u++) {
+        for (let v = 0; v < width; v++) {
+            let sum = 0
+            // for (let x = 0; x < height; x++) {
+            //     for (let y = 0; y < width; y++) {
+            //         sum +=
+            //             gray[x][y] *
+            //             Math.cos(((2 * x + 1) * u * Math.PI) / (2 * height)) *
+            //             Math.cos(((2 * y + 1) * v * Math.PI) / (2 * width))
+            //     }
+            // }
+
+            // const alphaU = u === 0 ? Math.sqrt(1 / height) : Math.sqrt(2 / height)
+            // const alphaV = v === 0 ? Math.sqrt(1 / width) : Math.sqrt(2 / width)
+            // dct.push(alphaU * alphaV * sum)
+            // console.log(alphaU, alphaV, sum)
+
+            // TODO: this absolutely does not work due to speed issues
+        }
+    }
+
+    return dct // 1D array, row-major order
+}
+```
+
+https://developer.download.nvidia.com/assets/cuda/files/dct8x8.pdf
+
+```javascript
+// @meta exec load:loadImageData load:dct
+// console.log(dct(imageData))
+
+loadImageData('/images/_notes/jpeg/mad_cat.jpg', (imageData) => {
+    const dctData = dct(imageData)
+    console.log(dctData)
+})
+```
+
+```glsl
+// Forward DCT (FDCT) Compute Shader for TouchDesigner
+// Scales input from [0,1] to an effective [-128, 127] range before DCT.
+// Outputs DCT coefficients with magnitudes suitable for standard quantization matrices.
+
+// Workgroup size matches 8x8 DCT block
+layout(local_size_x = 8, local_size_y = 8) in;
+
+// Input: sTD2DInputs[0] is the source image texture (e.g., grayscale, values 0.0 to 1.0).
+// Output: mTDComputeOutputs[0] is the texture where the DCT coefficients will be written.
+
+// Precomputed cosine coefficients
+const float COS[8][8] =
+    float[8][8](float[8](0.3535534, 0.4903926, 0.4619398, 0.4157348, 0.3535534, 0.2777851, 0.1913417, 0.0975451),
+                float[8](0.3535534, 0.4157348, 0.1913417, -0.0975451, -0.3535534, -0.4903926, -0.4619398, -0.2777851),
+                float[8](0.3535534, 0.2777851, -0.1913417, -0.4903926, -0.3535534, 0.0975451, 0.4619398, 0.4157348),
+                float[8](0.3535534, 0.0975451, -0.4619398, -0.2777851, 0.3535534, 0.4157348, -0.1913417, -0.4903926),
+                float[8](0.3535534, -0.0975451, -0.4619398, 0.2777851, 0.3535534, -0.4157348, -0.1913417, 0.4903926),
+                float[8](0.3535534, -0.2777851, -0.1913417, 0.4903926, -0.3535534, -0.0975451, 0.4619398, -0.4157348),
+                float[8](0.3535534, -0.4157348, 0.1913417, 0.0975451, -0.3535534, 0.4903926, -0.4619398, 0.2777851),
+                float[8](0.3535534, -0.4903926, 0.4619398, -0.4157348, 0.3535534, -0.2777851, 0.1913417, -0.0975451));
+
+// Shared memory buffers for DCT processing
+shared float block[8][8]; // Stores the scaled and level-shifted input pixel data
+shared float temp[8][8];  // Stores intermediate results after row-wise DCT
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy); // Global pixel ID
+    ivec2 lid = ivec2(gl_LocalInvocationID.xy);  // Local (thread) ID in 8x8 block
+
+    // 1. Load pixel from input and scale for JPEG-like processing
+    vec4 pixel_raw           = texelFetch(sTD2DInputs[0], gid, 0);
+    float pixel_value_0_1    = pixel_raw.r;
+    float scaled_pixel_value = (pixel_value_0_1 * 255.0) - 128.0;
+
+    // Correct loading: block[row_idx][col_idx] using local invocation IDs
+    block[lid.y][lid.x] = scaled_pixel_value;
+
+    // Ensure all threads have loaded and scaled their data into shared memory
+    // Threads need to read from their neighbors
+    barrier();
+
+    // 2. First pass: Row-wise DCT
+    float rowSum = 0.0;
+    for (int n = 0; n < 8; ++n) {
+        rowSum += block[lid.y][n] * COS[n][lid.x];
+    }
+    temp[lid.y][lid.x] = rowSum;
+
+    // Synchronize after row transform
+    barrier();
+
+    // Column-wise DCT
+    float colSum = 0.0;
+    for (int m = 0; m < 8; ++m) {
+        colSum += temp[m][lid.x] * COS[m][lid.y];
+    }
+
+    float result = colSum;
+
+    // These coefficients will now have a larger range, e.g., DC term can be around -1024 to 1016.
+    imageStore(mTDComputeOutputs[0], gid, vec4(result));
+}
+```
+
+### 4: Quantize (lossy part)
+
+How are quantization tables made?
+
+### 5: Encode the data (lossless part)
+
+???
+
+### X: Reverse the process
+
+### Further Exploration
+
+-   Painting app where you paint the coefficients
+-   Make your own quantization table interactively
+
+### References
+
+-   [Computerphile](https://www.youtube.com/watch?v=n_uNPbdenRs)
+-   [The Unreasonable Effectiveness of JPEG](https://www.youtube.com/watch?v=0me3guauqOU)
+-   [How JPEG works](https://cgjennings.ca/articles/jpeg-compression/)

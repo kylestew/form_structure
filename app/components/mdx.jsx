@@ -141,7 +141,15 @@ function Code({ children, ...props }) {
 }
 
 function Canvas({ id = 'myCanvas', width = 480, height = 480 }) {
-    return <canvas id={id} width={width} height={height} className="border border-black-200" />
+    return (
+        <canvas
+            id={id}
+            width={width}
+            height={height}
+            className="border border-black-200"
+            style={{ width: `${width}px`, height: `${height}px` }}
+        />
+    )
 }
 
 const components = {
