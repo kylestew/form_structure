@@ -4,6 +4,8 @@ import ClientScript from './ClientScript'
 import Link from 'next/link'
 import Image from 'next/image'
 import React from 'react'
+import rehypeKatex from 'rehype-katex'
+import rehypeMath from 'rehype-math'
 
 /*
 function Table({ data }) {
@@ -172,5 +174,16 @@ const components = {
 }
 
 export function CustomMDX(props) {
-    return <MDXRemote {...props} components={{ ...components, ...(props.components || {}) }} />
+    return (
+        <MDXRemote
+            {...props}
+            components={{ ...components, ...(props.components || {}) }}
+            options={{
+                mdxOptions: {
+                    remarkPlugins: [],
+                    rehypePlugins: [rehypeMath, rehypeKatex],
+                },
+            }}
+        />
+    )
 }
