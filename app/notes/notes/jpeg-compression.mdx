@@ -4,6 +4,14 @@ summary: 'Messing around with the JPEG compression algorithm as an exploration o
 image: jpeg.png
 ---
 
+## Colab Notebook
+
+I'm struggling to do this in JS, but its super easy in Python!
+
+[DCT Colab Notebook](https://colab.research.google.com/drive/1XuRsUmFmAJ2lEuvaJp4W58M9FYUzW5hT?usp=sharing)
+
+# Attempt in Javascript...
+
 ```javascript
 // @meta exec store:loadImageData
 function loadImageData(imagePath, callback) {
@@ -302,135 +310,216 @@ loadImageData('/images/_notes/jpeg/mad_cat.jpg', (imageData) => {
 
 ### 3: Apply the DCT (Discrete Cosine Transform)
 
-Most images shot by camera don't contain high frequency changes. Also, our vision is less sensitive to it. Let's remove high frequency changes to save some space.
+This is the magical step in JPEG compression, converting image data into frequency data. Spacial domain to frequency domain.
 
-To do this we use the [DCT-II (Discrete Cosine Transform)](https://en.wikipedia.org/wiki/JPEG#Discrete_cosine_transform)
+To do this we use the [DCT-II (Discrete Cosine Transform)](https://en.wikipedia.org/wiki/JPEG#Discrete_cosine_transform). DCT involves a lot of cosine terms, which are expensive to compute. We can precompute them to speed up the process. Below is a somewhat optimized version of the DCT.
 
 ```javascript
 // @meta store:dct
-
-/// Forward DCT (DCT-II)
-/// Takes an ImageData object and returns a Float32Array of DCT coefficients
-function dct(imageData) {
+/**
+ * Performs a 2D Discrete Cosine Transform (DCT-II) on image data.
+ * This implementation uses the separability property of 2D DCT
+ * and pre-computes cosine terms and normalization factors for optimization.
+ *
+ * @param {object} imageData - An object with width, height, and data properties.
+ * data is expected to be a Uint8ClampedArray (like from a Canvas).
+ * Assumes 4 channels per pixel (RGBA), uses the Red channel.
+ * @returns {Array<Array<number>>} A 2D array (height x width) of DCT coefficients.
+ */
+function dctOptimizedWithPrecomputation(imageData) {
     const { width, height, data } = imageData
 
-    // convert image to value data, level shifted
+    // 1. Convert image to a 2D array of grayscale values (using Red channel)
+    // For actual JPEG compression, you would typically level-shift by subtracting 128.
+    // Here, we'll use the raw pixel values.
     const gray = []
     for (let y = 0; y < height; y++) {
-        const row = []
+        const row = new Array(width)
         for (let x = 0; x < width; x++) {
-            const i = (y * width + x) * 4
-            row.push(data[i]) // Red channel
+            const i = (y * width + x) * 4 // Index for the Red channel
+            row[x] = data[i] - 128 // level-shifted
         }
         gray.push(row)
     }
-    console.log(gray)
 
-    // Apply 2D DCT-II
-    const dct = []
-    for (let u = 0; u < height; u++) {
-        for (let v = 0; v < width; v++) {
-            let sum = 0
-            // for (let x = 0; x < height; x++) {
-            //     for (let y = 0; y < width; y++) {
-            //         sum +=
-            //             gray[x][y] *
-            //             Math.cos(((2 * x + 1) * u * Math.PI) / (2 * height)) *
-            //             Math.cos(((2 * y + 1) * v * Math.PI) / (2 * width))
-            //     }
-            // }
+    // 2. Precompute cosine tables
+    const PI = Math.PI
 
-            // const alphaU = u === 0 ? Math.sqrt(1 / height) : Math.sqrt(2 / height)
-            // const alphaV = v === 0 ? Math.sqrt(1 / width) : Math.sqrt(2 / width)
-            // dct.push(alphaU * alphaV * sum)
-            // console.log(alphaU, alphaV, sum)
-
-            // TODO: this absolutely does not work due to speed issues
+    // Cosine table for horizontal (X) DCT: cosX[v][x] = cos(((2x + 1) * v * PI) / (2 * width))
+    const cosX = new Array(width)
+    for (let v = 0; v < width; v++) {
+        cosX[v] = new Array(width)
+        for (let x = 0; x < width; x++) {
+            cosX[v][x] = Math.cos(((2 * x + 1) * v * PI) / (2 * width))
         }
     }
 
-    return dct // 1D array, row-major order
+    // Cosine table for vertical (Y) DCT: cosY[u][y] = cos(((2y + 1) * u * PI) / (2 * height))
+    const cosY = new Array(height)
+    for (let u = 0; u < height; u++) {
+        cosY[u] = new Array(height)
+        for (let y = 0; y < height; y++) {
+            cosY[u][y] = Math.cos(((2 * y + 1) * u * PI) / (2 * height))
+        }
+    }
+
+    // 3. Pre-compute Alpha Normalization Factors
+    const alphaWidth = new Array(width)
+    for (let v = 0; v < width; v++) {
+        alphaWidth[v] = v === 0 ? Math.sqrt(1 / width) : Math.sqrt(2 / width)
+    }
+
+    const alphaHeight = new Array(height)
+    for (let u = 0; u < height; u++) {
+        alphaHeight[u] = u === 0 ? Math.sqrt(1 / height) : Math.sqrt(2 / height)
+    }
+
+    // 4. Apply 1D DCT-II to each row (Horizontal Pass)
+    const tempRowDCT = [] // intermediate matrix after row DCTs
+    for (let r = 0; r < height; r++) {
+        // for each row
+        const newRow = new Array(width).fill(0)
+        for (let v = 0; v < width; v++) {
+            // v is the frequency component for the row
+            let sum = 0
+            for (let x = 0; x < width; x++) {
+                // x is the spatial domain index for the row
+                sum += gray[r][x] * cosX[v][x]
+            }
+            newRow[v] = sum
+        }
+        tempRowDCT.push(newRow)
+    }
+
+    // 5. Apply 1D DCT-II to each column of tempRowDCT (Vertical Pass)
+    const dctCoefficients = [] // Final 2D array for DCT coefficients
+    for (let u = 0; u < height; u++) {
+        // u is the frequency component for the column
+        dctCoefficients[u] = new Array(width) // Initialize the row for this u
+        for (let v = 0; v < width; v++) {
+            // v is the column index in tempRowDCT (and final v)
+            let sum = 0
+            for (let y = 0; y < height; y++) {
+                // y is the spatial domain index for the column (row index in tempRowDCT)
+                sum += tempRowDCT[y][v] * cosY[u][y]
+            }
+            dctCoefficients[u][v] = alphaHeight[u] * alphaWidth[v] * sum
+        }
+    }
+
+    return dctCoefficients // Returns a 2D array [height][width]
 }
 ```
 
-https://developer.download.nvidia.com/assets/cuda/files/dct8x8.pdf
+```javascript
+// @meta exec store:visualizeDctCoefficients
+/**
+ * Creates an ImageData object for visualizing DCT coefficients.
+ * This is NOT an Inverse DCT; it's a visual representation of the frequency magnitudes.
+ *
+ * @param {Array<Array<number>>} dctCoefficients - The 2D array of DCT coefficients.
+ * @param {number} width - The width of the original image (and the DCT matrix).
+ * @param {number} height - The height of the original image (and the DCT matrix).
+ * @param {boolean} useLogScale - Whether to apply a logarithmic scale for better visualization.
+ * @returns {ImageData} An ImageData object representing the DCT coefficient magnitudes.
+ */
+function visualizeDctCoefficients(dctCoefficients, width, height, useLogScale = true) {
+    // Create a new ImageData object.
+    // In a browser, you might need a canvas context to create ImageData:
+    // const canvas = document.createElement('canvas');
+    // const ctx = canvas.getContext('2d');
+    // const newImageData = ctx.createImageData(width, height);
+    // For simplicity here, we'll assume ImageData can be constructed if not in a strict browser context
+    // or that this function will be used where ctx is available to create it.
+    // Let's proceed as if we can directly make one for the logic, but note this for browser use.
+    const newImageData = new ImageData(width, height) // This works in modern browsers & Node.js with canvas lib
+    const data = newImageData.data
+
+    const tempValues = []
+    let minVal = Infinity
+    let maxVal = -Infinity
+
+    for (let u = 0; u < height; u++) {
+        const row = []
+        for (let v = 0; v < width; v++) {
+            const coeff = dctCoefficients[u][v]
+            let displayVal
+            if (useLogScale) {
+                // Log scale emphasizes smaller AC coefficients.
+                // Add 1 to handle zero coefficients before log.
+                displayVal = Math.log(1 + Math.abs(coeff))
+            } else {
+                // Linear scale of absolute magnitudes
+                displayVal = Math.abs(coeff)
+            }
+            row.push(displayVal)
+            if (displayVal < minVal) minVal = displayVal
+            if (displayVal > maxVal) maxVal = displayVal
+        }
+        tempValues.push(row)
+    }
+
+    const range = maxVal - minVal
+
+    for (let u = 0; u < height; u++) {
+        for (let v = 0; v < width; v++) {
+            let scaledValue = 0
+            const displayVal = tempValues[u][v]
+
+            if (range > 0) {
+                scaledValue = ((displayVal - minVal) / range) * 255
+            } else if (minVal > 0) {
+                // All values are the same, and non-zero
+                scaledValue = 128 // Or 255 if you prefer, or minVal if it's already 0-255
+            }
+            // scaledValue is already 0 if range is 0 and minVal is 0
+
+            scaledValue = Math.max(0, Math.min(255, scaledValue)) // Clamp to 0-255
+
+            const i = (u * width + v) * 4
+            data[i] = scaledValue // Red
+            data[i + 1] = scaledValue // Green
+            data[i + 2] = scaledValue // Blue
+            data[i + 3] = 255 // Alpha (fully opaque)
+        }
+    }
+    return newImageData
+}
+```
+
+Results of the DCT:
+
+<Canvas id="dct_results" width={480} height={480} />
 
 ```javascript
-// @meta exec load:loadImageData load:dct
-// console.log(dct(imageData))
+// @meta exec load:loadImageData load:dct load:visualizeDctCoefficients
+const dctResultsCanvas = document.getElementById('dct_results')
+const ctxDctResults = dctResultsCanvas.getContext('2d')
 
 loadImageData('/images/_notes/jpeg/mad_cat.jpg', (imageData) => {
-    const dctData = dct(imageData)
-    console.log(dctData)
+    console.time('DCT Optimized')
+    const dctResult = dctOptimizedWithPrecomputation(imageData)
+    console.timeEnd('DCT Optimized')
+
+    console.log("DCT Coefficients (first few rows/cols of first block if it's block-based):")
+    for (let i = 0; i < Math.min(5, dctResult.length); i++) {
+        console.log(
+            dctResult[i].slice(0, Math.min(5, dctResult[0] ? dctResult[0].length : 0)).map((val) => val.toFixed(2))
+        )
+    }
+
+    // Visualize DCT coefficients
+    const canvasWidth = dctResultsCanvas.width
+    const canvasHeight = dctResultsCanvas.height
+    const dctImageData = visualizeDctCoefficients(dctResult, canvasWidth, canvasHeight, true)
+
+    ctxDctResults.putImageData(dctImageData, 0, 0)
 })
 ```
 
-```glsl
-// Forward DCT (FDCT) Compute Shader for TouchDesigner
-// Scales input from [0,1] to an effective [-128, 127] range before DCT.
-// Outputs DCT coefficients with magnitudes suitable for standard quantization matrices.
-
-// Workgroup size matches 8x8 DCT block
-layout(local_size_x = 8, local_size_y = 8) in;
-
-// Input: sTD2DInputs[0] is the source image texture (e.g., grayscale, values 0.0 to 1.0).
-// Output: mTDComputeOutputs[0] is the texture where the DCT coefficients will be written.
-
-// Precomputed cosine coefficients
-const float COS[8][8] =
-    float[8][8](float[8](0.3535534, 0.4903926, 0.4619398, 0.4157348, 0.3535534, 0.2777851, 0.1913417, 0.0975451),
-                float[8](0.3535534, 0.4157348, 0.1913417, -0.0975451, -0.3535534, -0.4903926, -0.4619398, -0.2777851),
-                float[8](0.3535534, 0.2777851, -0.1913417, -0.4903926, -0.3535534, 0.0975451, 0.4619398, 0.4157348),
-                float[8](0.3535534, 0.0975451, -0.4619398, -0.2777851, 0.3535534, 0.4157348, -0.1913417, -0.4903926),
-                float[8](0.3535534, -0.0975451, -0.4619398, 0.2777851, 0.3535534, -0.4157348, -0.1913417, 0.4903926),
-                float[8](0.3535534, -0.2777851, -0.1913417, 0.4903926, -0.3535534, -0.0975451, 0.4619398, -0.4157348),
-                float[8](0.3535534, -0.4157348, 0.1913417, 0.0975451, -0.3535534, 0.4903926, -0.4619398, 0.2777851),
-                float[8](0.3535534, -0.4903926, 0.4619398, -0.4157348, 0.3535534, -0.2777851, 0.1913417, -0.0975451));
-
-// Shared memory buffers for DCT processing
-shared float block[8][8]; // Stores the scaled and level-shifted input pixel data
-shared float temp[8][8];  // Stores intermediate results after row-wise DCT
-
-void main() {
-    ivec2 gid = ivec2(gl_GlobalInvocationID.xy); // Global pixel ID
-    ivec2 lid = ivec2(gl_LocalInvocationID.xy);  // Local (thread) ID in 8x8 block
-
-    // 1. Load pixel from input and scale for JPEG-like processing
-    vec4 pixel_raw           = texelFetch(sTD2DInputs[0], gid, 0);
-    float pixel_value_0_1    = pixel_raw.r;
-    float scaled_pixel_value = (pixel_value_0_1 * 255.0) - 128.0;
-
-    // Correct loading: block[row_idx][col_idx] using local invocation IDs
-    block[lid.y][lid.x] = scaled_pixel_value;
-
-    // Ensure all threads have loaded and scaled their data into shared memory
-    // Threads need to read from their neighbors
-    barrier();
-
-    // 2. First pass: Row-wise DCT
-    float rowSum = 0.0;
-    for (int n = 0; n < 8; ++n) {
-        rowSum += block[lid.y][n] * COS[n][lid.x];
-    }
-    temp[lid.y][lid.x] = rowSum;
-
-    // Synchronize after row transform
-    barrier();
-
-    // Column-wise DCT
-    float colSum = 0.0;
-    for (int m = 0; m < 8; ++m) {
-        colSum += temp[m][lid.x] * COS[m][lid.y];
-    }
-
-    float result = colSum;
-
-    // These coefficients will now have a larger range, e.g., DC term can be around -1024 to 1016.
-    imageStore(mTDComputeOutputs[0], gid, vec4(result));
-}
-```
-
 ### 4: Quantize (lossy part)
+
+Most images shot by camera don't contain high frequency changes. Also, our vision is less sensitive to it. Let's remove high frequency changes to save some space.
 
 How are quantization tables made?
 
@@ -450,3 +539,4 @@ How are quantization tables made?
 -   [Computerphile](https://www.youtube.com/watch?v=n_uNPbdenRs)
 -   [The Unreasonable Effectiveness of JPEG](https://www.youtube.com/watch?v=0me3guauqOU)
 -   [How JPEG works](https://cgjennings.ca/articles/jpeg-compression/)
+-   [DCT8x8 on the GPU](https://developer.download.nvidia.com/assets/cuda/files/dct8x8.pdf)
