@@ -6,6 +6,7 @@ import Image from 'next/image'
 import React from 'react'
 import rehypeKatex from 'rehype-katex'
 import rehypeMath from 'rehype-math'
+import remarkMath from 'remark-math'
 
 /*
 function Table({ data }) {
@@ -180,7 +181,7 @@ export function CustomMDX(props) {
             components={{ ...components, ...(props.components || {}) }}
             options={{
                 mdxOptions: {
-                    remarkPlugins: [],
+                    remarkPlugins: [remarkMath],
                     rehypePlugins: [rehypeMath, rehypeKatex],
                 },
             }}
