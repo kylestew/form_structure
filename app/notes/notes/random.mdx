@@ -21,6 +21,7 @@ class Walker {
     step() {
         let choice = Math.floor(Math.random() * 4)
         // 0, 1, 2, or 3. The random choice determines the step.
+        // TODO: define 8 possible directions (include diagonals)
 
         if (choice === 0) {
             this.x++
@@ -64,6 +65,13 @@ function animate() {
 
 animate()
 ```
+
+### Further Exploration
+
+-   Biased random walks
+-   Random walks in higher dimensions
+-   Random walks with missing directions
+-   Create a random walker that has a greater tendency to move down and to the right. (A partial solution follows in the next section.)
 
 ### Resources
 
