@@ -181,8 +181,9 @@ export function CustomMDX(props) {
             components={{ ...components, ...(props.components || {}) }}
             options={{
                 mdxOptions: {
-                    remarkPlugins: [remarkMath],
-                    rehypePlugins: [rehypeMath, rehypeKatex],
+                    // TODO: these break my other scripts
+                    // remarkPlugins: [remarkMath],
+                    // rehypePlugins: [rehypeMath, rehypeKatex],
                 },
             }}
         />
