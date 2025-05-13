@@ -14,6 +14,7 @@ function createUnitCanvas(id) {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
     // unitize canvas
+    ctx.setTransform(1, 0, 0, 1, 0, 0) // reset transform - this gets called over and over so we need to go back to baseline
     ctx.scale(canvas.width, canvas.height)
     const ptSize = 2.0 / canvas.width
 
@@ -85,9 +86,12 @@ function uniform(min = 0, max = 1) {
 // const pts = Array.from({ length: 1000 }, () => [uniform(), uniform()])
 ```
 
-```js
+```javascript
 // @meta exec load:utils load:uniform
 const { ctx, ptSize } = createUnitCanvas('example01')
+
+// Draw a single point in the center of the canvas
+// drawPoint(ctx, [0.5, 0.5], 0.1)
 
 const pts = Array.from({ length: 1000 }, () => [uniform(), uniform()])
 drawPoints(ctx, pts, ptSize)
@@ -97,11 +101,13 @@ drawPoints(ctx, pts, ptSize)
 
 <Canvas id="example02" height={300} width={300} />
 
-_subtitle: Gaussian distribution - mean: 0.5, stdDev: 0.15_
+_Gaussian distribution - mean: 0.5, stdDev: 0.15_
 
 Also known as the normal distribution or "bell curve", Gaussian distributions cluster values around a mean (center) value, with decreasing probability as you move away from the mean. The spread of values is controlled by the standard deviation.
 
 Gaussian distributions are extremely common in nature and statistics. They're useful for creating natural-looking clusters, organic patterns, and modeling real-world variation. The central limit theorem states that many random processes tend toward a Gaussian distribution.
+
+In a Gaussian distribution, about 68% of values lie within one standard deviation of the mean, 95% within two, and 99.7% within three — a property known as the empirical rule.
 
 ```js
 // @meta store:gaussian

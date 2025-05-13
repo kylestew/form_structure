@@ -1,0 +1,380 @@
+---
+title: 'Fluid Simulations'
+summary: 'A simple fluid simulation using the Navier-Stokes equations'
+image: fluid-sim.png
+---
+
+```javascript
+// @meta store:fluid
+class Fluid {
+    /**
+     * The simulation uses a grid-based approach where each cell contains density and velocity values.
+     *
+     * @property {number} size - The size of one dimension of the square grid
+     * @property {number} dt - The timestep length for the simulation
+     * @property {number} diff - The diffusion rate controlling how fast quantities spread
+     * @property {number} visc - The viscosity controlling the thickness/resistance of the fluid
+     * @property {Float32Array} s - Scratch space array for calculations
+     * @property {Float32Array} density - Array storing density values for each cell
+     * @property {Float32Array} Vx - Array storing x-component velocities
+     * @property {Float32Array} Vy - Array storing y-component velocities
+     * @property {Float32Array} Vx0 - Scratch array for x-velocities
+     * @property {Float32Array} Vy0 - Scratch array for y-velocities
+     */
+    constructor(size, dt, diffusionRate, viscocity) {
+        this.size = size
+        this.dt = dt
+        this.diff = diffusionRate
+        this.visc = viscocity
+
+        const totalCells = size * size
+
+        // TODO: this could be boundaries / obstacles
+        // this.s = new Float32Array(totalCells).fill(0) // scratch space
+
+        this.density = new Float32Array(totalCells).fill(0)
+
+        this.Vx = new Float32Array(totalCells).fill(0)
+        this.Vy = new Float32Array(totalCells).fill(0)
+
+        this.Vx0 = new Float32Array(totalCells).fill(0)
+        this.Vy0 = new Float32Array(totalCells).fill(0)
+    }
+
+    /**
+     * Converts 2D coordinates to a 1D array index.
+     *
+     * @param {number} x - The x coordinate in the grid
+     * @param {number} y - The y coordinate in the grid
+     * @param {number} N - The size of one dimension of the grid
+     * @returns {number} The 1D array index
+     */
+    IX(x, y) {
+        return x + y * this.size
+    }
+
+    /**
+     * Adds density to a specific cell in the fluid grid.
+     *
+     * @param {number} x - The x coordinate of the cell
+     * @param {number} y - The y coordinate of the cell
+     * @param {number} amount - The amount of density to add
+     */
+    addDensity(x, y, amount) {
+        this.density[this.IX(x, y)] += amount
+    }
+
+    /**
+     * Adds velocity components to a specific cell in the fluid grid.
+     *
+     * @param {number} x - The x coordinate of the cell
+     * @param {number} y - The y coordinate of the cell
+     * @param {number} dvX - The x component of velocity to add
+     * @param {number} dvY - The y component of velocity to add
+     */
+    addVelocity(x, y, dvX, dvY) {
+        let idx = this.IX(x, y)
+        this.Vx[idx] += dvX
+        this.Vy[idx] += dvY
+    }
+
+    /**
+     * Diffuses a quantity over a 2D grid using an iterative solver.
+     *
+     * @param {number} b - Boundary condition type.
+     * @param {Float32Array} x - The quantity to be diffused (output array).
+     * @param {Float32Array} x0 - The initial quantity values (input array).
+     * @param {number} diff - Diffusion rate.
+     * @param {number} dt - Time step.
+     * @param {number} iter - Number of solver iterations.
+     * @param {number} N - Grid size in one dimension.
+     */
+    diffuse(b, x, x0, diff, dt, iter, N) {
+        const a = dt * diff * (N - 2) * (N - 2)
+        linSolve(b, x, x0, a, 1 + 4 * a, iter, N)
+    }
+
+    /**
+     * Projects the velocity field to make it incompressible using the Helmholtz-Hodge decomposition.
+     * This ensures mass conservation in the fluid simulation by removing divergent components.
+     *
+     * @param {Float32Array} velocX - The x-component velocity field to project
+     * @param {Float32Array} velocY - The y-component velocity field to project
+     * @param {Float32Array} p - Temporary array for pressure values
+     * @param {Float32Array} div - Temporary array for divergence values
+     * @param {number} iter - Number of iterations for the pressure solver
+     * @param {number} N - Grid size in one dimension
+     */
+    project(velocX, velocY, p, div, iter, N) {
+        for (let j = 1; j < N - 1; j++) {
+            for (let i = 1; i < N - 1; i++) {
+                div[this.IX(i, j)] =
+                    (-0.5 *
+                        (velocX[this.IX(i + 1, j)] -
+                            velocX[this.IX(i - 1, j)] +
+                            velocY[this.IX(i, j + 1)] -
+                            velocY[this.IX(i, j - 1)])) /
+                    N
+                p[this.IX(i, j)] = 0
+            }
+        }
+        setBnd(0, div, N)
+        setBnd(0, p, N)
+        linSolve(0, p, div, 1, 4, iter, N)
+
+        for (let j = 1; j < N - 1; j++) {
+            for (let i = 1; i < N - 1; i++) {
+                velocX[this.IX(i, j)] -= 0.5 * (p[this.IX(i + 1, j)] - p[this.IX(i - 1, j)]) * N
+                velocY[this.IX(i, j)] -= 0.5 * (p[this.IX(i, j + 1)] - p[this.IX(i, j - 1)]) * N
+            }
+        }
+        setBnd(1, velocX, N)
+        setBnd(2, velocY, N)
+    }
+
+    /**
+     * Advects a quantity through the velocity field using semi-Lagrangian advection.
+     * This method traces particles backwards through the velocity field to determine
+     * where quantities should move.
+     *
+     * @param {number} b - Boundary condition type
+     * @param {Float32Array} d - The quantity being advected (output array)
+     * @param {Float32Array} d0 - The initial quantity values (input array)
+     * @param {Float32Array} velocX - X component of velocity field
+     * @param {Float32Array} velocY - Y component of velocity field
+     * @param {number} dt - Time step
+     * @param {number} N - Grid size in one dimension
+     */
+    advect(b, d, d0, velocX, velocY, dt, N) {
+        let dtx = dt * (N - 2)
+        let dty = dt * (N - 2)
+
+        for (let j = 1; j < N - 1; j++) {
+            for (let i = 1; i < N - 1; i++) {
+                let x = i - dtx * velocX[this.IX(i, j)]
+                let y = j - dty * velocY[this.IX(i, j)]
+
+                x = Math.max(0.5, Math.min(N - 1.5, x))
+                y = Math.max(0.5, Math.min(N - 1.5, y))
+
+                let i0 = Math.floor(x)
+                let i1 = i0 + 1
+                let j0 = Math.floor(y)
+                let j1 = j0 + 1
+
+                let s1 = x - i0,
+                    s0 = 1 - s1
+                let t1 = y - j0,
+                    t0 = 1 - t1
+
+                d[this.IX(i, j)] =
+                    s0 * (t0 * d0[this.IX(i0, j0)] + t1 * d0[this.IX(i0, j1)]) +
+                    s1 * (t0 * d0[this.IX(i1, j0)] + t1 * d0[this.IX(i1, j1)])
+            }
+        }
+        setBnd(b, d, N)
+    }
+
+    fadeDensity(factor) {
+        for (let i = 0; i < this.density.length; i++) {
+            this.density[i] *= factor
+            this.density[i] = Math.max(0, Math.min(255, this.density[i]))
+        }
+    }
+
+    step() {
+        const dt = this.dt
+        const visc = this.visc
+        const N = this.size
+
+        // 1) Diffuse velocities (based on timestep and viscosity)
+        this.diffuse(1, this.Vx0, this.Vx, visc, dt, 4, N)
+        this.diffuse(2, this.Vy0, this.Vy, visc, dt, 4, N)
+
+        // 2) Project velocities to keep them incompressible
+        this.project(this.Vx0, this.Vy0, this.Vx, this.Vy, 4, N)
+
+        // 3) Advect velocities - use the correct velocity fields
+        this.advect(1, this.Vx, this.Vx0, this.Vx0, this.Vy0, dt, N)
+        this.advect(2, this.Vy, this.Vy0, this.Vx0, this.Vy0, dt, N)
+
+        // 4) Re-project the velocities again
+        this.project(this.Vx, this.Vy, this.Vx0, this.Vy0, 4, N)
+
+        // 5) Diffuse the dye
+        this.diffuse(0, this.s, this.density, this.diff, dt, 4, N)
+
+        // 6) Move the dye according to the velocities
+        this.advect(0, this.density, this.s, this.Vx, this.Vy, dt, N)
+    }
+}
+```
+
+[Working Source Code](https://github.com/kylestew/nothing/blob/ether/2025-1/fluid_sim/sketch.js)
+
+"The key to fluid simulation is to take steps in time and, at each time step, correctly determine the current velocity field. We can do this by solving a set of equations that describes the evolution of the velocity field over time, under a variety of forces. Once we have the velocity field, we can do interesting things with it, such as using it to move objects, smoke densities, and other quantities that can be displayed in our application."
+
+We're going to implement a grid-based fluid simulation. Both velocity and density are assumed to be constant within a given cell. We store the velocity and density arrays, including a previous array for processing at each time step. An extra layer of cells is added around the grid to simplify boundary conditions (where N + 2 comes from).
+
+The grid must be square - a simplification we've chosen. We are using a staggered grid as dicussed [here](https://www.youtube.com/watch?v=iKAVRgIrUOU&t=211s)
+
+```javascript
+// @meta store:data
+const N = 64 // N is the number of cells for a side of our square grid
+const size = (N + 2) * (N + 2) // add padding for boundary conditions
+
+const u = new Float32Array(size) // velocity in the x direction
+const v = new Float32Array(size) // velocity in the y direction
+const uN = new Float32Array(size) // temp velocity in the x direction
+const vN = new Float32Array(size) // temp velocity in the y direction
+
+// walls or obstacles [1.0 - fluid, 0.0 - solid]
+const s = new Float32Array(size)
+
+const p = new Float32Array(size) // pressure field
+const m = new Float32Array(size) // smoke field
+const mN = new Float32Array(size) // temp smoke field
+m.fill(1.0)
+
+function IX(i, j) {
+    return i + j * (N + 2) // padding boundary condition
+}
+```
+
+## The Process
+
+![641equ01](/images/_notes/fluid/641equ01.jpg)
+
+(TODO: describe and understand which part of the equation does what)
+
+Our simulation is a snapshot of the velocity and density grids after repeatedly resolving the three terms over each time step:
+
+1. Integration - Update the velocity field (e.g. external forces, gravity, etc.)
+2. Projection - Make the fluid incompressible (second Navier-Stokes equation)
+3. Advection - Density (or smoke, etc) follows the velocity field (so does velocity)
+
+X. Diffusion - Diffuse the density field (TODO: is this different than vector projection?)
+
+## Implementation
+
+### 1. Integration - Update Velocity Field
+
+Simple: loop through all the grid cells and apply gravity to the y velocity.
+
+```javascript
+// @meta store:integrate
+function integrate(dt, gravity) {
+    for (var i = 1; i < N; i++) {
+        for (var j = 1; j < N; j++) {
+            if (s[IX(i, j)] != 0.0 && s[IX(i, j - 1)] != 0.0)
+                // if we aren't a wall or obstacle
+                // only gravity is applied, so only the y velocity (array v) is affected
+                v[IX(i, j)] += gravity * dt
+        }
+    }
+}
+```
+
+### 2. Projection - Solving for Incompressibility
+
+1. Calculate the divergence of the velocity field.
+
+```psuedocode
+for all i,j
+    div <- vi,j+1 - vi,j-1 + vi+1,j - vi-1,j
+```
+
+2. Subtract the divergence from each velocity component.
+
+```psuedocode
+ui,j   <- ui,j   + div/4
+ui+1,j <- ui+1,j - div/4
+vi,j   <- vi,j   + div/4
+vi,j+1 <- vi,j+1 - div/4
+```
+
+Also, need to handle the boundary conditions and obstacles.
+
+gauss-seidel method
+ADD BORDER CELLS (not implemented)
+Simple to implement - review paper
+However needs multiple iterations to converge
+Can speed up with overrelaxation (don't bother yet)
+
+```javascript
+function solveIncompressibility(numIters, dt) {
+    for (let iter = 0; iter < numIters; iter++) {
+        for (let i = 1; i < N; i++) {
+            for (let j = 1; j < N; j++) {
+                // TODO: this isn't fully implemented
+
+                // calculate the divergence
+                const div = u[IX(i + 1, j)] - u[IX(i, j)] + v[IX(i, j + 1)] - v[IX(i, j)]
+
+                // subtract the divergence from each velocity component
+                u[IX(i, j)] += div / 4
+                u[IX(i + 1, j)] -= div / 4
+                v[IX(i, j)] += div / 4
+                v[IX(i, j + 1)] -= div / 4
+            }
+        }
+    }
+}
+```
+
+### 3. Advection - Density follows the velocity field
+
+Since we are using a grid based simulation, we need to move the velocity fields inside our grid.
+
+We work backwards from the velocity field to find out where the velocity is coming from.
+???
+
+## Simulation Step
+
+```javascript
+// @meta store:simulation_step
+
+function simulate(dt, gravity, substeps) {
+    integrate(dt, gravity)
+
+    // clear pressure
+    // solveIncompressibility(numIters, dt)
+
+    // extrapolate()
+}
+```
+
+## Example
+
+<Canvas id="example01" width={640} height={640} />
+
+```javascript
+// @meta exec load:data load:integrate load:simulation_step
+const canvas = document.getElementById('example01')
+const ctx = canvas.getContext('2d')
+
+const dt = 1.0 / 60.0
+const substeps = 40
+// const gravity = -9.81
+const gravity = 0 // painting mode
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    ctx.fillStyle = '#FF0000'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+}
+
+function update() {
+    simulate(dt, gravity, substeps)
+    draw()
+    // requestAnimationFrame(update)
+}
+update()
+```
+
+### References
+
+-   [Real-Time Fluid Dynamics for Games](https://www.dgp.toronto.edu/public_user/stam/reality/Research/pdf/GDC03.pdf)
+-   [How to write an Eulerian fluid simulator with 200 lines of code](https://www.youtube.com/watch?v=iKAVRgIrUOU)
+-   [Fast Fluid Dynamics Simulation on the GPU](https://developer.nvidia.com/gpugems/gpugems/part-vi-beyond-triangles/chapter-38-fast-fluid-dynamics-simulation-gpu)

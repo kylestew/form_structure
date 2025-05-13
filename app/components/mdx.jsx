@@ -4,6 +4,9 @@ import ClientScript from './ClientScript'
 import Link from 'next/link'
 import Image from 'next/image'
 import React from 'react'
+import rehypeKatex from 'rehype-katex'
+import rehypeMath from 'rehype-math'
+import remarkMath from 'remark-math'
 
 /*
 function Table({ data }) {
@@ -141,7 +144,15 @@ function Code({ children, ...props }) {
 }
 
 function Canvas({ id = 'myCanvas', width = 480, height = 480 }) {
-    return <canvas id={id} width={width} height={height} className="border border-black-200" />
+    return (
+        <canvas
+            id={id}
+            width={width}
+            height={height}
+            className="border border-black-200"
+            style={{ width: `${width}px`, height: `${height}px` }}
+        />
+    )
 }
 
 const components = {
@@ -164,5 +175,17 @@ const components = {
 }
 
 export function CustomMDX(props) {
-    return <MDXRemote {...props} components={{ ...components, ...(props.components || {}) }} />
+    return (
+        <MDXRemote
+            {...props}
+            components={{ ...components, ...(props.components || {}) }}
+            options={{
+                mdxOptions: {
+                    // TODO: these break my other scripts
+                    // remarkPlugins: [remarkMath],
+                    // rehypePlugins: [rehypeMath, rehypeKatex],
+                },
+            }}
+        />
+    )
 }

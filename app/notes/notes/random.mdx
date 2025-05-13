@@ -1,0 +1,78 @@
+---
+title: 'Random'
+summary: 'The core of generative art.'
+image: random.png
+---
+
+## Random Walks
+
+<Canvas id="walker" width={480} height={480} />
+
+In Code:
+
+```javascript
+// @meta store:walker
+class Walker {
+    constructor(x, y) {
+        this.x = x
+        this.y = y
+    }
+
+    step() {
+        let choice = Math.floor(Math.random() * 4)
+        // 0, 1, 2, or 3. The random choice determines the step.
+        // TODO: define 8 possible directions (include diagonals)
+
+        if (choice === 0) {
+            this.x++
+        } else if (choice === 1) {
+            this.x--
+        } else if (choice === 2) {
+            this.y++
+        } else {
+            this.y--
+        }
+    }
+
+    draw(ctx, size = 10) {
+        ctx.beginPath()
+        ctx.arc(this.x, this.y, size, 0, Math.PI * 2)
+        ctx.fill()
+    }
+}
+```
+
+```javascript
+// @meta exec load:walker
+const canvas = document.getElementById('walker')
+const ctx = canvas.getContext('2d')
+
+// clear canvas with white background
+ctx.fillStyle = 'white'
+ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+// set fill style back to black for walker
+ctx.fillStyle = 'black'
+
+// start the walker in the center of the canvas
+const walker = new Walker(240, 240)
+
+function animate() {
+    walker.draw(ctx, 1)
+    walker.step()
+    requestAnimationFrame(animate)
+}
+
+animate()
+```
+
+### Further Exploration
+
+-   Biased random walks
+-   Random walks in higher dimensions
+-   Random walks with missing directions
+-   Create a random walker that has a greater tendency to move down and to the right. (A partial solution follows in the next section.)
+
+### Resources
+
+-   [Random - The Nature of Code](https://natureofcode.com/random/)
