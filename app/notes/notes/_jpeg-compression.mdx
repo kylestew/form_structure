@@ -12,10 +12,59 @@ _I'm struggling to do this in JS, but its super easy in Python!_
 
 ---
 
+## A Note About Entropy in Data
+
+In the context of **data**, **entropy** is a measure of **uncertainty**, **randomness**, or **information content**.
+
+### 1. **Information Theory (Shannon Entropy)**
+
+In information theory, entropy (denoted **H**) quantifies how much **information is contained in a message** or dataset — or how **unpredictable** the data is.
+
+#### Formal definition:
+
+For a discrete random variable $X$ with possible outcomes $x_1, x_2, ..., x_n$ and probability $P(x_i)$, the **Shannon entropy** is:
+
+$$
+H(X) = -\sum_{i=1}^n P(x_i) \log_2 P(x_i)
+$$
+
+-   High entropy → Data is more **random** or **surprising** (e.g., raw noise).
+-   Low entropy → Data is more **predictable** or **structured** (e.g., a file full of zeros).
+
+#### Example:
+
+-   A fair coin toss (50/50): high entropy (you can’t guess the outcome easily).
+-   A biased coin that always lands heads: zero entropy (you always know the outcome).
+
+---
+
+### 2. **Data Compression**
+
+Entropy gives a **lower bound** on how much you can **compress** data:
+
+-   If a dataset has **high entropy**, it contains more **unique information**, and can't be compressed much.
+-   If it has **low entropy**, it has **redundancy**, and can be compressed effectively.
+
+**JPEG**, **ZIP**, and other compression formats rely on **reducing entropy** by removing patterns or repetitions.
+
+---
+
+### 3. **Entropy in Data Corruption or Degradation**
+
+When data **loses structure** (e.g., through corruption, noise, or glitching), entropy tends to **increase**, since the data becomes more random or less ordered.
+
+This is relevant in your exploration of "structured erosion" of media—entropy can describe how **order decays** over time.
+
+---
+
+Would you like a small Python example showing how to compute entropy on an image or dataset?
+
+---
+
 # Attempt in Javascript...
 
 ```javascript
-// @meta exec store:loadImageData
+// @meta store:loadImageData
 function loadImageData(imagePath, callback) {
     const img = new Image()
     img.src = imagePath
@@ -103,7 +152,7 @@ function convertToYCbCr(imageData) {
 ```
 
 ```javascript
-// @meta exec store:convertToRGB
+// @meta store:convertToRGB
 function convertToRGB(yData, cbData, crData) {
     // Create single RGB ImageData object
     const rgbData = new ImageData(yData.width, yData.height)
@@ -130,7 +179,7 @@ function convertToRGB(yData, cbData, crData) {
 ```
 
 ```javascript
-// @meta exec load:loadImageData load:convertToYCbCr
+// @meta load:loadImageData load:convertToYCbCr
 const originalImageCanvas = document.getElementById('originalImageCanvas')
 const yCanvas = document.getElementById('yCanvas')
 const cbCanvas = document.getElementById('cbCanvas')
@@ -201,7 +250,7 @@ function downsample(imageData) {
 ```
 
 ```javascript
-// @meta exec store:upsample
+// @meta store:upsample
 function upsample(imageData) {
     const upsampleFactor = 4
     const originalWidth = imageData.width
@@ -258,7 +307,7 @@ Recombined Image After Downsampling (split with original for comparison)
 I can't tell the difference between the original and the recombined image, can you?
 
 ```javascript
-// @meta exec load:loadImageData load:convertToYCbCr load:downsample load:convertToRGB load:upsample
+// @meta load:loadImageData load:convertToYCbCr load:downsample load:convertToRGB load:upsample
 const cbDownsampledCanvas = document.getElementById('cbDownsampled')
 const crDownsampledCanvas = document.getElementById('crDownsampled')
 const ctxCbDownsampled = cbDownsampledCanvas.getContext('2d')
@@ -414,7 +463,7 @@ function dctOptimizedWithPrecomputation(imageData) {
 ```
 
 ```javascript
-// @meta exec store:visualizeDctCoefficients
+// @meta store:visualizeDctCoefficients
 /**
  * Creates an ImageData object for visualizing DCT coefficients.
  * This is NOT an Inverse DCT; it's a visual representation of the frequency magnitudes.
@@ -494,7 +543,7 @@ Results of the DCT:
 <Canvas id="dct_results" width={480} height={480} />
 
 ```javascript
-// @meta exec load:loadImageData load:dct load:visualizeDctCoefficients
+// @meta load:loadImageData load:dct load:visualizeDctCoefficients
 const dctResultsCanvas = document.getElementById('dct_results')
 const ctxDctResults = dctResultsCanvas.getContext('2d')
 
