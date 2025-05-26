@@ -143,15 +143,18 @@ function Code({ children, ...props }) {
     return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
 }
 
-function Canvas({ id = 'myCanvas', width = 480, height = 480 }) {
+function Canvas({ id = 'myCanvas', width = 480, height = 480, subtitle }) {
     return (
-        <canvas
-            id={id}
-            width={width}
-            height={height}
-            className="border border-black-200"
-            style={{ width: `${width}px`, height: `${height}px` }}
-        />
+        <div className="flex flex-col">
+            <canvas
+                id={id}
+                width={width}
+                height={height}
+                className="border border-black-200 my-4"
+                style={{ width: `${width}px`, height: `${height}px` }}
+            />
+            {subtitle && <div className="text-sm text-neutral-600 italic mb-4">{subtitle}</div>}
+        </div>
     )
 }
 
@@ -182,8 +185,8 @@ export function CustomMDX(props) {
             options={{
                 mdxOptions: {
                     // TODO: these break my other scripts
-                    // remarkPlugins: [remarkMath],
-                    // rehypePlugins: [rehypeMath, rehypeKatex],
+                    remarkPlugins: [remarkMath],
+                    rehypePlugins: [rehypeMath, rehypeKatex],
                 },
             }}
         />

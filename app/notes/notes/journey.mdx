@@ -1,0 +1,119 @@
+---
+title: 'Computing Journey'
+summary: 'Notes and rememberances from my introduction to computing'
+image: journey.png
+---
+
+Computers used to be so exciting.
+
+Below is an ongoing attempt to record my experience with early computing. I sometimes forget that I had a unique journey given the time that I started interacting with computers.
+
+## Rendering & Display
+
+-   [Color quantization](./quantization) - Reducing color depth for displaying images with limited colors.
+-   [Dithering algorithms](https://colab.research.google.com/drive/1F0J3IWL6xsgn8qVYHk1XCykpzVNiOpb1?usp=sharing) – Floyd-Steinberg, Bayer matrices, ordered dithering (you've started this one).
+-   Scanline rendering – Simple technique for filling polygons or images line-by-line.
+-   Blitting – Copying image buffers efficiently (used in games and early UIs).
+-   Sprites and Tilemaps - Essentail in 2D game engines for memory and efficiency.
+-   Palette cycling – Used to animate water, fire, or gradients without redrawing.
+-   Halftone
+
+## Image & Compression Algorithms
+
+-   [JPEG](https://colab.research.google.com/drive/1XuRsUmFmAJ2lEuvaJp4W58M9FYUzW5hT?usp=drive_link) – DCT, quantization, zig-zag, Huffman coding.
+-   GIF – LZW compression, palette limitations, transparency.
+-   PNG – Lossless compression using DEFLATE, Paeth predictor, and alpha channel.
+-   BMP – Simpler, raw representation, but worth comparing for how uncompressed formats work.
+-   TIFF – A deep rabbit hole: optional compression, metadata, used in scanners and high-end imaging.
+-   MPEG-1 – Compression via motion estimation, DCT, keyframes (used in Video CDs).
+-   [Fractal Compression](https://en.wikipedia.org/wiki/Fractal_compression#:~:text=An%20inherent%20feature%20of%20fractal,known%20as%20%22fractal%20scaling%22.)
+
+## Color Spaces
+
+-   YUV / YCbCr – Used in video compression.
+-   Indexed color – Key for early image formats (GIF, PCX).
+-   sRGB
+-   CEILAB
+-   https://observablehq.com/@mbostock/cosine-color-schemes?collection=@mbostock/color
+-   https://observablehq.com/@mbostock/lab-and-rgb
+
+## Random Number Generators (RNGs)
+
+-   Linear Congruential Generator (LCG)
+-   Mersenne Twister
+-   Xorshift
+-   PCG
+-   Middle Square Method – A charmingly flawed early PRNG (not good, but historical).
+
+## Algorithms & Math Fun
+
+-   Bresenham’s line/circle algorithm – Low-level pixel plotting before antialiasing.
+-   Flood fill – Used in MS Paint and old drawing programs.
+-   Z-buffering (early 3D) – A key idea before GPUs could handle it in hardware.
+-   Painter’s algorithm - Sort polygons back-to-front and draw them in that order. Simple and intuitive, but can fail with overlapping geometry.
+-   Scanline polygon fill - Used to efficiently fill concave or complex polygons. A key step in early software rasterizers before GPUs.
+-   Binary Space Partitioning (BSP trees) - Used heavily in DOOM and Quake to efficiently render indoor 3D spaces by splitting the world into convex regions.
+-   Backface culling - Don’t render triangles whose normals face away from the camera. Greatly improves speed and clarity in 3D scenes.
+-   Raycasting (2.5D) - Used in Wolfenstein 3D. Instead of full 3D, it shoots rays from the player’s view and finds wall hits on a 2D map, simulating depth.
+-   Ray–box and ray–triangle intersection - Core to early 3D picking, selection, and collision detection. Often used in editors or ray-traced previews.
+-   Digital Differential Analyzer (DDA) line algorithm - A floating-point alternative to Bresenham; simpler to implement but slower. Useful for raycasting and grid traversal.
+-   Barycentric coordinates - Used for point-in-triangle tests and interpolating vertex attributes (colors, UVs) inside a triangle.
+-   A and Dijkstra’s algorithm\* - Used for AI pathfinding in grid-based games (e.g., tile-based RPGs and RTS games).
+-   Marching squares / marching cubes - For contouring bitmap data (used in terrain, fluid, and volume visualization). Marching squares was popular in 2D terrain games.
+-   Perlin noise / Value noise - Used for natural textures and terrain generation in early procedural graphics.
+-   FFT / DCT
+
+## Text & Data
+
+-   [Run-Length Encoding (RLE)](https://colab.research.google.com/drive/1ZN6VC7Q509JBAfMW9k4EHm7n4RYSUlP7?usp=sharing) – Simple but effective for fonts, bitmaps, and cursor icons.
+-   Huffman Coding – Foundational to many compression schemes (ZIP, JPEG).
+-   Dictionary compression – Like LZ77, LZ78, basis of ZIP and GIF.
+-   ASCII / ANSI art – Not compression per se, but early ways of representing visual data in limited media.
+
+## Display Technology
+
+-   VGA
+-   EGA
+-   Mode 13h (320×200 256-color mode) – Used in DOS game graphics.
+-   Text mode graphics – ANSI art, code page 437, “code graphics” via box-drawing characters.
+
+## Systems / Storage / Misc
+
+-   Filesystem structures – FAT16/FAT32 layout, cluster mapping.
+-   Checksum algorithms – CRC32 (used in ZIP, PNG), Adler-32 (used in zlib).
+-   Sound encoding – WAV PCM encoding, MIDI file structure, MP3 psychoacoustic compression.
+
+## Programming & Dev Tools (Old-School)
+
+-   Turbo Pascal / Turbo C – Blazingly fast compilers with tiny IDEs, great for learning.
+-   Borland Delphi – Object Pascal IDE for Windows GUI apps, ahead of its time.
+-   Borland C++
+-   Visual Basic 6 – Let a generation of kids and sysadmins build real GUI apps.
+-   WATCOM C++ – Used to build DOOM and other legendary games.
+-   Assembly (MASM/TASM) – For those who dipped into the BIOS or demo scene.
+
+## Early Games
+
+-   Commander Keen
+-   Wolfenstein
+-   Doom
+-   Prince of Persia – Rotoscoped animation marvel.
+
+## Grab Bag
+
+-   Demoscene
+-   Pixel Art
+-   DirectDraw – Predecessor to Direct3D; used for 2D game rendering in Windows.
+-   3D Studio Max
+-   Dot Matrix Printers
+-   286/386
+-   The turbo button
+-   Tricks of the Game Programming Gurus book
+-   QBasic / GW-BASIC – Early programming environments.
+-   HyperCard – Mac-only app builder using cards and stacks (precursor to the web?).
+-   AOL/Prodigy Dial Up
+-   Netscape Navigator
+-   Y2K Bug
+-   Napster
+-   Homestar Runner
+-   WinAmp (“It really whips the llama’s ass”)

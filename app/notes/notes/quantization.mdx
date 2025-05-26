@@ -1,0 +1,691 @@
+---
+title: 'Quantization'
+summary: ''
+image: bob.png
+---
+
+```javascript
+// @meta exec store:loadImageData
+function loadImageData(imagePath, callback) {
+    const img = new Image()
+    img.src = imagePath
+    img.onload = () => {
+        const w = img.width
+        const h = img.height
+
+        // draw into a canvas to get image data
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, w, h)
+        const imageData = ctx.getImageData(0, 0, w, h)
+
+        callback(imageData)
+    }
+}
+
+function getPixels(imageData) {
+    const data = imageData.data
+    const pixels = []
+
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i]
+        const g = data[i + 1]
+        const b = data[i + 2]
+        pixels.push([r, g, b])
+    }
+
+    return pixels
+}
+```
+
+Color quantization reduces the number of distinct colors in an image. Why? Traditionally, computers had limited color depth, so they needed to reduce the number of colors in an image. Limited color depth is still useful for image compression on certain image formats (GIF, PNG). GIFs are limited to 256 colors, while PNG images support 24-bit color, but can often be made much smaller in filesize without much visual degradation by application of color quantization, since PNG files use fewer bits per pixel for palettized images.
+
+## Fixed Palette / Euclidean Distance
+
+Given a fixed palette, we can quantize an image by finding the nearest color in the palette for each pixel. "Nearest color" is usually calculated using "straight-line distance" or "Euclidean distance".
+
+$$
+\sqrt{(r_1 - r_2)^2 + (g_1 - g_2)^2 + (b_1 - b_2)^2}
+$$
+
+```javascript
+// @meta store:quantizeImage
+function quantizeImage(imageData, palette) {
+    const output = new ImageData(imageData.width, imageData.height)
+    const data = imageData.data
+
+    for (let i = 0; i < data.length; i += 4) {
+        const pixel = [data[i], data[i + 1], data[i + 2]]
+
+        // Find closest color in palette
+        let minDistance = Infinity
+        let closestColor = null
+
+        for (const color of palette) {
+            const dr = pixel[0] - color[0]
+            const dg = pixel[1] - color[1]
+            const db = pixel[2] - color[2]
+            const distance = Math.sqrt(dr * dr + dg * dg + db * db)
+
+            if (distance < minDistance) {
+                minDistance = distance
+                closestColor = color
+            }
+        }
+
+        output.data[i] = closestColor[0]
+        output.data[i + 1] = closestColor[1]
+        output.data[i + 2] = closestColor[2]
+        output.data[i + 3] = 255
+    }
+
+    return output
+}
+```
+
+<Canvas id="canvas01" subtitle="16-color EGA palette" />
+
+```javascript
+// @meta exec load:loadImageData load:quantizeImage
+const canvas = document.getElementById('canvas01')
+const ctx = canvas.getContext('2d')
+
+const PALETTE = [
+    [0, 0, 0], // black
+    [85, 255, 255], // cyan
+    [255, 85, 255], // magenta
+    [255, 255, 255], // white
+    [0, 255, 0], // bright green
+    [255, 85, 85], // light red
+    [85, 85, 255], // light blue
+    [255, 255, 85], // yellow
+    [170, 0, 0], // dark red
+    [0, 170, 170], // dark cyan
+    [170, 0, 170], // dark magenta
+    [170, 170, 170], // light gray
+    [0, 170, 0], // dark green
+    [170, 85, 0], // brown
+    [0, 0, 170], // dark blue
+    [85, 85, 85], // dark gray
+]
+
+loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
+    const quantizedImageData = quantizeImage(imageData, PALETTE)
+    ctx.putImageData(quantizedImageData, 0, 0)
+})
+```
+
+## Median Cut
+
+How it works: Recursively splits the color space by median value in the widest channel until you get k color buckets.
+
+-   Pros: Fast and simple; used in GIF and PNG8.
+-   Cons: Can produce harsh edges or unnatural colors.
+
+First we start by creating a `ColorBox` which represents a group of pixels in RGB space. You can think of it like a 3D box surrounding a cluster of colors. We start with one box containing all the pixels in the image, then split it recursively based on color channel ranges until we get k color buckets.
+
+```javascript
+// @meta store:colorBox
+class ColorBox {
+    constructor(pixels) {
+        this.pixels = pixels
+        this.updateRanges()
+    }
+
+    // calculate the color range for this box
+    updateRanges() {
+        let rMin = 255,
+            rMax = 0
+        let gMin = 255,
+            gMax = 0
+        let bMin = 255,
+            bMax = 0
+
+        for (const [r, g, b] of this.pixels) {
+            rMin = Math.min(rMin, r)
+            gMin = Math.min(gMin, g)
+            bMin = Math.min(bMin, b)
+            rMax = Math.max(rMax, r)
+            gMax = Math.max(gMax, g)
+            bMax = Math.max(bMax, b)
+        }
+
+        this.rRange = rMax - rMin
+        this.gRange = gMax - gMin
+        this.bRange = bMax - bMin
+    }
+
+    // determine which channel to split on - the one with the widest range
+    getSplitChannel() {
+        const maxRange = Math.max(this.rRange, this.gRange, this.bRange)
+        if (maxRange === this.rRange) return 0 // red
+        if (maxRange === this.gRange) return 1 // green
+        return 2 // blue
+    }
+
+    // split the box into two new boxes at the median value in the widest channel
+    split() {
+        const channel = this.getSplitChannel()
+        this.pixels.sort((a, b) => a[channel] - b[channel])
+        const mid = Math.floor(this.pixels.length / 2)
+        // Use the constructor of the current class (either ColorBox or RareColorBox)
+        const BoxClass = this.constructor
+        return [new BoxClass(this.pixels.slice(0, mid)), new BoxClass(this.pixels.slice(mid))]
+    }
+
+    getAverageColor() {
+        const sum = [0, 0, 0]
+        for (const [r, g, b] of this.pixels) {
+            sum[0] += r
+            sum[1] += g
+            sum[2] += b
+        }
+        const len = this.pixels.length
+        return sum.map((x) => Math.round(x / len))
+    }
+}
+```
+
+```javascript
+// @meta store:medianCut
+function medianCutQuantization(pixels, paletteSize) {
+    // start with one box containing all the pixels
+    let boxes = [new ColorBox(pixels)]
+
+    while (boxes.length < paletteSize) {
+        // Find box with most colors (or widest range)
+        boxes.sort((a, b) => Math.max(b.rRange, b.gRange, b.bRange) - Math.max(a.rRange, a.gRange, a.bRange))
+        const boxToSplit = boxes.shift()
+
+        const [box1, box2] = boxToSplit.split()
+        boxes.push(box1, box2)
+    }
+
+    return boxes.map((box) => box.getAverageColor())
+}
+```
+
+<Canvas id="canvas02" width={720} height={512} subtitle="Median Cut - Extracted Palette" />
+
+```javascript
+// @meta exec load:loadImageData load:colorBox load:medianCut
+const canvas = document.getElementById('canvas02')
+const ctx = canvas.getContext('2d')
+
+loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
+    const paletteSize = 9
+    const pixels = getPixels(imageData)
+    const palette = medianCutQuantization(pixels, paletteSize)
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Draw the original image on the left half
+    ctx.putImageData(imageData, 0, 0)
+
+    // Calculate dimensions for the color rectangles on right half
+    const gridSize = Math.sqrt(paletteSize)
+    const rectWidth = canvas.width / 2 / gridSize
+    const rectHeight = canvas.height / gridSize
+    const paletteStartX = canvas.width / 2
+
+    // Draw rectangles in a grid
+    palette.forEach((color, i) => {
+        const x = paletteStartX + (i % gridSize) * rectWidth
+        const y = Math.floor(i / gridSize) * rectHeight
+
+        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+        ctx.fillRect(x, y, rectWidth, rectHeight)
+    })
+})
+```
+
+<Canvas id="canvas03" width={512} height={512} subtitle="Applying Extracted Palette" />
+
+```javascript
+// @meta exec load:loadImageData load:colorBox load:medianCut load:quantizeImage
+const canvas = document.getElementById('canvas03')
+const ctx = canvas.getContext('2d')
+
+loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
+    const paletteSize = 9
+    const pixels = getPixels(imageData)
+    const palette = medianCutQuantization(pixels, paletteSize)
+    const quantized = quantizeImage(imageData, palette)
+    ctx.putImageData(quantized, 0, 0)
+})
+```
+
+## K-Means Clustering
+
+How it works: Clusters pixel colors into k groups using Euclidean distance, then assigns each pixel to the nearest cluster center.
+
+-   Pros: High-quality quantization; works with any number of colors.
+-   Cons: Slower; not always perceptually optimal.
+
+TODO: try this out
+
+## Extra Credit: Greyscale Palette Mapping
+
+We can create stylized images by first reducing the image to a small number of greyscale levels, then mapping those levels to a custom palette. This technique was popular in early computer art and printmaking.
+
+```javascript
+// @meta store:greyscaleQuantize
+function greyscaleQuantize(imageData, levels) {
+    const output = new ImageData(imageData.width, imageData.height)
+    const data = imageData.data
+
+    // Calculate the step size for each level
+    const step = 255 / (levels - 1)
+
+    for (let i = 0; i < data.length; i += 4) {
+        // Convert to greyscale using luminance formula
+        const r = data[i]
+        const g = data[i + 1]
+        const b = data[i + 2]
+        const grey = Math.round(r * 0.299 + g * 0.587 + b * 0.114)
+
+        // Quantize to nearest level
+        const level = Math.round(grey / step) * step
+
+        // Map to output
+        output.data[i] = level
+        output.data[i + 1] = level
+        output.data[i + 2] = level
+        output.data[i + 3] = 255
+    }
+
+    return output
+}
+
+function mapToPalette(imageData, palette) {
+    const output = new ImageData(imageData.width, imageData.height)
+    const data = imageData.data
+    const levels = palette.length
+
+    // Calculate the step size for mapping
+    const step = 255 / (levels - 1)
+
+    for (let i = 0; i < data.length; i += 4) {
+        const grey = data[i] // All channels are the same in greyscale
+        const level = Math.min(Math.floor(grey / step), levels - 1)
+        const color = palette[level]
+
+        output.data[i] = color[0]
+        output.data[i + 1] = color[1]
+        output.data[i + 2] = color[2]
+        output.data[i + 3] = 255
+    }
+
+    return output
+}
+```
+
+<Canvas id="canvas04" width={512} height={512} subtitle="Greyscale Quantization (4 levels) + Retro Palette" />
+
+```javascript
+// @meta exec load:loadImageData load:greyscaleQuantize load:mapToPalette
+const canvas = document.getElementById('canvas04')
+const ctx = canvas.getContext('2d')
+
+// A retro-inspired palette with warm tones
+const RETRO_PALETTE = [
+    [20, 12, 28], // Dark purple
+    [68, 36, 52], // Burgundy
+    [48, 96, 130], // Steel blue
+    [255, 220, 177], // Warm cream
+]
+
+loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
+    // First quantize to greyscale with 4 levels
+    const greyQuantized = greyscaleQuantize(imageData, 4)
+
+    // Then map to our retro palette
+    const finalImage = mapToPalette(greyQuantized, RETRO_PALETTE)
+
+    ctx.putImageData(finalImage, 0, 0)
+})
+```
+
+<Canvas id="canvas05" width={512} height={512} subtitle="Greyscale Quantization (6 levels) + Cool Palette" />
+
+```javascript
+// @meta exec load:loadImageData load:greyscaleQuantize load:mapToPalette
+const canvas = document.getElementById('canvas05')
+const ctx = canvas.getContext('2d')
+
+// A cool-toned palette
+const COOL_PALETTE = [
+    [0, 0, 0], // Black
+    [32, 74, 135], // Deep blue
+    [54, 87, 158], // Royal blue
+    [79, 108, 176], // Sky blue
+    [107, 137, 210], // Light blue
+    [255, 255, 255], // White
+]
+
+loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
+    // First quantize to greyscale with 6 levels
+    const greyQuantized = greyscaleQuantize(imageData, 6)
+
+    // Then map to our cool palette
+    const finalImage = mapToPalette(greyQuantized, COOL_PALETTE)
+
+    ctx.putImageData(finalImage, 0, 0)
+})
+```
+
+This technique allows for creative control over the final image by:
+
+1. Controlling the number of greyscale levels (more levels = more detail)
+2. Choosing a custom palette that can create different moods or styles
+3. The mapping process preserves the image structure while applying the new color scheme
+
+## Extra Credit 2: Create Palette of Least Used Colors
+
+Instead of finding the most representative colors, let's find the rarest colors in the image. We'll modify our median cut approach to prioritize colors that appear less frequently.
+
+```javascript
+// @meta store:rareColorBox
+class ColorBox {
+    constructor(pixels) {
+        this.pixels = pixels
+        this.updateRanges()
+    }
+
+    // calculate the color range for this box
+    updateRanges() {
+        let rMin = 255,
+            rMax = 0
+        let gMin = 255,
+            gMax = 0
+        let bMin = 255,
+            bMax = 0
+
+        for (const [r, g, b] of this.pixels) {
+            rMin = Math.min(rMin, r)
+            gMin = Math.min(gMin, g)
+            bMin = Math.min(bMin, b)
+            rMax = Math.max(rMax, r)
+            gMax = Math.max(gMax, g)
+            bMax = Math.max(bMax, b)
+        }
+
+        this.rRange = rMax - rMin
+        this.gRange = gMax - gMin
+        this.bRange = bMax - bMin
+    }
+
+    // determine which channel to split on - the one with the widest range
+    getSplitChannel() {
+        const maxRange = Math.max(this.rRange, this.gRange, this.bRange)
+        if (maxRange === this.rRange) return 0 // red
+        if (maxRange === this.gRange) return 1 // green
+        return 2 // blue
+    }
+
+    // split the box into two new boxes at the median value in the widest channel
+    split() {
+        const channel = this.getSplitChannel()
+        this.pixels.sort((a, b) => a[channel] - b[channel])
+        const mid = Math.floor(this.pixels.length / 2)
+        // Use the constructor of the current class (either ColorBox or RareColorBox)
+        const BoxClass = this.constructor
+        return [new BoxClass(this.pixels.slice(0, mid)), new BoxClass(this.pixels.slice(mid))]
+    }
+
+    getAverageColor() {
+        const sum = [0, 0, 0]
+        for (const [r, g, b] of this.pixels) {
+            sum[0] += r
+            sum[1] += g
+            sum[2] += b
+        }
+        const len = this.pixels.length
+        return sum.map((x) => Math.round(x / len))
+    }
+}
+
+class RareColorBox extends ColorBox {
+    constructor(pixels) {
+        super(pixels)
+        this.colorCounts = new Map() // Track frequency of each unique color
+        this.updateColorCounts()
+    }
+
+    // Count occurrences of each unique color
+    updateColorCounts() {
+        this.colorCounts.clear()
+        for (const pixel of this.pixels) {
+            const key = pixel.join(',')
+            this.colorCounts.set(key, (this.colorCounts.get(key) || 0) + 1)
+        }
+    }
+
+    // Get the average frequency of colors in this box
+    getAverageFrequency() {
+        let total = 0
+        for (const count of this.colorCounts.values()) {
+            total += count
+        }
+        return total / this.colorCounts.size
+    }
+
+    // Get the rarest color in this box
+    getRarestColor() {
+        let rarestColor = null
+        let minCount = Infinity
+
+        for (const [key, count] of this.colorCounts.entries()) {
+            if (count < minCount) {
+                minCount = count
+                rarestColor = key.split(',').map(Number)
+            }
+        }
+
+        return rarestColor
+    }
+}
+
+function rareColorQuantization(pixels, paletteSize) {
+    // Start with one box containing all pixels
+    let boxes = [new RareColorBox(pixels)]
+    let palette = []
+
+    while (boxes.length > 0 && palette.length < paletteSize) {
+        // Sort boxes by average frequency (ascending) to prioritize boxes with rare colors
+        boxes.sort((a, b) => a.getAverageFrequency() - b.getAverageFrequency())
+
+        // Take the box with the rarest colors
+        const box = boxes.shift()
+
+        // Add its rarest color to our palette
+        const rarestColor = box.getRarestColor()
+        palette.push(rarestColor)
+
+        // If we still need more colors and this box has enough pixels, split it
+        if (palette.length < paletteSize && box.pixels.length > 1) {
+            const [box1, box2] = box.split()
+            boxes.push(box1, box2)
+        }
+    }
+
+    return palette
+}
+```
+
+<Canvas id="canvas06" width={720} height={512} subtitle="Rare Colors Palette (16 colors)" />
+
+```javascript
+// @meta exec load:loadImageData load:rareColorBox load:rareColorQuantization
+const canvas = document.getElementById('canvas06')
+const ctx = canvas.getContext('2d')
+
+loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
+    const paletteSize = 16
+    const pixels = getPixels(imageData)
+    const palette = rareColorQuantization(pixels, paletteSize)
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Draw the original image on the left half
+    ctx.putImageData(imageData, 0, 0)
+
+    // Calculate dimensions for the color rectangles on right half
+    const gridSize = Math.sqrt(paletteSize)
+    const rectWidth = canvas.width / 2 / gridSize
+    const rectHeight = canvas.height / gridSize
+    const paletteStartX = canvas.width / 2
+
+    // Draw rectangles in a grid
+    palette.forEach((color, i) => {
+        const x = paletteStartX + (i % gridSize) * rectWidth
+        const y = Math.floor(i / gridSize) * rectHeight
+
+        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+        ctx.fillRect(x, y, rectWidth, rectHeight)
+    })
+})
+```
+
+<Canvas id="canvas07" width={512} height={512} subtitle="Image Quantized to Rare Colors" />
+
+```javascript
+// @meta exec load:loadImageData load:rareColorBox load:rareColorQuantization load:quantizeImage
+const canvas = document.getElementById('canvas07')
+const ctx = canvas.getContext('2d')
+
+loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
+    const paletteSize = 16
+    const pixels = getPixels(imageData)
+    const palette = rareColorQuantization(pixels, paletteSize)
+    const quantized = quantizeImage(imageData, palette)
+    ctx.putImageData(quantized, 0, 0)
+})
+```
+
+This approach is interesting because:
+
+1. Instead of finding representative colors, we find the most unique/rare colors in the image
+2. The resulting palette often contains unusual or unexpected colors that might be present in small details
+3. When applied to the image, it creates a more abstract or artistic effect since we're using colors that don't represent the main content
+
+The algorithm works by:
+
+1. Tracking the frequency of each unique color in a box
+2. Prioritizing boxes that contain rare colors
+3. Always selecting the rarest color from the current box before splitting
+4. Continuing until we have enough colors or can't split boxes further
+
+This creates a very different effect compared to the standard median cut algorithm, often highlighting unusual color combinations that might be present in small areas of the image.
+
+## Resources
+
+-   [Color quantization](https://en.wikipedia.org/wiki/Color_quantization)
+
+[Indexed color](https://en.wikipedia.org/wiki/Indexed_color)
+[Color depth](https://en.wikipedia.org/wiki/Color_depth)
+https://en.wikipedia.org/wiki/Palette_(computing)
+https://en.wikipedia.org/wiki/List_of_color_palettes
+
+### Further Exploration
+
+-   What if you quantize a colors on an image but choose the least used colors?
+
+<Canvas id="canvas08" width={720} height={512} subtitle="Hybrid Palette (8 common + 8 rare colors)" />
+
+```javascript
+// @meta exec load:loadImageData load:rareColorBox load:medianCut load:rareColorQuantization load:quantizeImage
+const canvas = document.getElementById('canvas08')
+const ctx = canvas.getContext('2d')
+
+loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
+    const pixels = getPixels(imageData)
+    const halfPaletteSize = 8
+
+    // Get both common and rare colors
+    const commonColors = medianCutQuantization(pixels, halfPaletteSize)
+    const rareColors = rareColorQuantization(pixels, halfPaletteSize)
+
+    // Combine the palettes
+    const hybridPalette = [...commonColors, ...rareColors]
+
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    // Draw the original image on the left half
+    ctx.putImageData(imageData, 0, 0)
+
+    // Calculate dimensions for the color rectangles on right half
+    const gridSize = 4 // 4x4 grid for 16 colors
+    const rectWidth = canvas.width / 2 / gridSize
+    const rectHeight = canvas.height / gridSize
+    const paletteStartX = canvas.width / 2
+
+    // Draw rectangles in a grid, with a visual separator
+    hybridPalette.forEach((color, i) => {
+        const x = paletteStartX + (i % gridSize) * rectWidth
+        const y = Math.floor(i / gridSize) * rectHeight
+
+        // Draw the color
+        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+        ctx.fillRect(x, y, rectWidth, rectHeight)
+
+        // Add a label for common vs rare
+        ctx.fillStyle = 'white'
+        ctx.font = '12px sans-serif'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        const label = i < halfPaletteSize ? 'C' : 'R'
+        ctx.fillText(label, x + rectWidth / 2, y + rectHeight / 2)
+    })
+})
+```
+
+<Canvas id="canvas09" width={512} height={512} subtitle="Image Quantized with Hybrid Palette" />
+
+```javascript
+// @meta exec load:loadImageData load:rareColorBox load:medianCut load:rareColorQuantization load:quantizeImage
+const canvas = document.getElementById('canvas09')
+const ctx = canvas.getContext('2d')
+
+loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
+    const pixels = getPixels(imageData)
+    const halfPaletteSize = 8
+
+    // Get both common and rare colors
+    const commonColors = medianCutQuantization(pixels, halfPaletteSize)
+    const rareColors = rareColorQuantization(pixels, halfPaletteSize)
+
+    // Combine the palettes
+    const hybridPalette = [...commonColors, ...rareColors]
+
+    // Quantize the image using the hybrid palette
+    const quantized = quantizeImage(imageData, hybridPalette)
+    ctx.putImageData(quantized, 0, 0)
+})
+```
+
+This hybrid approach gives us the best of both worlds:
+
+1. The common colors (marked 'C' in the palette) help maintain the overall structure and main features of the image
+2. The rare colors (marked 'R' in the palette) add interesting accents and highlight unique details
+3. The result should be more balanced - not as washed out as pure rare colors, but more interesting than just common colors
+
+The key insight is that while rare colors can create interesting effects, they work better when combined with representative colors. This way we maintain the image's structure while still getting those unique color accents.
+
+## Resources
+
+-   [Color quantization](https://en.wikipedia.org/wiki/Color_quantization)
+
+[Indexed color](https://en.wikipedia.org/wiki/Indexed_color)
+[Color depth](https://en.wikipedia.org/wiki/Color_depth)
+https://en.wikipedia.org/wiki/Palette_(computing)
+https://en.wikipedia.org/wiki/List_of_color_palettes
+
+### Further Exploration
+
+-   What if you quantize a colors on an image but choose the least used colors?

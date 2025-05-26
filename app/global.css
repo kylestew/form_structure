@@ -72,7 +72,7 @@ canvas {
 }
 
 .notes pre {
-    @apply bg-neutral-50 rounded-lg overflow-x-auto border border-neutral-200 py-2 px-3 text-sm;
+    @apply bg-neutral-50 rounded-lg overflow-x-auto border border-neutral-200 py-2 px-3 text-sm mt-6;
 }
 
 .notes code {
@@ -82,7 +82,7 @@ canvas {
 .notes pre code {
     @apply p-0;
     border: initial;
-    line-height: 1.5;
+    line-height: 1.2;
 }
 
 .notes code span {
