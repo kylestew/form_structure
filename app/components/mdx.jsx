@@ -8,7 +8,6 @@ import rehypeKatex from 'rehype-katex'
 import rehypeMath from 'rehype-math'
 import remarkMath from 'remark-math'
 
-/*
 function Table({ data }) {
     const headers = data.headers.map((header, index) => <th key={index}>{header}</th>)
     const rows = data.rows.map((row, index) => (
@@ -28,7 +27,6 @@ function Table({ data }) {
         </table>
     )
 }
-    */
 
 function CustomLink(props) {
     const { href, children, ...rest } = props
@@ -168,7 +166,7 @@ const components = {
 
     Image: RoundedImage,
     a: CustomLink,
-    // Table,
+    Table,
 
     // conditional code blocks
     pre: Pre,
