@@ -42,9 +42,53 @@ function getPixels(imageData) {
 
 Color quantization reduces the number of distinct colors in an image. Why? Traditionally, computers had limited color depth, so they needed to reduce the number of colors in an image. Limited color depth is still useful for image compression on certain image formats (GIF, PNG). GIFs are limited to 256 colors, while PNG images support 24-bit color, but can often be made much smaller in filesize without much visual degradation by application of color quantization, since PNG files use fewer bits per pixel for palettized images.
 
-## Fixed Palette / Euclidean Distance
+## Indexed Color
 
-Given a fixed palette, we can quantize an image by finding the nearest color in the palette for each pixel. "Nearest color" is usually calculated using "straight-line distance" or "Euclidean distance".
+[Indexed color](https://en.wikipedia.org/wiki/Indexed_color) is a technique in computer graphics where each pixel in an image doesn't store full color information (like RGB). Instead, it stores a reference (an index) into a color palette, which is a list of predefined colors.
+
+-   Memory Efficiency: Reduces file size, especially useful in early computers or limited hardware.
+-   Palette Control: Artists can fine-tune a small set of colors for aesthetic or technical reasons (e.g., pixel art, GIFs).
+-   Smaller Images: If you only need 256 colors, you can use just 8 bits per pixel (2⁸ = 256), instead of 24-bit RGB (8 per channel).
+
+Common Formats That Use Indexed Color:
+-   GIF: Limited to 256-color palettes.
+-   BMP (with 8-bit depth).
+-   PNG-8: A variant of PNG using a palette instead of full RGBA.
+
+***Note: Not all quantization methods use indexed color - sometimes they simply reduce the color set or bit-depth***
+
+## Palettes
+
+A [palette](https://en.wikipedia.org/wiki/Palette_(computing)) is just a finite list of colors. Each color is typically stored as an RGB triplet (or sometimes in other color spaces), and the palette acts as a reference table.
+
+Instead of storing full color values for each pixel, you store an index into the palette. Why? To save memory! A pixel stores just the index into a palette (i.e. 8 bits for a 256 color palette). The full color is then stored in a palette table.
+
+### Types of Palettes
+
+1. Fixed Palettes - Predefined and constant.
+
+Example: CGA, NES, Windows 16-color palette. [List of Color Palettes](https://en.wikipedia.org/wiki/List_of_color_palettes)
+
+2. Adaptive Palettes
+
+Generated dynamically from the image using quantization algorithms (like median cut or k-means). Used for GIF encoding, image compression, etc.
+
+3. User-Defined Palettes
+
+Set manually by an artist. Used in pixel art, sprite sheets, and demoscene visuals.
+
+## Discrete Quantization
+
+TODO: just chop down the bits, effecively bucketing each color to a evenly spaced range
+
+uniform scalar quantizer with midpoint rounding:
+
+
+## Simple Quantization: Fixed Palette / Euclidean Distance
+
+_Type: Fixed Palette_
+
+Given a fixed palette, we can quantize an image by finding the nearest color in the palette for each pixel. "Nearest color" is usually calculated using "straight-line distance" or "Euclidean distance". Basically... snap to color!
 
 $$
 \sqrt{(r_1 - r_2)^2 + (g_1 - g_2)^2 + (b_1 - b_2)^2}
@@ -118,6 +162,8 @@ loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
 ```
 
 ## Median Cut
+
+_type: adaptive palette_
 
 How it works: Recursively splits the color space by median value in the widest channel until you get k color buckets.
 
@@ -260,6 +306,8 @@ loadImageData('/images/_notes/_resources/lenna.png', (imageData) => {
 
 ## K-Means Clustering
 
+_type: adaptive palette_
+
 How it works: Clusters pixel colors into k groups using Euclidean distance, then assigns each pixel to the nearest cluster center.
 
 -   Pros: High-quality quantization; works with any number of colors.
@@ -268,6 +316,8 @@ How it works: Clusters pixel colors into k groups using Euclidean distance, then
 TODO: try this out
 
 ## Extra Credit: Greyscale Palette Mapping
+
+(has an extra step from paletization due to greyscale bucketing)
 
 We can create stylized images by first reducing the image to a small number of greyscale levels, then mapping those levels to a custom palette. This technique was popular in early computer art and printmaking.
 
@@ -383,38 +433,6 @@ This technique allows for creative control over the final image by:
 2. Choosing a custom palette that can create different moods or styles
 3. The mapping process preserves the image structure while applying the new color scheme
 
-## Indexed Color
-
-[Indexed color](https://en.wikipedia.org/wiki/Indexed_color) is a technique in computer graphics where each pixel in an image doesn't store full color information (like RGB). Instead, it stores a reference (an index) into a color palette, which is a list of predefined colors.
-
--   Memory Efficiency: Reduces file size, especially useful in early computers or limited hardware.
--   Palette Control: Artists can fine-tune a small set of colors for aesthetic or technical reasons (e.g., pixel art, GIFs).
--   Smaller Images: If you only need 256 colors, you can use just 8 bits per pixel (2⁸ = 256), instead of 24-bit RGB (8 per channel).
-
-Common Formats That Use Indexed Color:
--   GIF: Limited to 256-color palettes.
--   BMP (with 8-bit depth).
--   PNG-8: A variant of PNG using a palette instead of full RGBA.
-
-## Palettes
-
-A [palette](https://en.wikipedia.org/wiki/Palette_(computing)) is just a finite list of colors. Each color is typically stored as an RGB triplet (or sometimes in other color spaces), and the palette acts as a reference table.
-
-Instead of storing full color values for each pixel, you store an index into the palette. Why? To save memory! A pixel stores just the index into a palette (i.e. 8 bits for a 256 color palette). The full color is then stored in a palette table.
-
-### Types of Palettes
-
-1. Fixed Palettes - Predefined and constant.
-
-Example: CGA, NES, Windows 16-color palette. [List of Color Palettes](https://en.wikipedia.org/wiki/List_of_color_palettes)
-
-2. Adaptive Palettes
-
-Generated dynamically from the image using quantization algorithms (like median cut or k-means). Used for GIF encoding, image compression, etc.
-
-3. User-Defined Palettes
-
-Set manually by an artist. Used in pixel art, sprite sheets, and demoscene visuals.
 
 ## Resources
 
