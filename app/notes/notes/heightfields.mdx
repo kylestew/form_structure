@@ -83,8 +83,8 @@ function displayHeightfield(ctx, gridSize, heightfield, getColor, smooth = false
     // Resize canvas if needed - the canvas data size needs to match the heightfield grid size
     if (ctx.canvas.width !== gridSize || ctx.canvas.height !== gridSize) {
         // maintain CSS display size
-        ctx.canvas.style.width = `${ctx.canvas.width}px`
-        ctx.canvas.style.height = `${ctx.canvas.height}px`
+        ctx.canvas.style.width = ctx.canvas.width + 'px'
+        ctx.canvas.style.height = ctx.canvas.height + 'px'
 
         ctx.canvas.width = gridSize
         ctx.canvas.height = gridSize

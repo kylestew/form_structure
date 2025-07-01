@@ -123,8 +123,8 @@ function display(ctx, grid, background = [0, 0, 0]) {
     // Resize canvas if needed - the canvas data size needs to match the heightfield grid size
     if (ctx.canvas.width !== grid.width || ctx.canvas.height !== grid.height) {
         // maintain CSS display size
-        ctx.canvas.style.width = `${ctx.canvas.width}px`
-        ctx.canvas.style.height = `${ctx.canvas.height}px`
+        ctx.canvas.style.width = ctx.canvas.width + 'px'
+        ctx.canvas.style.height = ctx.canvas.height + 'px'
 
         ctx.canvas.width = grid.width
         ctx.canvas.height = grid.height

@@ -55,6 +55,7 @@ function RoundedImage(props) {
 }
 
 function slugify(str) {
+    if (!str.toLowerCase) return // IDK why it doesn't work sometimes
     return str
         .toLowerCase()
         .trim()
@@ -84,6 +85,7 @@ function createHeading(level) {
 }
 
 function Pre({ children, ...props }) {
+    // TODO: ideally we need katex to ignore these
     const code = children?.props?.children
     const lines = code.split('\n')
     const firstLine = lines[0].trim()

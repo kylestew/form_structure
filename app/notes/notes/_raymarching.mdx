@@ -1,0 +1,663 @@
+---
+title: 'Raymarching'
+summary: 'Raymarching, SDF, etc'
+image: raymarching.png
+---
+
+```js
+// @meta exec store:shaderRenderer
+function createShaderRenderer(canvas, params = {}) {
+    // Default shader is a simple gradient animation
+    const defaultParams = {
+        fragSource: `
+            precision highp float;
+            uniform vec2 uResolution;
+            uniform float uTime;
+            
+            void main() {
+                vec2 uv = gl_FragCoord.xy / uResolution.xy;
+                vec3 color = 0.5 + 0.5 * cos(uTime + uv.xyx + vec3(0,2,4));
+                gl_FragColor = vec4(color, 1.0);
+            }
+        `,
+        uniforms: {}, // Custom uniforms can be added here
+    }
+
+    // Helper function to format shader errors
+    function formatShaderError(type, source, infoLog) {
+        const lines = source.split('\n')
+        const errorLines = infoLog.split('\n')
+
+        // Extract line number from WebGL error message (format: "ERROR: 0:X: message")
+        const lineMatch = infoLog.match(/ERROR: 0:(\d+):/)
+        const errorLine = lineMatch ? parseInt(lineMatch[1]) : null
+
+        let errorMessage = `\n${type} Shader Compilation Error:\n\n`
+
+        if (errorLine !== null) {
+            // Show context around the error (3 lines before and after)
+            const start = Math.max(0, errorLine - 3)
+            const end = Math.min(lines.length, errorLine + 2)
+
+            errorMessage += 'Source code around error:\n'
+            for (let i = start; i < end; i++) {
+                const prefix = i === errorLine - 1 ? '>>> ' : '    '
+                errorMessage += `${prefix}${i + 1}: ${lines[i]}\n`
+            }
+            errorMessage += '\n'
+        }
+
+        errorMessage += 'Error details:\n'
+        errorLines.forEach((line) => {
+            errorMessage += `  ${line}\n`
+        })
+
+        errorMessage += '\nFull shader source:\n'
+        lines.forEach((line, i) => {
+            errorMessage += `${i + 1}: ${line}\n`
+        })
+
+        return errorMessage
+    }
+
+    const mergedParams = { ...defaultParams, ...params }
+    const uniforms = { ...mergedParams.uniforms }
+    const startTime = Date.now() / 1000
+
+    // Create canvas and get WebGL context
+    const gl = canvas.getContext('webgl2')
+    if (!gl) {
+        throw new Error('WebGL not supported')
+    }
+
+    // Create shader program
+    const vertexShader = gl.createShader(gl.VERTEX_SHADER)
+    gl.shaderSource(
+        vertexShader,
+        `
+        attribute vec2 position;
+        void main() {
+            gl_Position = vec4(position, 0.0, 1.0);
+        }
+    `
+    )
+    gl.compileShader(vertexShader)
+
+    const fragShader = gl.createShader(gl.FRAGMENT_SHADER)
+    // Set precision for fragment shader
+    gl.shaderSource(fragShader, 'precision highp float;\n' + mergedParams.fragSource)
+    gl.compileShader(fragShader)
+
+    // Check for shader compilation errors
+    if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+        const infoLog = gl.getShaderInfoLog(vertexShader)
+        const errorMessage = formatShaderError(
+            'Vertex',
+            `
+            attribute vec2 position;
+            void main() {
+                gl_Position = vec4(position, 0.0, 1.0);
+            }
+        `,
+            infoLog
+        )
+        throw new Error(errorMessage)
+    }
+
+    if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
+        const infoLog = gl.getShaderInfoLog(fragShader)
+        const errorMessage = formatShaderError('Fragment', mergedParams.fragSource, infoLog)
+        throw new Error(errorMessage)
+    }
+
+    // Create and link program
+    const program = gl.createProgram()
+    gl.attachShader(program, vertexShader)
+    gl.attachShader(program, fragShader)
+    gl.linkProgram(program)
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        throw new Error('Program linking error: ' + gl.getProgramInfoLog(program))
+    }
+
+    // Create quad vertices
+    const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1])
+
+    const vertexBuffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+
+    // Get uniform locations
+    const uniformLocations = {
+        uResolution: gl.getUniformLocation(program, 'uResolution'),
+        uTime: gl.getUniformLocation(program, 'uTime'),
+    }
+
+    // Add custom uniform locations
+    Object.keys(uniforms).forEach((name) => {
+        uniformLocations[name] = gl.getUniformLocation(program, name)
+    })
+
+    function renderMe() {
+        const width = canvas.width
+        const height = canvas.height
+
+        // Update viewport
+        gl.viewport(0, 0, width, height)
+
+        // Use shader program
+        gl.useProgram(program)
+
+        // Set up vertex attributes
+        const positionLocation = gl.getAttribLocation(program, 'position')
+        gl.enableVertexAttribArray(positionLocation)
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+
+        // Set uniforms
+        gl.uniform2f(uniformLocations.uResolution, width, height)
+        gl.uniform1f(uniformLocations.uTime, Date.now() / 1000 - startTime)
+
+        // Set custom uniforms
+        Object.entries(uniforms).forEach(([name, value]) => {
+            const location = uniformLocations[name]
+            if (location !== null) {
+                if (Array.isArray(value)) {
+                    switch (value.length) {
+                        case 2:
+                            gl.uniform2fv(location, value)
+                            break
+                        case 3:
+                            gl.uniform3fv(location, value)
+                            break
+                        case 4:
+                            gl.uniform4fv(location, value)
+                            break
+                        default:
+                            gl.uniform1f(location, value[0])
+                    }
+                } else {
+                    gl.uniform1f(location, value)
+                }
+            }
+        })
+
+        // Draw quad
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+    }
+    return renderMe
+}
+```
+
+Anything that can be described by [signed distance functions](https://iquilezles.org/articles/distfunctions/) can be rendered with raymarching.
+
+Example SDF - Sphere:
+
+```glsl
+float sdSphere(vec3 p, float radius) {
+    return length(p) - radius;
+}
+```
+
+TODO: I don't actually understand how this gives the rays distance to the surface.
+
+## Preparing the Canvas
+
+<Canvas id="canvas_prepare" width={640} height={480} subtitle="Centered and Aspect Corrected Scene" />
+
+```glsl
+uniform vec2 uResolution;
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy / uResolution.xy) * 2.0 - 1.0;
+    uv.x *= uResolution.x / uResolution.y; // correct for aspect ratio
+
+    vec3 color = vec3(uv, 0.0);
+    gl_FragColor = vec4(color, 1.0);
+}
+```
+
+```javascript
+// @meta exec load:shaderRenderer
+const canvas = document.getElementById('canvas_prepare')
+
+const fragSource = `
+precision highp float;
+uniform vec2 uResolution;
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy / uResolution.xy) * 2.0 - 1.0;
+    uv.x *= uResolution.x / uResolution.y; // correct for aspect ratio
+
+    vec3 color = vec3(uv, 0.0);
+    gl_FragColor = vec4(color, 1.0);
+}
+`
+
+const render = createShaderRenderer(canvas, { fragSource })
+function animate() {
+    render()
+    requestAnimationFrame(animate)
+}
+animate()
+```
+
+## Shooting a Ray
+
+To get started we need a:
+
+-   Ray origin
+-   Ray direction
+-   Ray marching function
+
+```glsl
+uniform vec2 uResolution;
+
+#define MAX_STEPS 10
+#define MAX_DIST 100.0
+#define SURFACE_DIST 0.01
+
+float sdSphere(vec3 p, float radius) {
+    return length(p) - radius;
+}
+
+float scene(vec3 p) {
+    float distance = sdSphere(p, 1.0);
+    return distance;
+}
+
+float raymarch(vec3 ro, vec3 rd) {
+    float dO = 0.0;
+
+    for(int i = 0; i < MAX_STEPS; i++) {
+        vec3 p = ro + rd * dO;
+        float dS = scene(p);
+        dO += dS;
+
+        if(dO > MAX_DIST || dS < SURFACE_DIST) {
+            break;
+        }
+    }
+    return dO;
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy / uResolution.xy) * 2.0 - 1.0;
+    uv.x *= uResolution.x / uResolution.y; // correct for aspect ratio
+
+    // Ray Origin - camera
+    vec3 ro = vec3(0.0, 0.0, -4.0);
+    // Ray Direction
+    vec3 rd = normalize(vec3(uv, 1.0));
+
+    // Raymarching
+    float d = raymarch(ro, rd);
+    vec3 p = ro + rd * d;
+
+    // Color
+    vec3 color = (d < MAX_DIST) ? vec3(1.0) : vec3(0.0);
+
+    gl_FragColor = vec4(color, 1.0);
+}
+```
+
+<Canvas id="canvas_shooting_ray" width={640} height={480} subtitle="A Simple Raymarched Sphere" />
+
+```javascript
+// @meta exec load:shaderRenderer
+const canvas = document.getElementById('canvas_shooting_ray')
+
+const fragSource = `
+uniform vec2 uResolution;
+
+#define MAX_STEPS 32
+#define MAX_DIST 100.0
+#define SURFACE_DIST 0.01
+
+float sdSphere(vec3 p, float radius) {
+    return length(p) - radius;
+}
+
+float scene(vec3 p) {
+    float distance = sdSphere(p, 1.0);
+    return distance;
+}
+
+float raymarch(vec3 ro, vec3 rd) {
+    float dO = 0.0;
+    vec3 color = vec3(0.0);
+
+    for(int i = 0; i < MAX_STEPS; i++) {
+        vec3 p = ro + rd * dO;
+        float dS = scene(p);
+        dO += dS;
+
+        if(dO > MAX_DIST || dS < SURFACE_DIST) {
+            break;
+        }
+    }
+    return dO;
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy / uResolution.xy) * 2.0 - 1.0;
+    uv.x *= uResolution.x / uResolution.y; // correct for aspect ratio
+
+    // Ray Origin - camera
+    vec3 ro = vec3(0.0, 0.0, -2.0);
+    // Ray Direction
+    vec3 rd = normalize(vec3(uv, 1.0));
+
+    // Raymarching
+    float d = raymarch(ro, rd);
+    vec3 p = ro + rd * d;
+
+    // Color
+    vec3 color = (d < MAX_DIST) ? vec3(1.0) : vec3(0.0);
+
+    gl_FragColor = vec4(color, 1.0);
+}
+`
+
+const render = createShaderRenderer(canvas, { fragSource })
+render()
+```
+
+## Calculating Normals
+
+We will need this for lighting and other fun effects.
+
+With SDFs, we calculate the normal by taking the gradient of the SDF function (f) at a specific point, denoted as ∇f. Yikes! Can we avoid this?
+
+This is a special technique of approximating the normal of a surface by using the scene function instead of doing calculus directly. https://iquilezles.org/articles/normalsSDF/
+
+```glsl
+vec3 getNormal(vec3 p) {
+    vec2 e = vec2(.01, 0.0);
+
+    vec3 n = scene(p) - vec3(
+        scene(p-e.xyy),
+        scene(p-e.yxy),
+        scene(p-e.yyx));
+
+    return normalize(n);
+}
+```
+
+<Canvas id="canvas_normals" width={640} height={480} subtitle="Calculating Normals" />
+
+```javascript
+// @meta exec load:shaderRenderer
+const canvas = document.getElementById('canvas_normals')
+
+const fragSource = `
+uniform vec2 uResolution;
+
+#define MAX_STEPS 50
+#define MAX_DIST 100.0
+#define SURFACE_DIST 0.01
+
+float sdSphere(vec3 p, float radius) {
+    return length(p) - radius;
+}
+
+float scene(vec3 p) {
+    float distance = sdSphere(p, 1.0);
+    return distance;
+}
+
+float raymarch(vec3 ro, vec3 rd) {
+    float dO = 0.0;
+    vec3 color = vec3(0.0);
+
+    for(int i = 0; i < MAX_STEPS; i++) {
+        vec3 p = ro + rd * dO;
+        float dS = scene(p);
+        dO += dS;
+
+        if(dO > MAX_DIST || dS < SURFACE_DIST) {
+            break;
+        }
+    }
+    return dO;
+}
+
+vec3 getNormal(vec3 p) {
+    vec2 e = vec2(.01, 0.0);
+
+    vec3 n = scene(p) - vec3(
+        scene(p-e.xyy),
+        scene(p-e.yxy),
+        scene(p-e.yyx));
+
+    return normalize(n);
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy / uResolution.xy) * 2.0 - 1.0;
+    uv.x *= uResolution.x / uResolution.y; // correct for aspect ratio
+
+    vec3 ro = vec3(0.0, 0.0, -2.0);
+    vec3 rd = normalize(vec3(uv, 1.0));
+
+    float d = raymarch(ro, rd);
+    vec3 p = ro + rd * d;
+
+    vec3 color = vec3(0.0);
+    if (d < MAX_DIST) {
+        color = getNormal(p) * 0.5 + 0.5;
+    }
+
+    gl_FragColor = vec4(color, 1.0);
+}
+`
+
+const render = createShaderRenderer(canvas, { fragSource })
+render()
+```
+
+## Lighting
+
+```glsl
+float diffuse = max(dot(normal, lightDirection), 0.0);
+```
+
+<Canvas id="canvas_lighting" width={640} height={480} subtitle="Lighting with Moving Light" />
+
+```javascript
+// @meta exec load:shaderRenderer
+const canvas = document.getElementById('canvas_lighting')
+
+const fragSource = `
+uniform vec2 uResolution;
+uniform float uTime;
+
+#define MAX_STEPS 50
+#define MAX_DIST 100.0
+#define SURFACE_DIST 0.01
+
+float sdSphere(vec3 p, float radius) {
+    return length(p) - radius;
+}
+
+float scene(vec3 p) {
+    float distance = sdSphere(p, 1.0);
+    return distance;
+}
+
+float raymarch(vec3 ro, vec3 rd) {
+    float dO = 0.0;
+    vec3 color = vec3(0.0);
+
+    for(int i = 0; i < MAX_STEPS; i++) {
+        vec3 p = ro + rd * dO;
+        float dS = scene(p);
+        dO += dS;
+
+        if(dO > MAX_DIST || dS < SURFACE_DIST) {
+            break;
+        }
+    }
+    return dO;
+}
+
+vec3 getNormal(vec3 p) {
+    vec2 e = vec2(.01, 0.0);
+
+    vec3 n = scene(p) - vec3(
+        scene(p-e.xyy),
+        scene(p-e.yxy),
+        scene(p-e.yyx));
+
+    return normalize(n);
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy / uResolution.xy) * 2.0 - 1.0;
+    uv.x *= uResolution.x / uResolution.y; // correct for aspect ratio
+
+    // Light Position
+    vec3 lightPosition = vec3(-10.0 * cos(uTime), 10.0, 10.0 * sin(uTime));
+
+    vec3 ro = vec3(0.0, 0.0, -2.0);
+    vec3 rd = normalize(vec3(uv, 1.0));
+
+    float d = raymarch(ro, rd);
+    vec3 p = ro + rd * d;
+
+    vec3 color = vec3(0.0);
+    if (d < MAX_DIST) {
+        vec3 normal = getNormal(p);
+        vec3 lightDirection = normalize(lightPosition - p);
+
+        // diffuse lighting calculation
+        float diffuse = max(dot(normal, lightDirection), 0.0);
+
+        color = vec3(1.0) * diffuse;
+    }
+
+    gl_FragColor = vec4(color, 1.0);
+}
+`
+
+const render = createShaderRenderer(canvas, { fragSource })
+function animate() {
+    render()
+    requestAnimationFrame(animate)
+}
+animate()
+```
+
+## Combining SDFs
+
+To render two objects within a raymarched scene where each object is defined through their respective SDF, we need to return a distance equivalent to the minimum of both SDFs. This is perhaps one of the technique you'll use the most throughout your own Raymarching explorations.
+
+Doing the min of two SDFs consists of uniting the two shapes in a single scene: either object could get hit by the ray, and you're essentially asking which of the two shapes is closer to a given point.
+
+```glsl
+float scene(vec3 p) {
+  float plane = p.y;
+  float sphere = sdSphere(p, 1.0);
+
+  float distance = min(sphere, plane);
+  return distance;
+}
+```
+
+<Canvas id="canvas_combining" width={640} height={480} />
+
+```javascript
+// @meta exec load:shaderRenderer
+const canvas = document.getElementById('canvas_combining')
+
+const fragSource = `
+uniform vec2 uResolution;
+uniform float uTime;
+
+#define MAX_STEPS 100
+#define MAX_DIST 100.0
+#define SURFACE_DIST 0.01
+
+float sdSphere(vec3 p, float radius) {
+    return length(p) - radius;
+}
+
+float scene(vec3 p) {
+    float plane = p.y + 1.0;
+    float sphere1 = sdSphere(p - vec3(1.0 + cos(uTime), 0.7, 0.0), 1.0);
+    float sphere2 = sdSphere(p + vec3(1.0, 0.5 + sin(uTime)/2.0, 0.0), 1.0);
+
+    float distance1 = min(sphere1, sphere2);
+    float distance2 = min(plane, distance1);
+    return distance2;
+}
+
+float raymarch(vec3 ro, vec3 rd) {
+    float dO = 0.0;
+    vec3 color = vec3(0.0);
+
+    for(int i = 0; i < MAX_STEPS; i++) {
+        vec3 p = ro + rd * dO;
+        float dS = scene(p);
+        dO += dS;
+
+        if(dO > MAX_DIST || dS < SURFACE_DIST) {
+            break;
+        }
+    }
+    return dO;
+}
+
+vec3 getNormal(vec3 p) {
+    vec2 e = vec2(.01, 0.0);
+
+    vec3 n = scene(p) - vec3(
+        scene(p-e.xyy),
+        scene(p-e.yxy),
+        scene(p-e.yyx));
+
+    return normalize(n);
+}
+
+void main() {
+    vec2 uv = (gl_FragCoord.xy / uResolution.xy) * 2.0 - 1.0;
+    uv.x *= uResolution.x / uResolution.y; // correct for aspect ratio
+
+    vec3 lightPosition = vec3(-10.0, 10.0, -10.0);
+
+    vec3 ro = vec3(0.0, 0.0, -3.0);
+    vec3 rd = normalize(vec3(uv, 1.0));
+
+    float d = raymarch(ro, rd);
+    vec3 p = ro + rd * d;
+
+    vec3 color = vec3(0.0);
+    if (d < MAX_DIST) {
+        vec3 normal = getNormal(p);
+        vec3 lightDirection = normalize(lightPosition - p);
+
+        float diffuse = max(dot(normal, lightDirection), 0.0);
+
+        color = vec3(1.0) * diffuse;
+    }
+
+    gl_FragColor = vec4(color, 1.0);
+}
+`
+
+const render = createShaderRenderer(canvas, { fragSource })
+function animate() {
+    render()
+    requestAnimationFrame(animate)
+}
+animate()
+```
+
+## Resources
+
+-   [Painting with Math - Maxime Heckel](https://blog.maximeheckel.com/posts/painting-with-math-a-gentle-study-of-raymarching/)
+-   [Painting a Landscape with Mathematics - Iniqo Quilez](https://www.youtube.com/watch?v=BFld4EBO2RE)
+-   [Ray Marching Simple Shapes - The Art of Code](https://www.youtube.com/watch?v=Ff0jJyyiVyw&t=95s)
+-   [Raymarching SDF Template](https://www.shadertoy.com/view/ldfSWs)
+
+https://www.shadertoy.com/view/lcs3DH
