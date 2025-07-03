@@ -47,8 +47,8 @@ class Automata1D {
 // @meta exec store:display
 function prepareCanvas(ctx, width, height, displayWidth, displayHeight) {
     // force CSS display size
-    ctx.canvas.style.width = `${displayWidth}px`
-    ctx.canvas.style.height = `${displayHeight}px`
+    ctx.canvas.style.width = displayWidth + "px"
+    ctx.canvas.style.height = displayHeight + "px"
 
     // data size
     ctx.canvas.width = width
@@ -176,3 +176,5 @@ animate()
 ## Resources
 
 -   [Cellular Automata - The Coding Train](https://www.youtube.com/watch?v=Ggxt06qSAe4)
+
+https://natureofcode.com/cellular-automata/

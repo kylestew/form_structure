@@ -2,7 +2,7 @@
 title: 'Noise'
 publishedAt: '2025-03-29'
 summary: 'Learn how to project 3D shapes onto a 2D plane.'
-image: 3d-projection.png
+image: noise.png
 ---
 
 ## Random
@@ -42,8 +42,8 @@ function displayHeightfield(ctx, gridSize, heightfield, getColor) {
     // Resize canvas if needed - the canvas data size needs to match the heightfield grid size
     if (ctx.canvas.width !== gridSize || ctx.canvas.height !== gridSize) {
         // maintain CSS display size
-        ctx.canvas.style.width = `${ctx.canvas.width}px`
-        ctx.canvas.style.height = `${ctx.canvas.height}px`
+        ctx.canvas.style.width = ctx.canvas.width + 'px'
+        ctx.canvas.style.height = ctx.canvas.height + 'px'
 
         ctx.canvas.width = gridSize
         ctx.canvas.height = gridSize

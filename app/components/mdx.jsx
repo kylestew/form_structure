@@ -8,7 +8,6 @@ import rehypeKatex from 'rehype-katex'
 import rehypeMath from 'rehype-math'
 import remarkMath from 'remark-math'
 
-/*
 function Table({ data }) {
     const headers = data.headers.map((header, index) => <th key={index}>{header}</th>)
     const rows = data.rows.map((row, index) => (
@@ -28,7 +27,6 @@ function Table({ data }) {
         </table>
     )
 }
-    */
 
 function CustomLink(props) {
     const { href, children, ...rest } = props
@@ -57,6 +55,7 @@ function RoundedImage(props) {
 }
 
 function slugify(str) {
+    if (!str.toLowerCase) return // IDK why it doesn't work sometimes
     return str
         .toLowerCase()
         .trim()
@@ -86,6 +85,7 @@ function createHeading(level) {
 }
 
 function Pre({ children, ...props }) {
+    // TODO: ideally we need katex to ignore these
     const code = children?.props?.children
     const lines = code.split('\n')
     const firstLine = lines[0].trim()
@@ -168,7 +168,7 @@ const components = {
 
     Image: RoundedImage,
     a: CustomLink,
-    // Table,
+    Table,
 
     // conditional code blocks
     pre: Pre,

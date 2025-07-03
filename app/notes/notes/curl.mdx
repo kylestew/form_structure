@@ -1,0 +1,253 @@
+---
+title: 'Curl Fields'
+summary: 'Curl fields in 2D'
+image: curl.png
+---
+
+```javascript
+// @meta exec store:particleSystem
+const particles = []
+const numParticles = 256
+const particleLifetime = 3.0 // seconds
+
+for (let i = 0; i < numParticles; i++) {
+    particles.push({
+        x: Math.random() * 2 - 1,
+        y: Math.random() * 2 - 1,
+        life: Math.random() * particleLifetime, // Random initial life
+    })
+}
+
+function resetParticle(p) {
+    p.x = Math.random() * 2 - 1
+    p.y = Math.random() * 2 - 1
+    p.life = particleLifetime
+}
+
+function updateParticles() {
+    const dt = 0.01
+    for (const p of particles) {
+        // Update lifetime
+        p.life -= dt
+
+        // Reset particle if lifetime expired
+        if (p.life <= 0) {
+            resetParticle(p)
+        }
+
+        const v = vectorField(p.x, p.y)
+        p.x += v.x * dt
+        p.y += v.y * dt
+    }
+}
+
+function drawParticles() {
+    for (const p of particles) {
+        // Fade out based on remaining life
+        const alpha = p.life / particleLifetime
+        ctx.fillStyle = `rgba(255, 0, 0, ${alpha})`
+
+        const px = ((p.x + 1) / 2) * canvas.width
+        const py = ((p.y + 1) / 2) * canvas.height
+        ctx.beginPath()
+        ctx.arc(px, py, 3, 0, 2 * Math.PI)
+        ctx.fill()
+    }
+}
+```
+
+## What is "Curl"?
+
+In vector calculus, curl measures the _rotation_ or _circulation_ of a vector field around a point. Imagine placing a pinwheel at a point, if the pinwheel rotates, then the curl is non-zero.
+
+-   Think of curl as "how much the field wants to twist around a point"
+-   In 2D, curl is a scalar:
+    -   Positive = counterclockwise spin
+    -   Negative = clockwise spin
+    -   Zero = no net spin
+
+> Curl is a numerical value that describes how a vector field "twists" at a given point.
+
+## 2D vector field
+
+```javascript
+// @meta exec store:visualizeVectorField
+function drawArrow(ctx, x, y, dx, dy) {
+    const headLength = 10
+    const angle = Math.atan2(dy, dx)
+    const length = Math.sqrt(dx * dx + dy * dy)
+
+    // Scale the arrow to a fixed length
+    const scale = 20 / length
+    dx *= scale
+    dy *= scale
+
+    // Draw line
+    ctx.beginPath()
+    ctx.moveTo(x, y)
+    ctx.lineTo(x + dx, y + dy)
+
+    // Draw arrow head
+    ctx.lineTo(x + dx - headLength * Math.cos(angle - Math.PI / 6), y + dy - headLength * Math.sin(angle - Math.PI / 6))
+    ctx.moveTo(x + dx, y + dy)
+    ctx.lineTo(x + dx - headLength * Math.cos(angle + Math.PI / 6), y + dy - headLength * Math.sin(angle + Math.PI / 6))
+    ctx.stroke()
+}
+
+function visualizeVectorField(fieldFn) {
+    // Create a grid of arrows
+    const gridSize = 20
+    const spacing = canvas.width / gridSize
+
+    for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+            const x = (i + 0.5) * spacing
+            const y = (j + 0.5) * spacing
+
+            // Get normalized coordinates for field calculation
+            const nx = (x / canvas.width) * 2 - 1
+            const ny = (y / canvas.height) * 2 - 1
+
+            const vector = fieldFn(nx, ny)
+            drawArrow(ctx, x, y, vector.x, vector.y)
+        }
+    }
+}
+```
+
+```javascript
+// @meta store:vectorField
+function vectorField(x, y) {
+    // return {
+    //     x: -y,
+    //     y: x,
+    // }
+
+    // const angle = Math.atan2(y, x)
+    // return {
+    //     x: -Math.cos(angle),
+    //     y: -Math.sin(angle),
+    // }
+
+    return {
+        x: Math.sin(y),
+        y: Math.cos(x),
+    }
+}
+```
+
+<Canvas id="vector_field_canvas" width={480} height={480} subtitle="Imagine dropping ping pong balls into this field" />
+
+```javascript
+// @meta exec load:particleSystem load:vectorField load:visualizeVectorField
+const canvas = document.getElementById('vector_field_canvas')
+const ctx = canvas.getContext('2d')
+
+// --- Animate ---
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    ctx.strokeStyle = '#ffffff99'
+    visualizeVectorField(vectorField)
+
+    updateParticles()
+    drawParticles()
+
+    requestAnimationFrame(animate)
+}
+
+animate()
+```
+
+## Computing Curl
+
+For a 2D vector field, the curl is defined as:
+
+$$
+\nabla \times \vec{F} = \left( \frac{\partial F_y}{\partial x} - \frac{\partial F_x}{\partial y} \right) \hat{z}
+$$
+
+(TODO: I don't know what this formula means or if its right)
+
+```
+∂Q/∂x ≈ (Q(x + h, y) - Q(x - h, y)) / (2 * h)
+∂P/∂y ≈ (P(x, y + h) - P(x, y - h)) / (2 * h)
+```
+
+We can estimate the curl at a point by taking the difference between the vector field at a point and the vector field at a nearby point (finite difference method).
+
+```javascript
+// @meta store:curlAt
+function curlAt(x, y, vectorFn, h = 0.001) {
+    // Q = y-component
+    const Q_forward = vectorFn(x + h, y).y
+    const Q_backward = vectorFn(x - h, y).y
+    const dQdx = (Q_forward - Q_backward) / (2 * h)
+
+    // P = x-component
+    const P_forward = vectorFn(x, y + h).x
+    const P_backward = vectorFn(x, y - h).x
+    const dPdy = (P_forward - P_backward) / (2 * h)
+
+    return dQdx - dPdy
+}
+```
+
+```javascript
+// @meta exec store:drawCurlField
+function drawCurlField(curlFn) {
+    const step = 10 // resolution of the heatmap grid
+    const h = 0.001 // finite difference step
+    for (let px = 0; px < canvas.width; px += step) {
+        for (let py = 0; py < canvas.height; py += step) {
+            // Convert screen to normalized space (-1 to 1)
+            const x = (px / canvas.width) * 2 - 1
+            const y = (py / canvas.height) * 2 - 1
+
+            const c = curlFn(x, y, h)
+
+            // Map curl to grayscale: assume range -2 to +2 for now
+            const normalized = Math.max(0, Math.min(1, (c + 2) / 4))
+            const brightness = Math.floor(normalized * 255)
+            ctx.fillStyle = `rgb(${brightness}, 0, 0)`
+            ctx.fillRect(px, py, step, step)
+        }
+    }
+}
+```
+
+<Canvas id="curl_field_canvas" width={480} height={480} subtitle="Curl field visualization" />
+
+```javascript
+// @meta exec load:particleSystem load:vectorField load:visualizeVectorField load:curlAt load:drawCurlField
+const canvas = document.getElementById('curl_field_canvas')
+const ctx = canvas.getContext('2d')
+
+// --- Animate ---
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    ctx.strokeStyle = '#ffffff99'
+    visualizeVectorField(vectorField)
+
+    drawCurlField((x, y, h) => curlAt(x, y, vectorField, h))
+
+    // updateParticles()
+    // drawParticles()
+
+    // requestAnimationFrame(animate)
+}
+
+animate()
+```
+
+TODO: flow particles using curl field instead of vector field
+Explain how no sources and sinks makes for a better visualization
+
+## Further Research
+
+-   Implement with Perlin noise fields
