@@ -12,9 +12,7 @@ Below is an ongoing attempt to record my experience with early computing. I some
 
 -   [Color quantization](./quantization) - Reducing color depth for displaying images with limited colors.
 -   [Dithering algorithms](./dithering) – Floyd-Steinberg, Bayer matrices, ordered dithering.
--   Rasterization
--   Scanline rendering – Simple technique for filling polygons or images line-by-line.
--   Blitting – Copying image buffers efficiently (used in games and early UIs).
+-   [Rasterization](./rasterization) - 2D/3D graphics before the GPU
 -   Sprites and Tilemaps - Essentail in 2D game engines for memory and efficiency.
 -   Raytracing / Path Tracing
 -   [Raymarching](./raymarching)
@@ -38,13 +36,15 @@ Below is an ongoing attempt to record my experience with early computing. I some
 -   https://observablehq.com/@mbostock/cosine-color-schemes?collection=@mbostock/color
 -   https://observablehq.com/@mbostock/lab-and-rgb
 
-## Random Number Generators (RNGs)
+## Randomness and Noise (RNGs)
 
 -   Linear Congruential Generator (LCG)
 -   Mersenne Twister
 -   Xorshift
 -   PCG
 -   Middle Square Method – A charmingly flawed early PRNG (not good, but historical).
+-   Perlin noise / Value noise - Used for natural textures and terrain generation in early procedural graphics.
+- Simplex
 
 ## Algorithms & Math Fun
 
@@ -61,7 +61,6 @@ Below is an ongoing attempt to record my experience with early computing. I some
 -   Barycentric coordinates - Used for point-in-triangle tests and interpolating vertex attributes (colors, UVs) inside a triangle.
 -   A and Dijkstra’s algorithm\* - Used for AI pathfinding in grid-based games (e.g., tile-based RPGs and RTS games).
 -   Marching squares / marching cubes - For contouring bitmap data (used in terrain, fluid, and volume visualization). Marching squares was popular in 2D terrain games.
--   Perlin noise / Value noise - Used for natural textures and terrain generation in early procedural graphics.
 -   FFT / DCT
 
 ## Text & Data
@@ -73,9 +72,8 @@ Below is an ongoing attempt to record my experience with early computing. I some
 
 ## The Command Line
 
-...
-
-Vim / Vim motions
+- Shells / Linux / etc...
+- Vim / Vim motions
 
 ## Display Technologies
 
@@ -104,6 +102,7 @@ Vim / Vim motions
 -   Commander Keen
 -   Wolfenstein
 -   Doom
+- Quake
 -   Prince of Persia – Rotoscoped animation marvel.
 
 ## Grab Bag
