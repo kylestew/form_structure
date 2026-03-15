@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Sprawl — Form+Structure</title>
+    <meta name="description" content="Neon Sprawl — an interactive projected installation for City Lights San Diego, where body movement reshapes a luminous urban dreamscape.">
+    <meta property="og:title" content="Neon Sprawl — Form+Structure">
+    <meta property="og:description" content="An interactive projected installation for City Lights San Diego, where body movement reshapes a luminous urban dreamscape.">
+    <meta property="og:image" content="https://formandstructure.co/images/covers/neon-sprawl.jpg">
+    <meta property="og:url" content="https://formandstructure.co/neon-sprawl">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://formandstructure.co/neon-sprawl">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --color-dark: #222222;
+            --color-gray: #404040;
+            --color-light-gray: #808080;
+            --color-light: #ececec;
+            --color-action: #c14d2c;
+        }
+        body { font-family: 'Space Mono', monospace; }
+        .art { filter: drop-shadow(0 0 0.5rem #12121222); }
+        a.link { color: var(--color-action); }
+        a.link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body class="bg-white text-dark antialiased">
+
+    <!-- Nav -->
+    <nav class="bg-dark">
+        <div class="max-w-6xl mx-auto px-8 flex items-center justify-between py-6">
+            <a href="/" class="text-white font-bold text-lg tracking-wider">
+                <span class="hidden md:inline">FORM+STRUCTURE</span>
+                <span class="md:hidden">F+S</span>
+            </a>
+            <div class="flex gap-8">
+                <a href="/about.html" class="text-light-gray hover:text-white text-sm tracking-wider transition-colors">ABOUT</a>
+                <a href="/contact.html" class="text-light-gray hover:text-white text-sm tracking-wider transition-colors">CONTACT</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="max-w-4xl mx-auto px-8 py-16 md:py-24">
+
+        <div class="mb-12">
+            <h1 class="text-5xl md:text-6xl font-bold mb-3">Neon Sprawl</h1>
+            <p class="text-2xl text-light-gray">Interactive Installation for City Lights, San Diego</p>
+        </div>
+
+        <video controls class="w-full max-w-xl mb-12" height="auto">
+            <source src="/images/neon-sprawl/video02.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <p class="text-gray mb-8 leading-relaxed">
+            Neon Sprawl is an interactive projected installation I created for City Lights San Diego, an immersive
+            art experience held in the East Village. Inspired by the atmosphere of city nights and the glow of neon
+            lights, the piece invites visitors to step into a luminous urban dreamscape where motion and light
+            converge.
+        </p>
+
+        <p class="text-gray mb-12 leading-relaxed">
+            At its core, Neon Sprawl is a kinetic reflection of San Diego itself. I collected symbols from across
+            the city&mdash;signage, architecture, local iconography&mdash;and algorithmically wove them together into a shifting
+            tapestry. As visitors move in front of the projection, their silhouette becomes part of the city's
+            rhythm, activating light, triggering patterns, and expanding or collapsing clusters of symbols like
+            buildings forming and reforming in real time.
+        </p>
+
+        <h2 class="text-2xl font-bold mb-6">The Experience</h2>
+
+        <p class="text-gray mb-10 leading-relaxed">
+            Neon Sprawl unfolds in a continuous loop of four distinct visual modes, each lasting 90 seconds. Like
+            chapters in a city's dream, these modes pulse with unique aesthetic logic&mdash;from glitchy reflections to
+            organic symbol swarms&mdash;offering shifting emotional textures as the cityscape responds to the viewer's
+            presence. The transitions are seamless, inviting repeated exploration and new encounters each cycle.
+        </p>
+
+        <h3 class="text-lg font-bold mb-3">Time Shadows</h3>
+        <div class="mb-10 grid grid-cols-2 gap-6">
+            <img src="/images/neon-sprawl/time_shadows_01.jpg" class="art w-full" alt="Time Shadows mode — layered silhouette trails over neon symbols" width="1092" height="1365" loading="lazy">
+            <img src="/images/neon-sprawl/time_shadows_02.jpg" class="art w-full" alt="Time Shadows mode — visitor silhouettes creating light trails" width="1092" height="1365" loading="lazy">
+        </div>
+
+        <h3 class="text-lg font-bold mb-3">City Wave</h3>
+        <div class="mb-10">
+            <img src="/images/neon-sprawl/city_wave.jpg" class="art w-full max-w-xl" alt="City Wave mode — flowing urban symbols responding to movement" width="1092" height="1365" loading="lazy">
+        </div>
+
+        <h3 class="text-lg font-bold mb-3">Shake Off the City</h3>
+        <video controls class="w-full max-w-xl mb-10" height="auto">
+            <source src="/images/neon-sprawl/shake_off.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <h3 class="text-lg font-bold mb-3">Burning Tape</h3>
+        <video controls class="w-full max-w-xl mb-12" height="auto">
+            <source src="/images/neon-sprawl/retro-feedback.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <h2 class="text-2xl font-bold mb-6">Interaction & Technology</h2>
+
+        <div class="mb-8">
+            <img src="/images/neon-sprawl/hardware-demo.jpg" class="art w-full max-w-md" alt="Hardware setup — Orbbec stereo vision camera and projection system" width="900" height="1260" loading="lazy">
+        </div>
+
+        <p class="text-gray mb-8 leading-relaxed">
+            The installation uses an <strong>Orbbec stereo vision camera</strong> to track
+            body movement in front of the screen. Those movements are interpreted in
+            <strong>TouchDesigner</strong>, where I built a custom system of real-time shaders
+            and procedural networks that control the visuals. Each gesture becomes a spark that reshapes the
+            sprawl&mdash;triggering shifts in density, motion, and illumination across a symbol-filled canvas.
+        </p>
+
+        <p class="text-gray mb-12 leading-relaxed">
+            The goal was to create a space that felt alive with urban energy&mdash;dense, chaotic, and luminous, but also
+            deeply personal. Every visitor reshapes the city in their own way, just by being present.
+        </p>
+
+        <h2 class="text-2xl font-bold mb-6">Exhibition Context</h2>
+        <p class="text-gray mb-12 leading-relaxed">
+            City Lights San Diego transformed Quartyard into a celebration of light and sound during the winter
+            season. Neon Sprawl was part of a series of installations exploring facets of city life, with my piece
+            representing the dense nighttime energy and cultural layers of San Diego's streets.
+        </p>
+
+        <h2 class="text-2xl font-bold mb-6">Reflection</h2>
+
+        <video controls width="100%" height="auto" class="mb-8">
+            <source src="/images/neon-sprawl/video01.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <p class="text-gray mb-8 leading-relaxed">
+            This piece was an exploration of urban identity through interactivity. By using city-specific symbols
+            and a visual language reminiscent of neon, I wanted to capture the way cities glow with both collective
+            and individual stories after dark.
+        </p>
+
+        <p class="text-gray italic mb-4 leading-relaxed">
+            <a href="https://citylights.space" class="link">City Lights &mdash; San Diego</a> is a creation by
+            <a href="https://www.instagram.com/benguerrette" class="link">Ben Guerrette</a> in collaboration with
+            <a href="https://quartyardsd.com/" class="link">Quartyard SD</a>, and I'm grateful to have been invited to
+            participate.
+        </p>
+
+        <p class="text-gray italic leading-relaxed">
+            Event photos by <a href="https://www.instagram.com/ericajoanphoto/" class="link">Erica Joan</a>
+        </p>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light-gray py-12">
+        <div class="max-w-6xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+            <p class="text-sm">&copy; 2026 Kyle Stewart</p>
+            <div class="flex items-center gap-6">
+                <a href="https://www.instagram.com/form.structure/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors" aria-label="Instagram">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                </a>
+                <a href="https://x.com/FormStructure" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors" aria-label="X (Twitter)">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a href="https://github.com/kylestew" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors" aria-label="GitHub">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+                </a>
+                <a href="https://www.linkedin.com/in/kyle-stewart-91851166/" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors" aria-label="LinkedIn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
