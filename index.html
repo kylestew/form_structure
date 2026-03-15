@@ -27,16 +27,16 @@
         }
         body { font-family: 'Space Mono', monospace; }
         .art { filter: drop-shadow(0 0 0.5rem #12121222); }
+        .dot-matrix {
+            background-image: radial-gradient(circle, #444 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
     </style>
 </head>
 <body class="bg-dark text-dark antialiased">
 
     <!-- Header -->
-    <header class="relative bg-dark overflow-hidden">
-        <!-- Gradient hero -->
-        <div class="absolute inset-0 bg-gradient-to-br from-dark via-gray to-dark opacity-80"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-dark/90 to-transparent"></div>
-
+    <header class="relative bg-dark overflow-hidden dot-matrix">
         <div class="relative max-w-6xl mx-auto px-8">
             <!-- Nav -->
             <nav class="flex items-center justify-between py-6">
@@ -51,7 +51,7 @@
             </nav>
 
             <!-- Byline -->
-            <div class="py-20 md:py-32">
+            <div class="pt-16 pb-6 md:pt-24 md:pb-8 flex items-end">
                 <p class="text-light-gray text-sm tracking-wider">Portfolio of
                     <a href="/about.html" class="text-white font-bold hover:underline">Kyle Stewart</a>
                 </p>
@@ -137,5 +137,6 @@
         </div>
     </footer>
 
+    <script data-goatcounter="https://formstructure.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
