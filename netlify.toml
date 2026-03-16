@@ -1,3 +1,7 @@
+[build]
+  command = "./optimize-images.sh"
+  publish = "."
+
 [[redirects]]
   from = "/career/*"
   to = "/404.html"
