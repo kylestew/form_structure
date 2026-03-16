@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/career/*"
+  to = "/404.html"
+  status = 404
